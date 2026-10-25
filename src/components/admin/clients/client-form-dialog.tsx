@@ -1,7 +1,8 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import {
   EmailField,
   InitialPasswordField,
@@ -25,11 +26,16 @@ import { useFormFailure } from "@/hooks/use-form-failure";
 import { ApiError, apiRequest } from "@/lib/api-client";
 import type { AdminClient } from "@/shared/api/clients";
 import { formatPhone } from "@/shared/format/phone";
+import {
+  clientEditSchema,
+  clientInputSchema,
+} from "@/shared/validation/clients";
 
 // UC16 and UC17 steps 6 and 7 (docs/clientes/clientes-do-painel.md): the
-// window of a new or edited client. It does not close while the request runs
-// (RNF005), and a failure, like the NOT_IMPLEMENTED of the demo, shows at its
-// top with the focus (RNF003).
+// window of a new or edited client, validated by the schemas of
+// src/shared/validation/clients.ts. It does not close while the request runs
+// (RNF005), and a failure, like EMAIL_IN_USE, shows at its top with the focus
+// (RNF003).
 
 const CLIENTS_PATH = "/api/admin/clients";
 
@@ -71,9 +77,16 @@ export function ClientFormDialog({
 }: ClientFormDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { control, handleSubmit, setError, reset } = useForm<ClientFormValues>({
-    defaultValues: toFormValues(client),
-  });
+  // The edit has no e-mail nor password to check, only the three fields.
+  const resolver = (client
+    ? zodResolver(clientEditSchema)
+    : zodResolver(clientInputSchema)) as unknown as Resolver<ClientFormValues>;
+  const { control, handleSubmit, setError, clearErrors, reset } =
+    useForm<ClientFormValues>({
+      resolver,
+      mode: "onTouched",
+      defaultValues: toFormValues(client),
+    });
   const { failure, showFailure, clearFailure } = useFormFailure(setError);
 
   // After a version conflict the client is read again, and its current data
@@ -105,6 +118,8 @@ export function ClientFormDialog({
     phone,
     password,
   }: ClientFormValues) {
+    // The route can answer for a field the person has corrected since.
+    clearErrors();
     clearFailure();
     setIsSubmitting(true);
     try {

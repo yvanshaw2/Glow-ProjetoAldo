@@ -82,5 +82,5 @@ Feitas por função SQL, em uma única transação, chamada pelo repositório (R
 
 ## Observações
 
-- Na exclusão de um cliente, além da marcação em `deleted_at`, as credenciais são removidas do Supabase Auth, o que impede novos acessos e libera o e-mail para um novo cadastro. Por esse motivo, a tabela `clients` não possui chave estrangeira para as contas do Supabase Auth, ao contrário da tabela `staff`, cujos registros são apenas desativados, e a unicidade do e-mail em `clients` vale apenas entre os clientes não excluídos.
+- Na exclusão de um cliente, além da marcação em `deleted_at`, as credenciais são removidas do Supabase Auth, o que impede novos acessos e libera o e-mail para um novo cadastro. Por esse motivo, a tabela `clients` não possui chave estrangeira para as contas do Supabase Auth, ao contrário da tabela `staff`, cujos registros são apenas desativados, e a unicidade do e-mail em `clients` vale apenas entre os clientes não excluídos. A exclusão marca `deleted_at` e depois remove a conta do Supabase Auth; se a remoção falhar, a marca é desfeita e a operação pode ser repetida.
 - O porte (`size`) é coluna gerada pelo banco a partir de `type` ([RN002](RN002-porte-definido-pelo-tipo.md)); a aplicação nunca o grava. A placa é única no sistema e o vínculo com o cliente fica em `client_vehicles` ([RN036](RN036-placa-unica.md)).

@@ -40,9 +40,10 @@ export async function createAccount({
   throw error;
 }
 
+// An account already removed counts as removed, so a repeated deletion ends.
 export async function deleteAccount(id: string): Promise<void> {
   const { error } = await getServiceClient().auth.admin.deleteUser(id);
-  if (error) {
+  if (error && error.code !== "user_not_found") {
     throw error;
   }
 }

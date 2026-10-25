@@ -1,10 +1,10 @@
 # `tests/` – Testes automatizados (Vitest)
 
-Os testes espelham o código: `rules/` testa `src/server/rules/`, `validation/` testa `src/shared/validation/`, `http/` testa `src/server/http/`, `lib/` testa `src/lib/`, `format/` testa `src/shared/format/` e `auth/` testa as funções puras de `src/server/auth/`. Rápidos, independentes e sem banco, rede ou espera.
+Os testes espelham o código: `rules/` testa `src/server/rules/`, `validation/` testa `src/shared/validation/`, `http/` testa `src/server/http/`, `lib/` testa `src/lib/`, `format/` testa `src/shared/format/`, `auth/` testa as funções puras de `src/server/auth/` e `repositories/` testa as funções puras de `src/server/repositories/`. Rápidos, independentes e sem banco, rede ou espera.
 
 ## Vai aqui
 
-- arquivos `<nome>.test.ts` em `rules/`, `validation/`, `http/`, `lib/`, `format/` e `auth/`
+- arquivos `<nome>.test.ts` em `rules/`, `validation/`, `http/`, `lib/`, `format/`, `auth/` e `repositories/`
 
 ## Não vai aqui
 

@@ -35,6 +35,9 @@ tags:
     description: >-
       Cargos e permissões do painel, com a permissão staff
       (docs/equipe/rotas.md).
+  - name: clients
+    description: >-
+      Clientes do painel, com a permissão clients (docs/clientes/rotas.md).
 paths:
   /api/auth/register:
     post:
@@ -772,6 +775,207 @@ paths:
           $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/clients:
+    get:
+      tags:
+        - clients
+      operationId: listClients
+      summary: Lista e busca clientes
+      description: >-
+        Clientes por nome completo, 20 por página, sem os excluídos (UC17,
+        RF069, RN030, RNF008). A busca separa o termo em palavras, e cada uma
+        precisa aparecer, sem diferenciar maiúsculas, no nome, no sobrenome,
+        no e-mail ou no telefone (RF070).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: search
+          in: query
+          description: Até 100 caracteres; vazio não filtra.
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: Página de clientes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientPage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - clients
+      operationId: createClient
+      summary: Cadastra um cliente
+      description: >-
+        Cria a conta do cliente e o perfil, com a troca da senha inicial
+        pendente no primeiro acesso (UC16, RN023, RS004). A conta é removida se
+        o perfil não for gravado.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientInput"
+      responses:
+        "201":
+          description: Cliente criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClient"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "409":
+          description: >-
+            EMAIL_IN_USE: o e-mail já tem conta, de cliente ou de funcionário
+            (RN022, UC16 FE02).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/clients/{id}:
+    get:
+      tags:
+        - clients
+      operationId: getClient
+      summary: Detalha um cliente
+      description: >-
+        Dados da conta do cliente (UC17, RF072). O cliente excluído e o id que
+        não é UUID respondem o mesmo 404 do cliente inexistente.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: O cliente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClient"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    patch:
+      tags:
+        - clients
+      operationId: updateClient
+      summary: Edita os dados de um cliente
+      description: >-
+        Altera só os campos enviados, ao menos um (UC17, RF073); o e-mail não
+        muda. A gravação só acontece se o cliente ainda tiver o updatedAt
+        enviado (RNF011, decisão 0009).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateInput"
+      responses:
+        "200":
+          description: Cliente atualizado, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClient"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags:
+        - clients
+      operationId: deleteClient
+      summary: Exclui a conta de um cliente
+      description: >-
+        Exclusão lógica: o cliente deixa de ser listado, perde o acesso (a
+        conta do Supabase Auth é removida e o e-mail fica livre), e os veículos
+        e os agendamentos são preservados (UC17 FA01, RF074, RN030). Se a conta
+        não puder ser removida, a exclusão é desfeita e o erro é 500.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Conta excluída.
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
     sessionCookie:
@@ -1454,6 +1658,106 @@ components:
           type: string
           format: date-time
           description: O updatedAt lido com o cargo.
+    AdminClient:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - phone
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+          examples:
+            - Maria
+        lastName:
+          type: string
+          examples:
+            - Souza
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          description: Os 11 algarismos do celular, sem máscara.
+          examples:
+            - "82999998888"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão do cliente (RNF011); volta no PATCH como veio.
+          examples:
+            - "2026-10-25T13:45:12.345678+00:00"
+    ClientPage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminClient"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    ClientInput:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+        - phone
+        - password
+      properties:
+        email:
+          type: string
+          description: Gravado em minúsculas (RN035); não se repete entre as contas (RN022).
+          examples:
+            - maria@email.com
+        firstName:
+          type: string
+          description: De 2 a 60 letras, com as iniciais maiúsculas (RN035).
+        lastName:
+          type: string
+          description: No mesmo formato do nome.
+        phone:
+          type: string
+          description: Celular com DDD, com ou sem máscara (RN035).
+          examples:
+            - (82) 99999-8888
+        password:
+          type: string
+          format: password
+          description: >-
+            Senha inicial, de 8 a 72 caracteres, com letra maiúscula, número e
+            caractere especial; o cliente a troca no primeiro acesso (RN023).
+    ClientUpdateInput:
+      type: object
+      required:
+        - updatedAt
+      description: Ao menos um entre firstName, lastName e phone.
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+          description: O updatedAt lido com o cliente.
     ProblemDetails:
       type: object
       required:

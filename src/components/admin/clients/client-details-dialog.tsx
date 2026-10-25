@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { ClientFormDialog } from "@/components/admin/clients/client-form-dialog";
-import { DeleteClientButton } from "@/components/admin/clients/delete-client-button";
+import {
+  DeleteClientButton,
+  focusSearch,
+} from "@/components/admin/clients/delete-client-button";
 import { ClientVehicleList } from "@/components/admin/vehicles/client-vehicle-list";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { useApiQuery } from "@/hooks/use-api-query";
 import type { AdminClient } from "@/shared/api/clients";
 import { formatPhone } from "@/shared/format/phone";
@@ -38,10 +42,12 @@ export function ClientDetailsDialog({
   onChange,
 }: ClientDetailsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const wasDeleted = useRef(false);
 
   // UC17 FA01: once the account is deleted, the dialog closes and the list
-  // is read again.
+  // is read again; the focus goes to the search, as the button is gone.
   function closeChanged() {
+    wasDeleted.current = true;
     setIsOpen(false);
     onChange();
   }
@@ -63,7 +69,9 @@ export function ClientDetailsDialog({
           de {client.firstName} {client.lastName}
         </span>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent
+        finalFocus={() => (wasDeleted.current ? focusSearch() : true)}
+      >
         <DialogHeader>
           <DialogTitle>Detalhes do cliente</DialogTitle>
         </DialogHeader>
@@ -153,6 +161,8 @@ function ClientContent({
           <h3 id="client-vehicles-title" className="font-semibold">
             Veículos
           </h3>
+          {/* Until #45 the vehicles of the client are demo data. */}
+          <DemoNotice />
           <ClientVehicleList clientId={client.id} />
         </section>
       </div>

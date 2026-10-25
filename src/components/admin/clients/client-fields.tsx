@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { formatPhone } from "@/shared/format/phone";
 
 // The fields of the client forms (docs/clientes/clientes-do-painel.md), shared
-// by the new and the edit windows. With the demo data the forms have no
-// validation schema yet (decision 0055), so only the empty fields are
-// checked.
+// by the new and the edit windows. The rules are the ones of the schemas of
+// src/shared/validation/clients.ts, applied by the form.
 
 export type ClientFormValues = {
   email: string;
@@ -25,12 +24,6 @@ type ClientFieldsProps = {
   control: Control<ClientFormValues>;
 };
 
-const REQUIRED_MESSAGE = "Preencha este campo.";
-
-function isFilled(value: string): true | string {
-  return value.trim() !== "" || REQUIRED_MESSAGE;
-}
-
 // UC17 step 6: the e-mail is shown, not edited.
 export function EmailField({
   control,
@@ -44,7 +37,6 @@ export function EmailField({
       description={
         isReadOnly ? "O e-mail de acesso não pode ser alterado." : undefined
       }
-      rules={{ validate: isFilled }}
       renderInput={(field) => (
         <Input
           {...field}
@@ -67,14 +59,12 @@ export function NameFields({ control }: ClientFieldsProps) {
         control={control}
         name="firstName"
         label="Nome"
-        rules={{ validate: isFilled }}
         renderInput={(field) => <Input {...field} autoComplete="off" />}
       />
       <FormField
         control={control}
         name="lastName"
         label="Sobrenome"
-        rules={{ validate: isFilled }}
         renderInput={(field) => <Input {...field} autoComplete="off" />}
       />
     </div>
@@ -88,7 +78,6 @@ export function PhoneField({ control }: ClientFieldsProps) {
       name="phone"
       label="Celular"
       description="Com DDD, como (82) 99999-8888."
-      rules={{ validate: isFilled }}
       renderInput={(field) => (
         <Input
           {...field}
@@ -111,7 +100,6 @@ export function InitialPasswordField({ control }: ClientFieldsProps) {
       name="password"
       label="Senha inicial"
       description="De 8 a 72 caracteres, com letra maiúscula, número e caractere especial. O cliente troca a senha no primeiro acesso."
-      rules={{ validate: isFilled }}
       renderInput={(field) => (
         <PasswordInput {...field} autoComplete="new-password" />
       )}

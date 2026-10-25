@@ -9,11 +9,11 @@ relacionados: [UC16, UC17, UC18, RF016, RF069, RF070, RF071, RF072, RF073, RF074
 
 Lista, detalhes, janelas, confirmações e estados de `/admin/clients`, do [UC16](UC16-cadastrar-cliente.md), do [UC17](UC17-manter-cliente.md) e do [UC18](UC18-manter-veiculos-do-cliente.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, campo de senha e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md); cadastro e edição de veículo do cliente: [area-do-cliente.md](area-do-cliente.md).
 
-Enquanto as rotas `/api/admin/clients` e `/api/admin/vehicles` usarem os dados de demonstração de `src/lib/demo/admin-clients.ts` (decisão 0055), o aviso de demonstração fica logo abaixo do título da página.
+Os clientes vêm das rotas `/api/admin/clients`. Enquanto os veículos do cliente usarem os dados de demonstração de `src/lib/demo/admin-clients.ts` (decisão 0055, até a #45), o aviso de demonstração fica no início da seção "Veículos" dos detalhes; um cliente que não é do seed mostra "Nenhum veículo cadastrado".
 
 ## Página
 
-- Título: "Clientes". Abaixo dele, o aviso de demonstração, a busca e o botão "Novo cliente" (ao lado da busca a partir de 768 px, e abaixo dela no celular) e a lista. Os detalhes são uma janela da própria página: `rotas.md` não tem subrota.
+- Título: "Clientes". Abaixo dele, a busca e o botão "Novo cliente" (ao lado da busca a partir de 768 px, e abaixo dela no celular) e a lista. Os detalhes são uma janela da própria página: `rotas.md` não tem subrota.
 - O acesso à página é da permissão `clients` ([RN025](../equipe/RN025-permissoes.md)).
 
 ## Lista (UC17 passos 2 a 4, RF069, RF070)
@@ -42,7 +42,7 @@ Enquanto as rotas `/api/admin/clients` e `/api/admin/vehicles` usarem os dados d
 
 - Janela "Novo cliente" com "E-mail", "Nome", "Sobrenome", "Celular" (descrição "Com DDD, como (82) 99999-8888.") e "Senha inicial" (descrição "De 8 a 72 caracteres, com letra maiúscula, número e caractere especial. O cliente troca a senha no primeiro acesso.", com o botão de mostrar), sem confirmação da senha.
 - Botões "Cancelar" e "Cadastrar cliente" ("Cadastrando…"). É uma janela só, sem etapas ([RNF002](../plataforma/requisitos.md)). A falha aparece no topo da janela.
-- `EMAIL_IN_USE` (FE02) aparece no topo da janela com a mensagem do catálogo de erros; a rota (#42) define se o painel usa um texto próprio.
+- `EMAIL_IN_USE` (FE02) aparece no topo da janela com "Já existe uma conta com este e-mail.", e os dados digitados são mantidos.
 
 ## Editar dados (UC17 passos 6 e 7, RF073)
 
@@ -52,7 +52,7 @@ Enquanto as rotas `/api/admin/clients` e `/api/admin/vehicles` usarem os dados d
 ## Excluir conta (UC17 FA01, RF074, RN030)
 
 - Confirmação "Excluir esta conta?", "A conta deixa de ser exibida e perde o acesso ao sistema. Os veículos e os agendamentos do cliente são preservados.", botões "Voltar" e "Excluir conta" ("Excluindo…"), na cor de erro.
-- Com sucesso, a confirmação e os detalhes fecham, e a lista é lida de novo.
+- Com sucesso, a confirmação e os detalhes fecham, a lista é lida de novo e o foco vai ao campo de busca.
 
 ## Veículos do cliente (UC18, RF016, RF075, RF076)
 

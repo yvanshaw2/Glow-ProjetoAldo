@@ -74,7 +74,7 @@ Acesso: Perfis `staff` ou `admin` com a permissão `clients`.
 Lista e busca clientes (UC17).
 
 - Entrada: `search, page, pageSize`
-- Resposta: **200** lista paginada de `id`, `firstName`, `lastName`, `email`, `phone` (os 11 algarismos) e `updatedAt`, em ordem alfabética pelo nome completo; `search` procura no nome, no e-mail e no telefone.
+- Resposta: **200** lista paginada de `id`, `firstName`, `lastName`, `email`, `phone` (os 11 algarismos) e `updatedAt`, em ordem alfabética pelo nome completo; `search` separa o termo em palavras, e cada uma precisa aparecer, sem diferenciar maiúsculas, no nome, no sobrenome, no e-mail ou no telefone (neste, vale com ou sem a máscara).
 
 #### `GET /api/admin/clients/:id`
 
@@ -95,7 +95,7 @@ Lista os veículos do cliente.
 Cadastra um cliente (UC16).
 
 - Entrada: `email*, firstName*, lastName*, phone*, password*`
-- Resposta: **201** cliente criado, com troca de senha pendente; 409 `EMAIL_IN_USE`.
+- Resposta: **201** cliente criado, com troca de senha pendente; 409 `EMAIL_IN_USE`, com a mensagem "Já existe uma conta com este e-mail." (o e-mail pode ser de um cliente ou de um funcionário).
 
 #### `PATCH /api/admin/clients/:id`
 

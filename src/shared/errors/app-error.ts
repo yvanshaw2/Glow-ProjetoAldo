@@ -1,6 +1,8 @@
 import { ERROR_CATALOG, type ErrorCode } from "@/shared/errors/catalog";
 
 type AppErrorDetails = {
+  // Replaces the message of the catalog when the route has its own text.
+  message?: string;
   // Message of each field, sent in `fields` (VALIDATION_ERROR).
   fields?: Record<string, string>;
   // Seconds sent in the Retry-After header (ACCOUNT_LOCKED).
@@ -16,9 +18,9 @@ export class AppError extends Error {
 
   constructor(
     code: ErrorCode,
-    { fields, retryAfterSeconds }: AppErrorDetails = {},
+    { message, fields, retryAfterSeconds }: AppErrorDetails = {},
   ) {
-    super(ERROR_CATALOG[code].message);
+    super(message ?? ERROR_CATALOG[code].message);
     this.name = "AppError";
     this.code = code;
     this.fields = fields ?? null;

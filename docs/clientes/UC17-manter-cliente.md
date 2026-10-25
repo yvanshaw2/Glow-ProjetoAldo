@@ -24,7 +24,7 @@ regras: [RN030]
 
 1. O funcionário acessa a página de gerenciamento de clientes.
 2. O sistema lista os clientes cadastrados.
-3. O funcionário busca o cliente por nome, e-mail ou outro dado cadastral.
+3. O funcionário busca o cliente por nome, e-mail ou outro dado cadastral (a regra da busca está em [rotas.md](rotas.md)).
 4. O funcionário seleciona a opção de ver detalhes.
 5. O sistema exibe as informações da conta e os veículos do cliente.
 6. O funcionário edita as informações e confirma.

@@ -269,12 +269,13 @@ function respondProblem(
   error: AppError,
   { instance, requestId }: ProblemTarget,
 ): Response {
-  const { status, message } = ERROR_CATALOG[error.code];
+  const { status } = ERROR_CATALOG[error.code];
   const problem: ProblemDetails = {
     type: "about:blank",
     title: STATUS_CODES[status] ?? "Error",
     status,
-    detail: message,
+    // The message of the catalog, unless the route gave its own.
+    detail: error.message,
     instance,
     code: error.code,
     ...(error.fields === null ? {} : { fields: error.fields }),

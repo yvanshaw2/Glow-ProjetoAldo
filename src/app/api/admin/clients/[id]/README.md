@@ -1,12 +1,12 @@
 # `/api/admin/clients/:id`
 
-Guard: `requirePermission('clients')`. Serviço: `src/server/services/clients.ts`. Subpastas: `vehicles/`.
+Guard: `requirePermission('clients')`. Serviço: `src/server/services/clients.ts`.
 
 | Método | Finalidade |
 |---|---|
 | `GET` | Detalha um cliente. |
-| `PATCH` | Edita os dados do cliente. |
-| `DELETE` | Exclui a conta do cliente por exclusão lógica; veículos e agendamentos são preservados (RN030). |
+| `PATCH` | Edita os dados de um cliente. |
+| `DELETE` | Exclui a conta do cliente (exclusão lógica). |
 
 Entrada, resposta e erros de cada método: `docs/clientes/rotas.md`.
 
