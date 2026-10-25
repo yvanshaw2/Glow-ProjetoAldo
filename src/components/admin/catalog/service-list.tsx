@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { InactiveSwitch } from "@/components/admin/catalog/inactive-switch";
+import { InactiveSwitch } from "@/components/shared/inactive-switch";
 import { ServiceCard } from "@/components/admin/catalog/service-card";
 import { ServiceTypeFilter } from "@/components/admin/catalog/service-type-filter";
 import { FormAlert } from "@/components/shared/form-alert";

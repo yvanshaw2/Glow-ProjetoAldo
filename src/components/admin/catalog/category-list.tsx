@@ -1,7 +1,7 @@
 "use client";
 
 import { CategoryCard } from "@/components/admin/catalog/category-card";
-import { InactiveSwitch } from "@/components/admin/catalog/inactive-switch";
+import { InactiveSwitch } from "@/components/shared/inactive-switch";
 import { PaginatedList } from "@/components/shared/paginated-list";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
 import type { AdminCategory } from "@/shared/api/catalog";
