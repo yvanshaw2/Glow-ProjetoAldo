@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState, type ReactElement } from "react";
 import { useForm } from "react-hook-form";
 import { FormAlert } from "@/components/shared/form-alert";
 import { FormField } from "@/components/shared/form-field";
@@ -17,18 +18,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormFailure } from "@/hooks/use-form-failure";
-import { apiRequest } from "@/lib/api-client";
+import { ApiError, apiRequest } from "@/lib/api-client";
 import type { AdminCategory } from "@/shared/api/catalog";
+import {
+  categoryInputSchema,
+  type CategoryFormInput,
+  type CategoryInput,
+} from "@/shared/validation/catalog";
 
 // UC15, steps 3 to 6 and FA01 (docs/catalogo/servicos-do-painel.md): the
 // window of a new or edited category, with its name and description. It does
-// not close while the request runs (RNF005), and a failure, like the
-// NOT_IMPLEMENTED of the demo, shows at its top with the focus (RNF003).
+// not close while the request runs (RNF005), and a failure shows at its top
+// with the focus (RNF003). After a version conflict (RNF011) the list is read
+// again, and the data of the category replace what was typed.
 
 const CATEGORIES_PATH = "/api/admin/categories";
-const REQUIRED_MESSAGE = "Preencha este campo.";
-
-type CategoryFormValues = { name: string; description: string };
 
 type CategoryFormDialogProps = {
   // The button that opens the window, as the `render` of the trigger.
@@ -36,24 +40,31 @@ type CategoryFormDialogProps = {
   // The category being edited; none for a new one.
   category?: AdminCategory;
   onSaved: () => void;
+  // The category changed after it was read: the list must be read again.
+  onConflict?: () => void;
 };
 
 export function CategoryFormDialog({
   trigger,
   category,
   onSaved,
+  onConflict,
 }: CategoryFormDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { control, handleSubmit, setError, reset } =
-    useForm<CategoryFormValues>({
-      mode: "onTouched",
-      defaultValues: {
-        name: category?.name ?? "",
-        description: category?.description ?? "",
-      },
-    });
+  const name = category?.name ?? "";
+  const description = category?.description ?? "";
+  const { control, handleSubmit, setError, reset } = useForm({
+    resolver: zodResolver(categoryInputSchema),
+    mode: "onTouched",
+    defaultValues: { name, description } satisfies CategoryFormInput,
+  });
   const { failure, showFailure, clearFailure } = useFormFailure(setError);
+
+  // The category read again replaces what was typed; the same data keep it.
+  useEffect(() => {
+    reset({ name, description });
+  }, [name, description, category?.updatedAt, reset]);
 
   function changeOpen(open: boolean) {
     if (isSubmitting) return;
@@ -66,7 +77,7 @@ export function CategoryFormDialog({
     }
   }
 
-  async function submit(values: CategoryFormValues) {
+  async function submit(values: CategoryInput) {
     clearFailure();
     setIsSubmitting(true);
     try {
@@ -83,6 +94,9 @@ export function CategoryFormDialog({
       onSaved();
     } catch (error) {
       showFailure(error);
+      if (error instanceof ApiError && error.code === "VERSION_CONFLICT") {
+        onConflict?.();
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -109,9 +123,6 @@ export function CategoryFormDialog({
             control={control}
             name="name"
             label="Nome"
-            rules={{
-              validate: (name) => name.trim() !== "" || REQUIRED_MESSAGE,
-            }}
             renderInput={(field) => (
               <Input {...field} placeholder="Ex.: Lavagem" autoComplete="off" />
             )}
@@ -120,10 +131,6 @@ export function CategoryFormDialog({
             control={control}
             name="description"
             label="Descrição"
-            rules={{
-              validate: (description) =>
-                description.trim() !== "" || REQUIRED_MESSAGE,
-            }}
             renderInput={(field) => (
               <Textarea {...field} placeholder="Descrição da categoria" />
             )}

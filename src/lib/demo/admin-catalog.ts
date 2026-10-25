@@ -362,15 +362,3 @@ export function answerAdminService({ params }: DemoRequest): AdminService {
   if (!service) throw notFound();
   return service;
 }
-
-// GET /api/admin/categories (UC15): by name, the inactive ones on request.
-export function answerAdminCategories({
-  query,
-}: DemoRequest): Page<AdminCategory> {
-  const categories = includesInactive(query)
-    ? CATEGORIES
-    : CATEGORIES.filter((category) => category.isActive);
-  return demoPage([...categories].sort(compareByName), query, {
-    pageSize: ADMIN_LIST_PAGE_SIZE,
-  });
-}

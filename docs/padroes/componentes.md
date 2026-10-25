@@ -21,6 +21,7 @@ Parte de [frontend.md](frontend.md). Estilo: [design.md](design.md). Código: `s
 - Cadastro e edição ficam numa janela (`dialog`), ancorada embaixo no celular.
 - Ação irreversível ou de efeito relevante (excluir, desativar, cancelar) pede o diálogo de confirmação (`ConfirmDialog`), com "Cancelar" e a ação nomeada pelo verbo, como "Excluir"; quando a ação é cancelar, o botão que fecha é "Voltar", para os dois botões não terem o mesmo verbo.
 - O foco começa em "Cancelar" (ou "Voltar"), fica no diálogo enquanto ele está aberto e volta ao botão que o abriu (RNF005). Durante a chamada, o diálogo não fecha, e a falha aparece dentro dele (RNF003, RNF004).
+- Quando a ação tira da lista o item que abriu o diálogo, o foco vai ao controle da lista que o trouxe de volta, como o interruptor "Exibir inativos".
 
 ## Formulário em etapas (RNF002)
 

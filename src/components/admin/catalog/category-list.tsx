@@ -37,7 +37,11 @@ export function CategoryList() {
         <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {categories.map((category) => (
             <li key={category.id}>
-              <CategoryCard category={category} onChange={list.reload} />
+              <CategoryCard
+                category={category}
+                isInactiveShown={list.filters.includeInactive}
+                onChange={list.reload}
+              />
             </li>
           ))}
         </ul>

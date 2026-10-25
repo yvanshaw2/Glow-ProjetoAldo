@@ -6,6 +6,7 @@ import { CategoryFormDialog } from "@/components/admin/catalog/category-form-dia
 import { CategoryList } from "@/components/admin/catalog/category-list";
 import { ServiceFormDialog } from "@/components/admin/catalog/service-form-dialog";
 import { ServiceList } from "@/components/admin/catalog/service-list";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -66,7 +67,14 @@ export function CatalogTabs() {
       {/* Each tab mounts its list when chosen, so it reads the route again and
           starts with no search or filter. The cards have their own buttons,
           so the panel takes no focus stop of its own. */}
-      <TabsContent value="services" tabIndex={-1}>
+      <TabsContent
+        value="services"
+        tabIndex={-1}
+        className="flex flex-col gap-6"
+      >
+        {/* The services are still demo data (decision 0055, #44); the
+            categories are real. */}
+        <DemoNotice />
         <ServiceList
           key={serviceReadCount}
           onGoToCategories={() => setSection("categories")}

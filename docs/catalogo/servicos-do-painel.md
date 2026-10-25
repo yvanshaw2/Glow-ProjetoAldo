@@ -9,11 +9,11 @@ relacionados: [UC13, UC14, UC15, RF057, RF058, RF059, RF060, RF061, RF062, RF063
 
 Abas, listagens, cartões, janelas, confirmações e estados de `/admin/services`, do [UC13](UC13-cadastrar-servico.md), do [UC14](UC14-manter-servicos.md) e do [UC15](UC15-manter-categorias.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, formulário em etapas, campo monetário e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
-Enquanto as rotas `/api/admin/services` e `/api/admin/categories` usarem os dados de demonstração de `src/lib/demo/admin-catalog.ts` (decisão 0055), o aviso de demonstração fica logo abaixo do título da página.
+Enquanto a rota `/api/admin/services` usar os dados de demonstração de `src/lib/demo/admin-catalog.ts` (decisão 0055), o aviso de demonstração fica no topo da aba "Serviços".
 
 ## Página
 
-- Título "Serviços". Abaixo dele, o aviso de demonstração e as abas "Serviços" e "Categorias" (RF057), cada uma com o botão de criar ("Novo serviço", "Nova categoria") ao lado das abas a partir de 768 px e abaixo delas no celular.
+- Título "Serviços". Abaixo dele, as abas "Serviços" e "Categorias" (RF057), cada uma com o botão de criar ("Novo serviço", "Nova categoria") ao lado das abas a partir de 768 px e abaixo delas no celular.
 - Cada aba lê a rota de novo ao ser escolhida e começa sem busca nem filtro. O acesso à página é da permissão `services` ([RN025](../equipe/RN025-permissoes.md)).
 
 ## Serviços (UC14, RF058, RF059)
@@ -68,3 +68,4 @@ A mesma janela, "Editar serviço", sem a escolha do tipo, que não se altera (`d
 
 - Carregamento: o esqueleto dos cartões. Vazio: "Nenhum serviço cadastrado", "Nenhuma categoria cadastrada" e, com busca ou filtro, "Nenhum serviço encontrado". Falha da leitura: o aviso com "Tentar novamente".
 - A falha de uma gravação aparece no topo da janela ou da confirmação, com a mensagem da API.
+- No 409 `VERSION_CONFLICT` de uma categoria, a janela de edição mostra o aviso no topo e passa a ter os dados atuais, e a confirmação de desativar ou reativar mantém o aviso e passa a refletir a situação atual da categoria, já lida de novo.

@@ -1,23 +1,43 @@
 "use client";
 
+import { useRef } from "react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CategoryFormDialog } from "@/components/admin/catalog/category-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/api-client";
+import { ApiError, apiRequest } from "@/lib/api-client";
 import type { AdminCategory } from "@/shared/api/catalog";
 
 // UC15, steps 2 and FA01 to FA03 (docs/catalogo/servicos-do-painel.md): a
 // category with its situation, and the edit, deactivation and reactivation,
-// the last two confirmed (RN031). A category is never deleted (RN030).
+// the last two confirmed (RN031). A category is never deleted (RN030). After a
+// version conflict (RNF011) the list is read again, so the card and the open
+// confirmation show the current situation.
 
 type CategoryCardProps = {
   category: AdminCategory;
+  // The list shows the inactive categories too.
+  isInactiveShown: boolean;
   onChange: () => void;
 };
 
-export function CategoryCard({ category, onChange }: CategoryCardProps) {
+// A category deactivated leaves the list that hides the inactive ones, and
+// with it the button that opened the confirmation: the focus goes to the
+// switch of the inactive ones, in the same panel (RNF005). Any other way of
+// closing returns it to the button.
+function focusInactiveSwitch() {
+  return document.querySelector<HTMLElement>(
+    '[role="tabpanel"] [role="switch"]',
+  );
+}
+
+export function CategoryCard({
+  category,
+  isInactiveShown,
+  onChange,
+}: CategoryCardProps) {
   const { id, name, description, isActive, updatedAt } = category;
+  const wasDeactivated = useRef(false);
   return (
     <article className="flex h-full flex-col gap-3 rounded-xl bg-background p-5 shadow-neu-md">
       <div className="flex items-start justify-between gap-3">
@@ -36,6 +56,7 @@ export function CategoryCard({ category, onChange }: CategoryCardProps) {
         <CategoryFormDialog
           category={category}
           onSaved={onChange}
+          onConflict={onChange}
           trigger={<Button variant="outline">Editar</Button>}
         />
         <ConfirmDialog
@@ -55,11 +76,28 @@ export function CategoryCard({ category, onChange }: CategoryCardProps) {
           confirmLabel={isActive ? "Desativar categoria" : "Reativar categoria"}
           loadingLabel={isActive ? "Desativando…" : "Reativando…"}
           cancelLabel="Voltar"
+          finalFocus={() =>
+            wasDeactivated.current && !isInactiveShown
+              ? focusInactiveSwitch()
+              : true
+          }
           onConfirm={async () => {
-            await apiRequest(`/api/admin/categories/${id}`, {
-              method: "PATCH",
-              body: { isActive: !isActive, updatedAt },
-            });
+            wasDeactivated.current = false;
+            try {
+              await apiRequest(`/api/admin/categories/${id}`, {
+                method: "PATCH",
+                body: { isActive: !isActive, updatedAt },
+              });
+              wasDeactivated.current = isActive;
+            } catch (error) {
+              if (
+                error instanceof ApiError &&
+                error.code === "VERSION_CONFLICT"
+              ) {
+                onChange();
+              }
+              throw error;
+            }
           }}
           onConfirmed={onChange}
         />
