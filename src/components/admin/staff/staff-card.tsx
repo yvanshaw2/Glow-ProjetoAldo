@@ -1,7 +1,9 @@
 "use client";
 
 import { ActiveConfirm } from "@/components/shared/active-confirm";
+import { StaffFormDialog } from "@/components/admin/staff/staff-form-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { AdminStaffMember } from "@/shared/api/staff";
 
 // UC20 step 2 and FA01, FA02 (docs/equipe/equipe-do-painel.md): a staff
@@ -38,6 +40,16 @@ export function StaffCard({ member, onChange }: StaffCardProps) {
         </p>
       </div>
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
+        <StaffFormDialog
+          member={member}
+          onSaved={onChange}
+          onConflict={onChange}
+          trigger={
+            <Button variant="outline" aria-label={`Editar ${fullName}`}>
+              Editar
+            </Button>
+          }
+        />
         <ActiveConfirm
           path={`/api/admin/staff/${id}`}
           name={fullName}

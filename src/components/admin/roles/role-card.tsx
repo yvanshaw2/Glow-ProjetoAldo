@@ -1,7 +1,9 @@
 "use client";
 
 import { ActiveConfirm } from "@/components/shared/active-confirm";
+import { RoleFormDialog } from "@/components/admin/roles/role-form-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { AdminRole } from "@/shared/api/staff";
 import { PERMISSION_LABELS } from "@/shared/constants/permissions";
 
@@ -45,6 +47,16 @@ export function RoleCard({ role, onChange }: RoleCardProps) {
         ))}
       </ul>
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
+        <RoleFormDialog
+          role={role}
+          onSaved={onChange}
+          onConflict={onChange}
+          trigger={
+            <Button variant="outline" aria-label={`Editar ${name}`}>
+              Editar
+            </Button>
+          }
+        />
         <ActiveConfirm
           path={`/api/admin/roles/${id}`}
           name={name}
