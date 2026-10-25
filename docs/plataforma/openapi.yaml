@@ -632,6 +632,213 @@ paths:
           $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/services:
+    get:
+      tags:
+        - catalog
+      operationId: listServices
+      summary: Lista os serviços
+      description: >-
+        Serviços por nome, 20 por página (UC14, RNF008), sem os excluídos
+        (RN030). Os inativos só com includeInactive=true (FA01). O serviço de
+        categoria inativa consta na lista, com isCategoryActive falso (RN031).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/ServiceType"
+        - name: includeInactive
+          in: query
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+            default: "false"
+        - name: search
+          in: query
+          description: >-
+            Até 100 caracteres; procura o termo, sem diferenciar maiúsculas, em
+            qualquer trecho do nome.
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: Página de serviços.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - catalog
+      operationId: createService
+      summary: Cadastra um serviço
+      description: >-
+        Cadastra o serviço principal, adicional ou complementar, sempre ativo
+        (UC13), com os valores por porte e os vínculos gravados numa só
+        transação (RNF010). O nome não se repete entre os serviços não
+        excluídos, sem diferenciar maiúsculas (RN035). A categoria precisa ser
+        ativa (RN007); os vínculos, de serviços cadastrados do outro tipo
+        (RN006). Os campos de outro tipo são descartados. A imagem é gravada
+        pela rota de envio (#47).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Serviço criado e ativo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminService"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "409":
+          $ref: "#/components/responses/NameInUse"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/services/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - catalog
+      operationId: getService
+      summary: Detalha um serviço
+      description: >-
+        O serviço com os valores por porte e os vínculos (UC14). Id que não é
+        UUID, inexistente ou excluído responde 404.
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: O serviço.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminService"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    patch:
+      tags:
+        - catalog
+      operationId: updateService
+      summary: Edita, desativa ou reativa um serviço
+      description: >-
+        Altera só os campos enviados, ao menos um (UC14 FA01 a FA03). O
+        resultado é validado como um cadastro do tipo do serviço, que não muda;
+        trocar pricingMode exige os valores da nova forma e descarta os da
+        antiga. A gravação só acontece se o serviço ainda tiver o updatedAt
+        enviado (RNF011, decisão 0009). Id que não é UUID responde o mesmo 404
+        do serviço inexistente.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceUpdateInput"
+      responses:
+        "200":
+          description: Serviço atualizado, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminService"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            NAME_IN_USE: o nome já é de outro serviço não excluído (RN035).
+            VERSION_CONFLICT: o serviço mudou depois da leitura, e nada foi
+            gravado (RNF011).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags:
+        - catalog
+      operationId: deleteService
+      summary: Exclui um serviço
+      description: >-
+        Exclusão lógica (UC14 FA04, RN030): o serviço deixa de aparecer, o nome
+        fica livre e os agendamentos que o têm são preservados. Excluir de novo
+        responde 404.
+      security:
+        - sessionCookie: []
+      responses:
+        "204":
+          description: Serviço excluído.
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/admin/roles:
     get:
       tags:
@@ -1546,6 +1753,281 @@ components:
           type: string
           format: date-time
           description: O updatedAt lido com a categoria.
+    ServiceType:
+      type: string
+      enum:
+        - main
+        - additional
+        - complementary
+      description: Principal, adicional ou complementar (RN006); não muda depois do cadastro.
+    PricingMode:
+      type: string
+      enum:
+        - fixed
+        - by_size
+      description: Valor fixo ou um valor para cada porte (RN009).
+    ServicePrices:
+      type: object
+      required:
+        - small
+        - medium
+        - large
+        - extra_large
+      description: Um valor para cada porte do veículo (RN009), de R$ 0,01 a R$ 99.999,99.
+      properties:
+        small:
+          type: number
+          examples:
+            - 50
+        medium:
+          type: number
+          examples:
+            - 60
+        large:
+          type: number
+          examples:
+            - 70
+        extra_large:
+          type: number
+          examples:
+            - 80
+    AdminServiceSummary:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - description
+        - category
+        - avgDurationMinutes
+        - pricingMode
+        - fixedPrice
+        - startingPrice
+        - isActive
+        - isCategoryActive
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/ServiceType"
+        name:
+          type: string
+          examples:
+            - Lavagem completa
+        description:
+          type:
+            - string
+            - "null"
+          description: Nulo no serviço adicional.
+        category:
+          description: Nulo no serviço adicional.
+          oneOf:
+            - type: "null"
+            - type: object
+              required:
+                - id
+                - name
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+        avgDurationMinutes:
+          type: integer
+          minimum: 5
+          maximum: 2400
+        pricingMode:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/PricingMode"
+        fixedPrice:
+          type:
+            - number
+            - "null"
+          description: O valor do serviço de valor fixo; nulo no serviço por porte.
+        startingPrice:
+          type:
+            - number
+            - "null"
+          description: O menor dos quatro valores do serviço por porte; nulo no de valor fixo.
+        isActive:
+          type: boolean
+          description: O serviço inativo não aparece para o cliente (RN008).
+        isCategoryActive:
+          type:
+            - boolean
+            - "null"
+          description: Falso quando a categoria está inativa (RN031); nulo sem categoria.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão do serviço (RNF011); volta no PATCH como veio.
+          examples:
+            - "2026-10-25T13:45:12.345678+00:00"
+    AdminService:
+      allOf:
+        - $ref: "#/components/schemas/AdminServiceSummary"
+        - type: object
+          required:
+            - imageUrl
+            - prices
+            - additionalIds
+            - mainServiceIds
+          properties:
+            imageUrl:
+              type:
+                - string
+                - "null"
+              description: Endereço público da imagem; nulo sem imagem.
+            prices:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/ServicePrices"
+            additionalIds:
+              type: array
+              description: Os adicionais do serviço principal, sem os excluídos; vazio nos outros tipos.
+              items:
+                type: string
+                format: uuid
+            mainServiceIds:
+              type: array
+              description: Os principais do serviço adicional, sem os excluídos; vazio nos outros tipos.
+              items:
+                type: string
+                format: uuid
+    ServicePage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminServiceSummary"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    ServiceInput:
+      description: >-
+        O corpo depende de type (e, no principal e no complementar, de
+        pricingMode). Os campos de outro tipo são descartados.
+      oneOf:
+        - type: object
+          title: Principal ou complementar
+          required:
+            - type
+            - categoryId
+            - name
+            - description
+            - avgDurationMinutes
+            - pricingMode
+          properties:
+            type:
+              type: string
+              enum:
+                - main
+                - complementary
+            categoryId:
+              type: string
+              format: uuid
+              description: De uma categoria ativa (RN007).
+            name:
+              type: string
+              description: De 2 a 60 caracteres, com a inicial maiúscula (RN035).
+            description:
+              type: string
+              description: Até 500 caracteres, em um único parágrafo (RN035).
+            avgDurationMinutes:
+              type: integer
+              minimum: 5
+              maximum: 2400
+            pricingMode:
+              $ref: "#/components/schemas/PricingMode"
+            fixedPrice:
+              type: number
+              description: Obrigatório com pricingMode fixed.
+            prices:
+              allOf:
+                - $ref: "#/components/schemas/ServicePrices"
+              description: Obrigatório com pricingMode by_size.
+            additionalIds:
+              type: array
+              description: Só no principal; serviços adicionais cadastrados (RN006).
+              items:
+                type: string
+                format: uuid
+        - type: object
+          title: Adicional
+          required:
+            - type
+            - name
+            - avgDurationMinutes
+            - fixedPrice
+          properties:
+            type:
+              type: string
+              enum:
+                - additional
+            name:
+              type: string
+            avgDurationMinutes:
+              type: integer
+              minimum: 5
+              maximum: 2400
+            fixedPrice:
+              type: number
+            mainServiceIds:
+              type: array
+              description: Serviços principais cadastrados (RN006).
+              items:
+                type: string
+                format: uuid
+    ServiceUpdateInput:
+      type: object
+      required:
+        - updatedAt
+      description: Ao menos um campo além de updatedAt. O type não pode ser alterado.
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        avgDurationMinutes:
+          type: integer
+        pricingMode:
+          $ref: "#/components/schemas/PricingMode"
+        fixedPrice:
+          type: number
+        prices:
+          $ref: "#/components/schemas/ServicePrices"
+        additionalIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        mainServiceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        isActive:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+          description: A versão lida com o serviço (RNF011).
     PermissionKey:
       type: string
       description: Uma página do painel (RN025).

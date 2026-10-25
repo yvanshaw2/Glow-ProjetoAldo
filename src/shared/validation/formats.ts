@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const LOCALE = "pt-BR";
 
-const REQUIRED_MESSAGE = "Preencha este campo.";
+export const REQUIRED_MESSAGE = "Preencha este campo.";
 const PERSON_NAME_MESSAGE =
   "Use de 2 a 60 letras; espaço, hífen e apóstrofo também valem.";
 const EMAIL_MESSAGE = "Informe um e-mail válido, como maria@email.com.";

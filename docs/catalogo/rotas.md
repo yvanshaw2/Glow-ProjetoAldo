@@ -46,7 +46,7 @@ Acesso: Perfis `staff` ou `admin` com a permissão `services`.
 
 Lista os serviços (UC14).
 
-- Entrada: `type, includeInactive, search`
+- Entrada: `type, includeInactive, search`; `search` procura o termo, sem diferenciar maiúsculas, em qualquer trecho do nome.
 - Resposta: **200** lista paginada, em ordem alfabética, de `id`, `type`, `name`, `description` (ou `null`), `category` (`id` e `name`, ou `null`), `avgDurationMinutes`, `pricingMode` (ou `null`), `fixedPrice` (ou `null`), `startingPrice` (o menor valor por porte, ou `null`), `isActive`, `isCategoryActive` (ou `null`) e `updatedAt`. O serviço de categoria inativa consta na lista (RN031).
 
 #### `GET /api/admin/services/:id`
@@ -60,22 +60,24 @@ Detalha um serviço, com valores e vínculos.
 
 Cadastra um serviço (UC13).
 
-- Entrada: `type*, name*, avgDurationMinutes*`; Principal e complementar: `categoryId*, description*, pricingMode*`, `fixedPrice*` ou os quatro `prices*`, conforme a precificação, e `imagePath`; Principal: `additionalIds`; Adicional: `fixedPrice*, mainServiceIds`.
-- Resposta: **201** serviço criado e ativo; 409 `NAME_IN_USE`.
+- Entrada: `type*, name*, avgDurationMinutes*`; Principal e complementar: `categoryId*, description*, pricingMode*`, `fixedPrice*` ou os quatro `prices*`, conforme a precificação; Principal: `additionalIds`; Adicional: `fixedPrice*, mainServiceIds`. Os campos de outro tipo são descartados. A imagem é gravada pela rota de envio (#47); até lá o serviço é cadastrado sem imagem.
+- `categoryId` precisa ser de uma categoria ativa; na edição, manter a categoria atual vale mesmo que ela esteja inativa (RN031). Categoria inexistente ou inativa: 400 em `categoryId`.
+- `additionalIds` (principal) e `mainServiceIds` (adicional) só aceitam serviços existentes, não excluídos e do tipo certo; o inativo pode ser vinculado. Id fora disso: 400 no campo.
+- Resposta: **201** serviço criado e ativo; 400; 409 `NAME_IN_USE`.
 
 #### `PATCH /api/admin/services/:id`
 
 Edita, desativa ou reativa um serviço.
 
-- Entrada: Os campos do cadastro e `isActive`.
-- Resposta: **200** serviço atualizado; 409 `NAME_IN_USE`.
+- Entrada: `updatedAt*` e, ao menos um, os campos do cadastro e `isActive`. Só o que veio é alterado, e o resultado precisa ser um cadastro válido do tipo do serviço, que não muda. Trocar `pricingMode` exige os valores da nova forma e descarta os da antiga.
+- Resposta: **200** serviço atualizado; 400; 404; 409 `NAME_IN_USE` ou `VERSION_CONFLICT`.
 
 #### `DELETE /api/admin/services/:id`
 
 Exclui um serviço por exclusão lógica (RN030).
 
 - Entrada: Nenhuma.
-- Resposta: **204** serviço excluído.
+- Resposta: **204** serviço excluído; 404 id inexistente ou já excluído.
 
 #### `POST /api/admin/services/image`
 

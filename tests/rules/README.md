@@ -1,6 +1,6 @@
 # `tests/rules/` – Testes das regras puras
 
-Um arquivo por arquivo de `src/server/rules/`: `pricing.test.ts`, `status-transitions.test.ts`, `scheduling.test.ts` e `editing.test.ts`, escritos antes do código (TDD).
+Um arquivo por arquivo de `src/server/rules/`: `pricing.test.ts`, `status-transitions.test.ts`, `scheduling.test.ts`, `editing.test.ts` e `services.test.ts`, escritos antes do código (TDD).
 
 ## Vai aqui
 

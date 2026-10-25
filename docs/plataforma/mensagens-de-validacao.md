@@ -2,7 +2,7 @@
 titulo: Mensagens de validação
 assunto: plataforma
 origem: issue #21, memoria/tarefas/21-formatos-e-erros/01_plano.md (L11)
-relacionados: [RN035, RNF003]
+relacionados: [RN035, RNF003, RN006, RN007]
 ---
 
 # Mensagens de validação
@@ -30,6 +30,8 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Instagram | Informe o endereço do perfil no Instagram, começando por https://. |
 | Facebook | Informe o endereço da página no Facebook, começando por https://. |
 | Nomes de serviço, categoria e cargo; descrição do cargo ocupado | Use de 2 a 60 caracteres. |
+| Categoria de serviço inexistente ou inativa | Escolha uma categoria ativa. |
+| Serviço vinculado inexistente, excluído ou do tipo errado | Escolha serviços cadastrados. |
 | Horário | Escolha um horário em hora cheia ou meia hora. |
 | Encerramento igual ou anterior à abertura | O encerramento deve ser depois da abertura. |
 | Início da pausa antes da abertura | A pausa deve começar a partir da abertura. |

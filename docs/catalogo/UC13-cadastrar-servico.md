@@ -33,7 +33,7 @@ regras: [RN006, RN007, RN009, RN035]
 7. O funcionário informa os valores e avança.
 8. O sistema exibe os serviços adicionais já cadastrados para vínculo opcional.
 9. O funcionário seleciona os adicionais desejados, ou nenhum, e confirma.
-10. O sistema valida os dados, grava o serviço e o exibe na listagem.
+10. O sistema valida os dados, grava o serviço e o exibe na listagem. A categoria escolhida precisa ser ativa, e os vínculos, de serviços cadastrados do outro tipo ([rotas.md](rotas.md)).
 
 ## Fluxos alternativos
 

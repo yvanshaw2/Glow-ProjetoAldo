@@ -1,6 +1,6 @@
 # `src/server/rules/` – Regras puras
 
-Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `status-transitions.ts`, `scheduling.ts` e `editing.ts`. Recebem tudo por parâmetro, inclusive o instante atual e a disponibilidade, e devolvem resultados; não gravam nada.
+Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `status-transitions.ts`, `scheduling.ts`, `editing.ts` e `services.ts` (a edição parcial de um serviço). Recebem tudo por parâmetro, inclusive o instante atual e a disponibilidade, e devolvem resultados; não gravam nada.
 
 ## Vai aqui
 
