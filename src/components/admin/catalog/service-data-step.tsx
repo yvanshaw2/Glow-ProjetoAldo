@@ -1,10 +1,7 @@
 "use client";
 
 import { useController, useFormContext } from "react-hook-form";
-import {
-  ChoiceGroup,
-  type Choice,
-} from "@/components/admin/catalog/choice-group";
+import { ChoiceGroup, type Choice } from "@/components/shared/choice-group";
 import { ServiceImageField } from "@/components/admin/catalog/service-image-field";
 import { ServiceLinksField } from "@/components/admin/catalog/service-links-step";
 import { isPositivePrice } from "@/components/admin/catalog/service-prices-step";

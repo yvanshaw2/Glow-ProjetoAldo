@@ -1,7 +1,9 @@
 "use client";
 
 import type { ComponentType } from "react";
+import { AvailabilityForm } from "@/components/admin/settings/availability-form";
 import { CompanySettingsForm } from "@/components/admin/settings/company-settings-form";
+import { PaymentFeesForm } from "@/components/admin/settings/payment-fees-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // The sections of /admin/settings, one tab each (docs/configuracoes/rotas.md).
@@ -14,6 +16,16 @@ type SettingsSection = {
 
 const SETTINGS_SECTIONS: SettingsSection[] = [
   { value: "company", label: "Empresa", Content: CompanySettingsForm },
+  {
+    value: "availability",
+    label: "Disponibilidade",
+    Content: AvailabilityForm,
+  },
+  {
+    value: "payment-fees",
+    label: "Formas de pagamento",
+    Content: PaymentFeesForm,
+  },
 ];
 
 export function SettingsTabs() {

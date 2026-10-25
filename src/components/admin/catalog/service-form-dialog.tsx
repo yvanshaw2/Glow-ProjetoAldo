@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
-import {
-  ChoiceGroup,
-  type Choice,
-} from "@/components/admin/catalog/choice-group";
+import { ChoiceGroup, type Choice } from "@/components/shared/choice-group";
 import { ServiceWizard } from "@/components/admin/catalog/service-wizard";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
