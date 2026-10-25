@@ -22,10 +22,3 @@ export const ROLE_STEPS: FormStep<RoleFormValues>[] = [
   { title: "Identificação", fields: ["name", "description"] },
   { title: "Permissões", fields: ["permissionKeys"] },
 ];
-
-// The body of POST and PATCH /api/admin/roles (docs/equipe/rotas.md); an
-// empty optional field goes as empty text.
-export function toRequestBody(values: RoleFormValues) {
-  const { name, description, permissionKeys } = values;
-  return { name, description, permissionKeys };
-}

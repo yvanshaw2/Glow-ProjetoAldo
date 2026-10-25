@@ -6,6 +6,7 @@ import { RoleFormDialog } from "@/components/admin/roles/role-form-dialog";
 import { RoleList } from "@/components/admin/roles/role-list";
 import { StaffFormDialog } from "@/components/admin/staff/staff-form-dialog";
 import { StaffList } from "@/components/admin/staff/staff-list";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -66,7 +67,8 @@ export function StaffTabs() {
       {/* Each tab mounts its list when chosen, so it reads the route again
           and starts with the inactive ones hidden. The cards have their own
           buttons, so the panel takes no focus stop of its own. */}
-      <TabsContent value="staff" tabIndex={-1}>
+      <TabsContent value="staff" tabIndex={-1} className="flex flex-col gap-6">
+        <DemoNotice />
         <StaffList key={staffReadCount} />
       </TabsContent>
       <TabsContent value="roles" tabIndex={-1}>

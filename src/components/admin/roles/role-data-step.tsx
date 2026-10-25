@@ -7,11 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 // UC21 steps 4 and 5 (docs/equipe/equipe-do-painel.md): the first step of the
-// form of a role, with its name and optional description. With the demo data
-// the form has no validation schema yet (decision 0055), so only the empty
-// name is checked (FE01).
-
-const REQUIRED_MESSAGE = "Preencha este campo.";
+// form of a role, with its name and optional description, checked by the
+// schema of the route (FE01).
 
 export function RoleDataStep() {
   const { control } = useFormContext<RoleFormValues>();
@@ -21,7 +18,6 @@ export function RoleDataStep() {
         control={control}
         name="name"
         label="Nome"
-        rules={{ validate: (name) => name.trim() !== "" || REQUIRED_MESSAGE }}
         renderInput={(field) => (
           <Input {...field} placeholder="Ex.: Atendente" autoComplete="off" />
         )}

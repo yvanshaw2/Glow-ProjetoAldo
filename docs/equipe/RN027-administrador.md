@@ -9,7 +9,7 @@ relacionados: [RF039, RF084, UC08, UC20]
 
 # RN027 – Administrador
 
-A conta de administrador tem acesso irrestrito ao sistema, independentemente de cargo, e não é exibida nas listagens do painel administrativo, não podendo ser editada nem desativada pelos funcionários.
+A conta de administrador tem acesso irrestrito ao sistema, independentemente de cargo, e não é exibida nas listagens do painel administrativo, não podendo ser editada nem desativada pelos funcionários. Por isso o acesso ao painel nunca se perde por completo: se um cargo perde a permissão de funcionários, ou é desativado, o administrador ainda gerencia os cargos e os funcionários.
 
 ## Onde se aplica
 

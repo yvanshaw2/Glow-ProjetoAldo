@@ -1,4 +1,4 @@
--- Fictitious demo data for the catalog and the dashboard (docs/plataforma/infraestrutura.md).
+-- Fictitious demo data for the staff roles, the catalog and the dashboard (docs/plataforma/infraestrutura.md).
 -- Optional: load it after the migration and seed.sql, pasting it into the SQL Editor.
 -- Every id derives from a fixed key, so loading it again duplicates nothing: it only adds
 -- appointments to the days that have none yet. Appointment dates are relative to the load
@@ -184,6 +184,30 @@ begin
   return status;
 end;
 $$;
+
+-- Staff roles (RN024 to RN026) ---------------------------------------------------
+
+insert into public.roles (id, name, description, is_active, created_at, updated_at)
+select pg_temp.glow_demo_id('role:' || r.name), r.name, r.description, r.is_active,
+  now() - interval '120 days', now() - interval '120 days'
+from (values
+  ('Gerente', 'Responsável pela operação diária: acompanha os números, a agenda, o catálogo e a equipe.', true),
+  ('Atendente', 'Recebe os clientes e cuida da agenda e do cadastro deles.', true),
+  ('Detalhista', 'Técnico de estética automotiva: acompanha a agenda do dia.', true),
+  ('Auxiliar', null, false)
+) as r(name, description, is_active)
+on conflict do nothing;
+
+insert into public.role_permissions (role_id, permission_key)
+select pg_temp.glow_demo_id('role:' || p.role_name), p.permission_key::public.permission_key
+from (values
+  ('Gerente', 'dashboard'), ('Gerente', 'appointments'), ('Gerente', 'services'),
+  ('Gerente', 'clients'), ('Gerente', 'settings'),
+  ('Atendente', 'appointments'), ('Atendente', 'clients'),
+  ('Detalhista', 'appointments'),
+  ('Auxiliar', 'services')
+) as p(role_name, permission_key)
+on conflict do nothing;
 
 -- Catalog (RN006 to RN009, RN030, RN031) ---------------------------------------
 

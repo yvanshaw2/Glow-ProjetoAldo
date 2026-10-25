@@ -9,11 +9,11 @@ relacionados: [UC19, UC20, UC21, RF077, RF078, RF079, RF080, RF081, RF082, RF083
 
 Abas, listas, cartões, janelas, confirmações e estados de `/admin/staff`, do [UC19](UC19-cadastrar-funcionario.md), do [UC20](UC20-manter-funcionarios.md) e do [UC21](UC21-gerenciar-cargos-e-permissoes.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, formulário em etapas, campo de senha e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
-Enquanto as rotas `/api/admin/staff` e `/api/admin/roles` usarem os dados de demonstração de `src/lib/demo/staff.ts` (decisão 0055), o aviso de demonstração fica logo abaixo do título da página.
+Enquanto a rota `/api/admin/staff` usar os dados de demonstração de `src/lib/demo/staff.ts` (decisão 0055), o aviso de demonstração fica no topo da aba "Funcionários"; a aba "Cargos" usa os cargos do banco, pela rota `/api/admin/roles`.
 
 ## Página
 
-- Título "Funcionários"; abaixo, o aviso de demonstração, as abas "Funcionários" e "Cargos" ([RF077](requisitos.md)) e, ao lado delas a partir de 768 px e abaixo no celular, o botão da aba: "Novo funcionário" ou "Novo cargo". A aba escolhida fica na página, sem mudar o endereço, e começa em "Funcionários". Cada aba lê a sua lista quando é aberta, com o interruptor "Exibir inativos" desligado ([RF078](requisitos.md)).
+- Título "Funcionários"; abaixo, as abas "Funcionários" e "Cargos" ([RF077](requisitos.md)) e, ao lado delas a partir de 768 px e abaixo no celular, o botão da aba: "Novo funcionário" ou "Novo cargo". A aba escolhida fica na página, sem mudar o endereço, e começa em "Funcionários". Cada aba lê a sua lista quando é aberta, com o interruptor "Exibir inativos" desligado ([RF078](requisitos.md)).
 - O acesso à página é da permissão `staff` ([RN025](RN025-permissoes.md)). Não há busca: [RF077](requisitos.md) e [RF078](requisitos.md) só pedem a alternância e os inativos.
 
 ## Lista de funcionários (UC20 passos 1 e 2, FA01)
@@ -50,8 +50,8 @@ Enquanto as rotas `/api/admin/staff` e `/api/admin/roles` usarem os dados de dem
 
 - Janela "Novo cargo" com a indicação "Identificação" e "Permissões".
 - Etapa 1: "Nome" e "Descrição (opcional)"; "Cancelar" e "Próximo"; nome vazio é indicado e não avança (FE01).
-- Etapa 2: "Escolha as páginas que o cargo pode acessar." com as seis permissões na ordem de [RN025](RN025-permissoes.md), cada uma em caixa de seleção com o nome da página e a explicação "Consultar, criar, editar e excluir em <página>."; "Voltar" e "Cadastrar cargo" ("Cadastrando…"). Sem nenhuma marcada, o envio indica "Selecione ao menos uma permissão." (FE03).
-- `NAME_IN_USE` (FE02) aparece no topo e leva à etapa 1.
+- Etapa 2: "Escolha as páginas que o cargo pode acessar." com as seis permissões na ordem de [RN025](RN025-permissoes.md), cada uma em caixa de seleção com o nome da página e a explicação "Consultar, criar, editar e excluir em <página>."; "Voltar" e "Cadastrar cargo" ("Cadastrando…"). Sem nenhuma marcada, o envio indica "O cargo deve conceder ao menos uma permissão." (FE03), a mesma mensagem da rota.
+- `NAME_IN_USE` (FE02) aparece no topo e junto ao campo "Nome", e leva à etapa 1.
 
 ## Editar cargo (UC21 FA01, RF083)
 
@@ -59,9 +59,9 @@ Enquanto as rotas `/api/admin/staff` e `/api/admin/roles` usarem os dados de dem
 
 ## Desativar e reativar cargo (UC21 FA02, RN026)
 
-- "Desativar este cargo?", "O cargo deixa de poder ser atribuído a funcionários. Os funcionários que já o têm continuam com ele.", "Voltar" e "Desativar"; reativar: "Reativar este cargo?", "O cargo volta a poder ser atribuído a funcionários.".
-- O efeito da desativação do cargo sobre o acesso dos funcionários vinculados é da rota (#39): [RN026](RN026-desativacao.md) só diz que o cargo desativado "não pode ser atribuído", e [dados.md](dados.md) diz que o cargo inativo "não concede permissões".
+- "Desativar este cargo?", "O cargo deixa de poder ser atribuído a funcionários. Os funcionários que o têm ficam sem acesso às páginas do painel até receberem outro cargo ou até você reativá-lo.", "Voltar" e "Desativar"; reativar: "Reativar este cargo?", "O cargo volta a poder ser atribuído a funcionários, e os que o têm voltam a acessar as páginas dele.".
+- A desativação, a reativação e a mudança das permissões valem na requisição seguinte dos funcionários do cargo (RS011, [RN026](RN026-desativacao.md)). Com o interruptor "Exibir inativos" desligado, o cartão desativado sai da lista e o foco vai ao interruptor.
 
 ## Dados de demonstração
 
-Os funcionários e os cargos de demonstração são fictícios e vivem só em `src/lib/demo/staff.ts` (decisão 0055); o `seed-demo.sql` não os tem. As rotas #39 e #43 retiram esses dados e o aviso da tela.
+Os cargos de demonstração (Gerente, Atendente, Detalhista e o inativo Auxiliar) vêm do banco, do `seed-demo.sql`. Os funcionários de demonstração são fictícios e vivem só em `src/lib/demo/staff.ts` (decisão 0055); a rota #43 retira esses dados e o aviso da aba "Funcionários".

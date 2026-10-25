@@ -37,7 +37,11 @@ export function RoleList() {
         <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {roles.map((role) => (
             <li key={role.id}>
-              <RoleCard role={role} onChange={list.reload} />
+              <RoleCard
+                role={role}
+                isInactiveShown={list.filters.includeInactive}
+                onChange={list.reload}
+              />
             </li>
           ))}
         </ul>

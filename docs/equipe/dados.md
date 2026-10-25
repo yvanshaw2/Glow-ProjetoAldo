@@ -65,7 +65,7 @@ Permissões de cada cargo.
 
 Feitas por função SQL, em uma única transação, chamada pelo repositório (RNF010):
 
-- `save_role`: cargo e permissões;
+- `save_role(p_id, p_name, p_description, p_is_active, p_permission_keys, p_updated_at)`: cargo e permissões. Sem `p_id` cria o cargo; com ele, altera só se o cargo ainda tiver `p_updated_at` (RNF011) e substitui as permissões. Devolve o `id` do cargo, ou nulo quando o cargo não existe ou mudou depois da leitura. Exige ao menos uma permissão (RN025) e só o `service_role` a executa (decisão 0042);
 
 ## Relacionamentos
 

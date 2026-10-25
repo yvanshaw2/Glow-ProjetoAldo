@@ -37,6 +37,8 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Fim da pausa igual ou anterior ao início | O fim da pausa deve ser depois do início. |
 | Dias da semana incompletos ou repetidos (erro da lista, sem campo) | Informe os sete dias da semana, sem repetir. |
 | Formas de pagamento incompletas ou repetidas (erro da lista, sem campo) | Informe as quatro formas de pagamento, sem repetir. |
+| Cargo sem nenhuma permissão | O cargo deve conceder ao menos uma permissão. |
+| Permissão que não é uma página do painel | Escolha apenas páginas do painel. |
 | Nome da empresa, endereço, descrições e termo de busca | Use até <limite> caracteres. |
 | Versão do registro (`updatedAt`) ausente ou fora do formato | Atualize a página e tente novamente. |
 | `page` e `pageSize` | Informe um número inteiro a partir de 1. |

@@ -31,6 +31,10 @@ tags:
     description: >-
       Serviços e categorias do painel, com a permissão services
       (docs/catalogo/rotas.md).
+  - name: staff
+    description: >-
+      Cargos e permissões do painel, com a permissão staff
+      (docs/equipe/rotas.md).
 paths:
   /api/auth/register:
     post:
@@ -625,6 +629,149 @@ paths:
           $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/roles:
+    get:
+      tags:
+        - staff
+      operationId: listRoles
+      summary: Lista os cargos
+      description: >-
+        Cargos por nome, 20 por página, com as permissões na ordem de RN025
+        (UC21, RNF008). Os inativos só com includeInactive=true (FA03).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: includeInactive
+          in: query
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+            default: "false"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: Página de cargos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - staff
+      operationId: createRole
+      summary: Cria um cargo
+      description: >-
+        Cria o cargo e as suas permissões numa só transação, sempre ativo
+        (UC21). O nome não se repete, sem diferenciar maiúsculas (RN035), e o
+        cargo concede ao menos uma permissão (RN025).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleInput"
+      responses:
+        "201":
+          description: Cargo criado e ativo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRole"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "409":
+          $ref: "#/components/responses/NameInUse"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/roles/{id}:
+    patch:
+      tags:
+        - staff
+      operationId: updateRole
+      summary: Edita, desativa ou reativa um cargo
+      description: >-
+        Altera só os campos enviados, ao menos um (UC21 FA01 e FA02);
+        permissionKeys substitui o conjunto inteiro. A gravação só acontece se
+        o cargo ainda tiver o updatedAt enviado (RNF011, decisão 0009), e vale
+        para os funcionários do cargo na requisição seguinte (RS011). O cargo
+        inativo não concede permissões (RN026). Id que não é UUID responde o
+        mesmo 404 do cargo inexistente.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleUpdateInput"
+      responses:
+        "200":
+          description: Cargo atualizado, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRole"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            NAME_IN_USE: o nome já é de outro cargo (RN035). VERSION_CONFLICT:
+            o cargo mudou depois da leitura, e nada foi gravado (RNF011).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
     sessionCookie:
@@ -1195,6 +1342,118 @@ components:
           type: string
           format: date-time
           description: O updatedAt lido com a categoria.
+    PermissionKey:
+      type: string
+      description: Uma página do painel (RN025).
+      enum:
+        - dashboard
+        - appointments
+        - services
+        - clients
+        - staff
+        - settings
+    AdminRole:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - permissionKeys
+        - isActive
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          examples:
+            - Recepção
+        description:
+          type:
+            - string
+            - "null"
+        permissionKeys:
+          type: array
+          description: Na ordem de RN025.
+          items:
+            $ref: "#/components/schemas/PermissionKey"
+        isActive:
+          type: boolean
+          description: O cargo inativo não concede permissões nem pode ser atribuído (RN026).
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão do cargo (RNF011); volta no PATCH como veio.
+          examples:
+            - "2026-10-25T13:45:12.345678+00:00"
+    RolePage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminRole"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    RoleInput:
+      type: object
+      required:
+        - name
+        - permissionKeys
+      properties:
+        name:
+          type: string
+          description: De 2 a 60 caracteres, com a inicial maiúscula (RN035).
+          examples:
+            - Recepção
+        description:
+          type:
+            - string
+            - "null"
+          description: Até 500 caracteres; vazia vira null.
+        permissionKeys:
+          type: array
+          minItems: 1
+          description: Ao menos uma (RN025); repetidas são reduzidas.
+          items:
+            $ref: "#/components/schemas/PermissionKey"
+    RoleUpdateInput:
+      type: object
+      required:
+        - updatedAt
+      description: Ao menos um entre name, description, permissionKeys e isActive.
+      properties:
+        name:
+          type: string
+          description: De 2 a 60 caracteres, com a inicial maiúscula (RN035).
+        description:
+          type:
+            - string
+            - "null"
+          description: Até 500 caracteres; vazia apaga a descrição.
+        permissionKeys:
+          type: array
+          minItems: 1
+          description: Substitui as permissões do cargo; ao menos uma (RN025).
+          items:
+            $ref: "#/components/schemas/PermissionKey"
+        isActive:
+          type: boolean
+          description: false desativa e true reativa o cargo (RN026).
+        updatedAt:
+          type: string
+          format: date-time
+          description: O updatedAt lido com o cargo.
     ProblemDetails:
       type: object
       required:

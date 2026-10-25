@@ -15,18 +15,11 @@ import {
 
 // UC21 steps 6 and 7 and FA01 (docs/equipe/equipe-do-painel.md): the second
 // step of the form of a role, the six permissions in the order of RN025, at
-// least one (FE03).
-
-const REQUIRED_MESSAGE = "Selecione ao menos uma permissão.";
+// least one (FE03), checked by the schema of the route.
 
 export function RolePermissionsStep({ isEditing }: { isEditing: boolean }) {
   const { field, fieldState } = useController<RoleFormValues, "permissionKeys">(
-    {
-      name: "permissionKeys",
-      rules: {
-        validate: (keys) => keys.length > 0 || REQUIRED_MESSAGE,
-      },
-    },
+    { name: "permissionKeys" },
   );
   const groupName = useId();
 

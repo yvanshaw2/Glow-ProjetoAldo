@@ -1,61 +1,25 @@
 import { demoPage } from "@/lib/demo/list";
 import type { DemoRequest } from "@/lib/demo/routes";
 import type { Page } from "@/shared/api/pagination";
-import type { AdminRole, AdminStaffMember } from "@/shared/api/staff";
+import type { AdminStaffMember } from "@/shared/api/staff";
 import { ADMIN_LIST_PAGE_SIZE } from "@/shared/constants/pagination";
 
-// Demo data of the panel routes of the staff module (decision 0055). Neither
-// supabase/seed.sql (only the administrator, RN027) nor seed-demo.sql has
-// staff or roles, so these are made up here: the ids follow the md5 scheme of
-// the seed ('glow-demo:<key>' as a UUID) but no row of the database has them.
-// One role and one member are inactive, to show "Exibir inativos".
+// Demo data of the staff list (decision 0055); the roles (#39) come from the
+// database. Neither supabase/seed.sql (only the administrator, RN027) nor
+// seed-demo.sql has staff, so the members are made up here, and the role ids
+// below belong to no row of the database. One member is inactive, to show
+// "Exibir inativos".
 
 const UPDATED_AT = "2026-06-23T12:00:00+00:00";
 const SORT_LOCALE = "pt-BR";
 
-const ROLES: AdminRole[] = [
-  {
-    id: "19e290c2-796d-e34e-8670-c7c3f3f5de44",
-    name: "Gerente",
-    description:
-      "Responsável pela operação diária: acompanha os números, a agenda, o catálogo e a equipe.",
-    permissionKeys: [
-      "dashboard",
-      "appointments",
-      "services",
-      "clients",
-      "settings",
-    ],
-    isActive: true,
-    updatedAt: UPDATED_AT,
-  },
-  {
-    id: "f2622d67-b5c9-23b7-22fe-9ed68246947c",
-    name: "Atendente",
-    description: "Recebe os clientes e cuida da agenda e do cadastro deles.",
-    permissionKeys: ["appointments", "clients"],
-    isActive: true,
-    updatedAt: UPDATED_AT,
-  },
-  {
-    id: "219f8df5-acd9-247d-6d88-bb8464ade6a6",
-    name: "Detalhista",
-    description: "Técnico de estética automotiva: acompanha a agenda do dia.",
-    permissionKeys: ["appointments"],
-    isActive: true,
-    updatedAt: UPDATED_AT,
-  },
-  {
-    id: "6adcc25a-9c1f-1e08-3e66-89d39112d442",
-    name: "Auxiliar",
-    description: null,
-    permissionKeys: ["services"],
-    isActive: false,
-    updatedAt: UPDATED_AT,
-  },
+const ROLES = [
+  { id: "19e290c2-796d-e34e-8670-c7c3f3f5de44", name: "Gerente" },
+  { id: "f2622d67-b5c9-23b7-22fe-9ed68246947c", name: "Atendente" },
+  { id: "219f8df5-acd9-247d-6d88-bb8464ade6a6", name: "Detalhista" },
 ];
 
-function roleNamed(name: string): AdminRole {
+function roleNamed(name: string): { id: string; name: string } {
   const role = ROLES.find((candidate) => candidate.name === name);
   if (!role) throw new Error(`No demo role is named ${name}`);
   return role;
@@ -148,16 +112,6 @@ export function answerAdminStaff({
   query,
 }: DemoRequest): Page<AdminStaffMember> {
   return demoPage(visibleItems(STAFF, query), query, {
-    pageSize: ADMIN_LIST_PAGE_SIZE,
-  });
-}
-
-// GET /api/admin/roles (UC21): by name, the inactive ones on request (FA03).
-export function answerAdminRoles({ query }: DemoRequest): Page<AdminRole> {
-  const roles = [...ROLES].sort((first, second) =>
-    first.name.localeCompare(second.name, SORT_LOCALE),
-  );
-  return demoPage(visibleItems(roles, query), query, {
     pageSize: ADMIN_LIST_PAGE_SIZE,
   });
 }

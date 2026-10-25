@@ -9,7 +9,7 @@ relacionados: [RF037, RF081, RF083, UC08, UC20, UC21]
 
 # RN026 – Desativação
 
-O funcionário desativado não acessa o painel administrativo, e o cargo desativado não pode ser atribuído a funcionários.
+O funcionário desativado não acessa o painel administrativo, e o cargo desativado não pode ser atribuído a funcionários nem concede permissões: os funcionários que o têm ficam sem acesso às páginas do painel até receberem outro cargo ou até o cargo ser reativado.
 
 ## Onde se aplica
 
