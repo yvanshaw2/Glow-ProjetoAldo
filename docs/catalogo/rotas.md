@@ -102,5 +102,5 @@ Cadastra uma categoria (UC15).
 
 Edita, desativa ou reativa uma categoria (UC15).
 
-- Entrada: `name, description, isActive`
-- Resposta: **200** categoria atualizada; 409 `NAME_IN_USE`.
+- Entrada: `name`, `description` e `isActive`, ao menos um deles.
+- Resposta: **200** categoria atualizada; 400 sem nenhum dos campos; 404 id inexistente; 409 `NAME_IN_USE`.

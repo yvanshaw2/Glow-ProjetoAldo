@@ -34,6 +34,7 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Nome da empresa, endereço, descrições e termo de busca | Use até <limite> caracteres. |
 | Versão do registro (`updatedAt`) ausente ou fora do formato | Atualize a página e tente novamente. |
 | `page` e `pageSize` | Informe um número inteiro a partir de 1. |
+| Filtro de verdadeiro ou falso (`includeInactive`) | Informe true ou false. |
 
 ## Onde se aplica
 

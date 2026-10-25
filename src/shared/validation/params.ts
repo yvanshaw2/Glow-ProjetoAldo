@@ -36,3 +36,11 @@ export const updatedAtSchema = z.iso.datetime({
   offset: true,
   error: STALE_VERSION_MESSAGE,
 });
+
+const BOOLEAN_MESSAGE = "Informe true ou false.";
+
+// A boolean filter of the query string, such as includeInactive: only the
+// texts true and false are values (docs/padroes/api.md, Validação).
+export const booleanQuerySchema = z
+  .enum(["true", "false"], { error: BOOLEAN_MESSAGE })
+  .transform((value) => value === "true");

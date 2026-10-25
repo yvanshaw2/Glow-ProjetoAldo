@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  booleanQuerySchema,
   idSchema,
   paginationSchema,
   updatedAtSchema,
@@ -84,5 +85,19 @@ describe("updatedAtSchema", () => {
     for (const value of [undefined, "", "20/10/2026", "abc"]) {
       expect(versionMessageOf(value)).toBe(STALE_VERSION);
     }
+  });
+});
+
+describe("booleanQuerySchema", () => {
+  it("accepts the texts true and false", () => {
+    expect(booleanQuerySchema.parse("true")).toBe(true);
+    expect(booleanQuerySchema.parse("false")).toBe(false);
+  });
+
+  it.each(["", "1", "yes", "True"])("rejects %j", (value) => {
+    const result = booleanQuerySchema.safeParse(value);
+    expect(result.success ? undefined : result.error.issues[0]?.message).toBe(
+      "Informe true ou false.",
+    );
   });
 });

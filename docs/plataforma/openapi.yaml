@@ -27,6 +27,10 @@ tags:
     description: >-
       Configurações do painel: dados da empresa, disponibilidade e formas de
       pagamento, com a permissão settings (docs/configuracoes/rotas.md).
+  - name: catalog
+    description: >-
+      Serviços e categorias do painel, com a permissão services
+      (docs/catalogo/rotas.md).
 paths:
   /api/auth/register:
     post:
@@ -355,6 +359,147 @@ paths:
           $ref: "#/components/responses/PanelForbidden"
         "409":
           $ref: "#/components/responses/VersionConflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/categories:
+    get:
+      tags:
+        - catalog
+      operationId: listCategories
+      summary: Lista as categorias de serviço
+      description: >-
+        Categorias por nome, 20 por página (UC15, RNF008). As inativas só com
+        includeInactive=true (FA03).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: includeInactive
+          in: query
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+            default: "false"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: Página de categorias.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryPage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - catalog
+      operationId: createCategory
+      summary: Cadastra uma categoria
+      description: >-
+        Cadastra a categoria, sempre ativa (UC15), com os formatos de RN035. O
+        nome não se repete, sem diferenciar maiúsculas.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Categoria criada e ativa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCategory"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "409":
+          $ref: "#/components/responses/NameInUse"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/categories/{id}:
+    patch:
+      tags:
+        - catalog
+      operationId: updateCategory
+      summary: Edita, desativa ou reativa uma categoria
+      description: >-
+        Altera só os campos enviados, ao menos um (UC15 FA01 e FA02). A
+        gravação só acontece se a categoria ainda tiver o updatedAt enviado,
+        conferido na própria instrução (RNF011, decisão 0009). Id que não é
+        UUID responde o mesmo 404 da categoria inexistente.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdateInput"
+      responses:
+        "200":
+          description: Categoria atualizada, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCategory"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            NAME_IN_USE: o nome já é de outra categoria (RN035).
+            VERSION_CONFLICT: a categoria mudou depois da leitura, e nada foi
+            gravado (RNF011).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "413":
           $ref: "#/components/responses/PayloadTooLarge"
         "415":
@@ -811,6 +956,86 @@ components:
       description: >-
         Campos não previstos são descartados (RS013). O opcional ausente, null
         ou vazio apaga o valor gravado.
+    AdminCategory:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - isActive
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          examples:
+            - Lavagem
+        description:
+          type: string
+          examples:
+            - Lavagens externas e internas.
+        isActive:
+          type: boolean
+          description: A categoria inativa oculta os seus serviços do cliente (RN031).
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão da categoria (RNF011); volta no PATCH como veio.
+          examples:
+            - "2026-10-24T13:45:12.345678+00:00"
+    CategoryPage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminCategory"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    CategoryInput:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: De 2 a 60 caracteres, com a inicial maiúscula (RN035).
+          examples:
+            - Lavagem
+        description:
+          type: string
+          description: Até 500 caracteres, em um único parágrafo (RN035).
+    CategoryUpdateInput:
+      type: object
+      required:
+        - updatedAt
+      description: Ao menos um entre name, description e isActive.
+      properties:
+        name:
+          type: string
+          description: De 2 a 60 caracteres, com a inicial maiúscula (RN035).
+        description:
+          type: string
+          description: Até 500 caracteres, em um único parágrafo (RN035).
+        isActive:
+          type: boolean
+          description: false desativa e true reativa a categoria (RN031).
+        updatedAt:
+          type: string
+          format: date-time
+          description: O updatedAt lido com a categoria.
     ProblemDetails:
       type: object
       required:
@@ -922,6 +1147,20 @@ components:
       description: >-
         VERSION_CONFLICT: o registro mudou depois da leitura, e nada foi
         gravado (RNF011).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    NotFound:
+      description: "NOT_FOUND: o registro não existe, ou o id não é um UUID."
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    NameInUse:
+      description: >-
+        NAME_IN_USE: já existe um cadastro com este nome, sem diferenciar
+        maiúsculas (RN035).
       content:
         application/problem+json:
           schema:
