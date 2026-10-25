@@ -81,6 +81,7 @@ export function ServiceList({ onGoToCategories }: ServiceListProps) {
               <li key={service.id}>
                 <ServiceCard
                   service={service}
+                  isInactiveShown={list.filters.includeInactive}
                   onChange={changed}
                   onGoToCategories={onGoToCategories}
                   onFailed={(error) =>

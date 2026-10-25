@@ -1,6 +1,6 @@
 # `src/components/admin/catalog/` – Painel: catalog
 
-Listagens e formulários de serviço (em etapas, conforme o tipo) e de categoria, com exibição de inativos.
+Listagens e formulários de serviço (em etapas, conforme o tipo) e de categoria, com exibição de inativos. O formulário de serviço valida com o esquema da rota por um resolvedor próprio (`service-form-resolver.ts`).
 
 ## Vai aqui
 

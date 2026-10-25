@@ -9,7 +9,7 @@ relacionados: [UC13, UC14, UC15, RF057, RF058, RF059, RF060, RF061, RF062, RF063
 
 Abas, listagens, cartões, janelas, confirmações e estados de `/admin/services`, do [UC13](UC13-cadastrar-servico.md), do [UC14](UC14-manter-servicos.md) e do [UC15](UC15-manter-categorias.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, formulário em etapas, campo monetário e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
-Enquanto a rota `/api/admin/services` usar os dados de demonstração de `src/lib/demo/admin-catalog.ts` (decisão 0055), o aviso de demonstração fica no topo da aba "Serviços".
+As rotas `/api/admin/services` são reais. Até a #47, o campo de imagem do formulário mostra o aviso de demonstração: o arquivo escolhido aparece só na prévia, e nada é enviado.
 
 ## Página
 
@@ -32,8 +32,8 @@ Enquanto a rota `/api/admin/services` usar os dados de demonstração de `src/li
 
 ## Ações do serviço
 
-- **Desativar e reativar** ([RN008](RN008-servico-inativo.md), UC14 FA02 e FA03): sem confirmação. O botão passa a "Desativando…" ou "Reativando…" e fica indisponível, sem perder o foco (`aria-disabled`); a falha aparece no topo da listagem, com o foco.
-- **Excluir** (FA04): confirmação com o título "Excluir este serviço?", o texto "O serviço deixa de ser exibido e não pode ser desfeito pelo painel. Os agendamentos em que ele consta são preservados.", e os botões "Voltar" e "Excluir serviço" ("Excluindo…"), na cor de erro. A falha aparece dentro da confirmação.
+- **Desativar e reativar** ([RN008](RN008-servico-inativo.md), UC14 FA02 e FA03): sem confirmação. O botão passa a "Desativando…" ou "Reativando…" e fica indisponível, sem perder o foco (`aria-disabled`); a falha aparece no topo da listagem, com o foco. Se o serviço sai da listagem (sem inativos exibidos), o foco vai ao interruptor "Exibir inativos".
+- **Excluir** (FA04): confirmação com o título "Excluir este serviço?", o texto "O serviço deixa de ser exibido e não pode ser desfeito pelo painel. Os agendamentos em que ele consta são preservados.", e os botões "Voltar" e "Excluir serviço" ("Excluindo…"), na cor de erro. A falha aparece dentro da confirmação. Com sucesso, a confirmação fecha, a lista é lida de novo e o foco vai ao campo de busca.
 - **Editar**: abre a janela do cadastro, descrita abaixo.
 
 ## Janela "Novo serviço" (UC13, RF060 a RF063)
@@ -52,7 +52,7 @@ Primeiro a escolha do tipo, em três botões de opção com o nome e uma frase: 
 - **Adicional** (RF062): "Nome", "Duração média (minutos)", "Valor fixo" e, opcional, "Serviços principais vinculados"; sem categoria, descrição, imagem nem forma de precificação. Sem principal cadastrado: "Nenhum serviço principal cadastrado."
 - Sem categoria ativa, no principal e no complementar, o formulário diz "Cadastre uma categoria antes de criar este serviço." (FE03), com o botão "Ir para as categorias".
 - O último botão é "Salvar serviço" ("Salvando…"). A falha aparece no topo da janela, com o foco, e os dados informados continuam nos campos.
-- **Imagem** (UC13 passo 4 e FE02, [RS015](../plataforma/seguranca.md)): o campo de arquivo (JPEG, PNG ou WebP, até 2 MB), a prévia abaixo do campo, a troca por outro arquivo e "Remover imagem". Arquivo de outro tipo ou maior que 2 MB: "Use uma imagem JPEG, PNG ou WebP de até 2 MB." Na demonstração a imagem só aparece na prévia, e nada é enviado.
+- **Imagem** (UC13 passo 4 e FE02, [RS015](../plataforma/seguranca.md)): o campo de arquivo (JPEG, PNG ou WebP, até 2 MB), a prévia abaixo do campo, a troca por outro arquivo e "Remover imagem". Arquivo de outro tipo ou maior que 2 MB: "Use uma imagem JPEG, PNG ou WebP de até 2 MB." Até a #47 a imagem só aparece na prévia, e nada é enviado; o aviso de demonstração fica dentro do campo.
 
 ## Editar serviço (UC14 passos 4 a 7, RF064)
 

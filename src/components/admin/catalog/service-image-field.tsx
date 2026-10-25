@@ -4,12 +4,14 @@ import { ImageIcon } from "lucide-react";
 import { useId, useRef, useState, type ChangeEvent } from "react";
 import { useController } from "react-hook-form";
 import type { ServiceFormValues } from "@/components/admin/catalog/service-form-values";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldLabel } from "@/components/ui/field";
 
 // UC13 step 4 and FE02 (docs/catalogo/servicos-do-painel.md): the choice of
 // the image with its preview. The type and the size are checked here only to
-// guide: the route checks the real file (RS015, #47). Nothing is sent.
+// guide: the route checks the real file (RS015, #47). Nothing is sent, so the
+// field keeps the demo notice until #47 (decision 0055).
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -52,6 +54,7 @@ export function ServiceImageField() {
   return (
     <div className="flex flex-col gap-2">
       <FieldLabel htmlFor={inputId}>Imagem (opcional)</FieldLabel>
+      <DemoNotice />
       {/* The input is the keyboard stop; the button below opens its picker. */}
       <input
         ref={inputRef}

@@ -283,7 +283,7 @@ describe("serviceInputSchema", () => {
     });
   });
 
-  it.each([undefined, ""])("requires the category: %j", (categoryId) => {
+  it.each([undefined, null, ""])("requires the category: %j", (categoryId) => {
     expect(
       messagesOf(serviceInputSchema, { ...MAIN_BY_SIZE, categoryId }),
     ).toEqual({ categoryId: REQUIRED });

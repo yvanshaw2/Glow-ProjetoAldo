@@ -131,7 +131,7 @@ function NewService({ onCancel, ...handlers }: WizardHandlers) {
 }
 
 // UC14 step 5: the data of the service, with its type fixed. A conflict reads
-// the service again, and the form starts over with the current data (RNF011).
+// the service again, and the form takes the current data (RNF011).
 function EditService({
   id,
   onCancel,
@@ -163,7 +163,6 @@ function EditService({
   }
   return (
     <ServiceWizard
-      key={query.data.updatedAt}
       type={query.data.type}
       service={query.data}
       onCancel={onCancel}

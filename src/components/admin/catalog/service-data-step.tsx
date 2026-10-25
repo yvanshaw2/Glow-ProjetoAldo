@@ -4,7 +4,6 @@ import { useController, useFormContext } from "react-hook-form";
 import { ChoiceGroup, type Choice } from "@/components/shared/choice-group";
 import { ServiceImageField } from "@/components/admin/catalog/service-image-field";
 import { ServiceLinksField } from "@/components/admin/catalog/service-links-step";
-import { isPositivePrice } from "@/components/admin/catalog/service-prices-step";
 import type { ServiceFormValues } from "@/components/admin/catalog/service-form-values";
 import { FormField } from "@/components/shared/form-field";
 import { MoneyInput } from "@/components/shared/money-input";
@@ -32,14 +31,8 @@ import {
 
 // UC13 steps 4 and 5 and FA01 (docs/catalogo/servicos-do-painel.md): the data
 // of a main or complementary service, and the three fields of an additional
-// one. Without a schema yet (decision 0055), each field only checks that it
-// was filled, and the duration its limits (docs/catalogo/dados.md).
+// one. The messages come from the schema of the service (RN035).
 
-const REQUIRED_MESSAGE = "Preencha este campo.";
-const CATEGORY_MESSAGE = "Escolha a categoria.";
-const MIN_DURATION = 5;
-const MAX_DURATION = 2400;
-const DURATION_MESSAGE = `Informe de ${MIN_DURATION} a ${MAX_DURATION.toLocaleString("pt-BR")} minutos.`;
 const CATEGORIES_PATH = "/api/admin/categories";
 
 const PRICING_DESCRIPTIONS = {
@@ -63,7 +56,6 @@ function NameField() {
       control={control}
       name="name"
       label="Nome"
-      rules={{ validate: (name) => name.trim() !== "" || REQUIRED_MESSAGE }}
       renderInput={(field) => (
         <Input
           {...field}
@@ -82,13 +74,6 @@ function DurationField() {
       control={control}
       name="durationMinutes"
       label="Duração média (minutos)"
-      rules={{
-        validate: (minutes) =>
-          (minutes !== null &&
-            minutes >= MIN_DURATION &&
-            minutes <= MAX_DURATION) ||
-          DURATION_MESSAGE,
-      }}
       renderInput={({ value, onChange, ...field }) => (
         <Input
           {...field}
@@ -133,10 +118,6 @@ export function ServiceInfoStep({
         control={control}
         name="description"
         label="Descrição"
-        rules={{
-          validate: (description) =>
-            description.trim() !== "" || REQUIRED_MESSAGE,
-        }}
         renderInput={(field) => (
           <Textarea {...field} placeholder="Descreva o serviço" />
         )}
@@ -158,7 +139,6 @@ export function AdditionalServiceStep() {
         control={control}
         name="fixedPrice"
         label="Valor fixo"
-        rules={{ validate: isPositivePrice }}
         renderInput={(field) => <MoneyInput {...field} />}
       />
       <ServiceLinksField
@@ -211,9 +191,6 @@ function CategoryField({ onGoToCategories }: { onGoToCategories: () => void }) {
       control={control}
       name="categoryId"
       label="Categoria"
-      rules={{
-        validate: (categoryId) => categoryId !== null || CATEGORY_MESSAGE,
-      }}
       renderInput={({ value, onChange, ref, ...field }) => (
         <Select
           items={items}

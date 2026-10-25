@@ -65,7 +65,7 @@ const NO_FIELD_MESSAGE = "Informe ao menos um campo para alterar.";
 function idField(message: string) {
   return z.guid({
     error: (issue) =>
-      issue.input === undefined || issue.input === ""
+      issue.input === undefined || issue.input === null || issue.input === ""
         ? REQUIRED_MESSAGE
         : message,
   });

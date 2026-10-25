@@ -42,26 +42,6 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
         (catalog) => catalog.answerPublicServices,
       ),
   },
-  // docs/catalogo/rotas.md, built by #44; the categories (#40) are real.
-  {
-    method: "GET",
-    path: "/api/admin/services",
-    load: () =>
-      import("@/lib/demo/admin-catalog").then(
-        (catalog) => catalog.answerAdminServices,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/admin/services/:id",
-    load: () =>
-      import("@/lib/demo/admin-catalog").then(
-        (catalog) => catalog.answerAdminService,
-      ),
-  },
-  { method: "POST", path: "/api/admin/services" },
-  { method: "PATCH", path: "/api/admin/services/:id" },
-  { method: "DELETE", path: "/api/admin/services/:id" },
   // docs/clientes/rotas.md, built by #45; the clients (#42) are real, and the
   // plate lookup is the one of the client area.
   {

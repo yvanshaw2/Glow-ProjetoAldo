@@ -8,11 +8,15 @@ import { apiRequest, toApiError, type ApiError } from "@/lib/api-client";
 // UC14 FA02 and FA03 (docs/catalogo/servicos-do-painel.md): the deactivation
 // and the reactivation of a service, with no confirmation. The button keeps
 // the focus while the call runs (RNF004, RNF005), and a failure goes to the
-// listing.
+// listing. A service deactivated leaves the listing that hides the inactive
+// ones, and with it this button: the focus goes to the switch of the inactive
+// ones, in the same panel.
 
 type ServiceActiveButtonProps = {
   id: string;
   isActive: boolean;
+  // The listing shows the inactive services too.
+  isInactiveShown: boolean;
   updatedAt: string;
   onChanged: () => void;
   onFailed: (error: ApiError) => void;
@@ -21,6 +25,7 @@ type ServiceActiveButtonProps = {
 export function ServiceActiveButton({
   id,
   isActive,
+  isInactiveShown,
   updatedAt,
   onChanged,
   onFailed,
@@ -34,6 +39,11 @@ export function ServiceActiveButton({
         method: "PATCH",
         body: { isActive: !isActive, updatedAt },
       });
+      if (isActive && !isInactiveShown) {
+        document
+          .querySelector<HTMLElement>('[role="tabpanel"] [role="switch"]')
+          ?.focus();
+      }
       onChanged();
     } catch (error) {
       onFailed(toApiError(error));

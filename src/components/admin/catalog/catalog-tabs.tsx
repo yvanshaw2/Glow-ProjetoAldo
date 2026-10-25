@@ -6,7 +6,6 @@ import { CategoryFormDialog } from "@/components/admin/catalog/category-form-dia
 import { CategoryList } from "@/components/admin/catalog/category-list";
 import { ServiceFormDialog } from "@/components/admin/catalog/service-form-dialog";
 import { ServiceList } from "@/components/admin/catalog/service-list";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -72,9 +71,6 @@ export function CatalogTabs() {
         tabIndex={-1}
         className="flex flex-col gap-6"
       >
-        {/* The services are still demo data (decision 0055, #44); the
-            categories are real. */}
-        <DemoNotice />
         <ServiceList
           key={serviceReadCount}
           onGoToCategories={() => setSection("categories")}

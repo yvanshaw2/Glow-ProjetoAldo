@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ServiceFormDialog } from "@/components/admin/catalog/service-form-dialog";
 import { ServiceActiveButton } from "@/components/admin/catalog/service-active-button";
@@ -17,18 +18,31 @@ import { formatDuration } from "@/shared/format/duration";
 
 type ServiceCardProps = {
   service: AdminServiceSummary;
+  // The listing shows the inactive services too.
+  isInactiveShown: boolean;
   onChange: () => void;
   onFailed: (error: ApiError) => void;
   onGoToCategories: () => void;
 };
 
+// A service deleted leaves the listing, and with it the button that opened the
+// confirmation: the focus goes to the search of the listing, in the same panel
+// (RNF005). Any other way of closing returns it to the button.
+function focusSearch() {
+  return document.querySelector<HTMLElement>(
+    '[role="tabpanel"] input[type=search]',
+  );
+}
+
 export function ServiceCard({
   service,
+  isInactiveShown,
   onChange,
   onFailed,
   onGoToCategories,
 }: ServiceCardProps) {
   const { id, name, type, description, category, isActive } = service;
+  const wasDeleted = useRef(false);
   return (
     <article className="flex h-full flex-col gap-3 rounded-xl bg-background p-5 shadow-neu-md">
       <div className="flex flex-wrap items-center gap-2">
@@ -69,6 +83,7 @@ export function ServiceCard({
         <ServiceActiveButton
           id={id}
           isActive={isActive}
+          isInactiveShown={isInactiveShown}
           updatedAt={service.updatedAt}
           onChanged={onChange}
           onFailed={onFailed}
@@ -81,10 +96,13 @@ export function ServiceCard({
           loadingLabel="Excluindo…"
           cancelLabel="Voltar"
           isDestructive
+          finalFocus={() => (wasDeleted.current ? focusSearch() : true)}
           onConfirm={async () => {
+            wasDeleted.current = false;
             await apiRequest(`/api/admin/services/${id}`, {
               method: "DELETE",
             });
+            wasDeleted.current = true;
           }}
           onConfirmed={onChange}
         />
