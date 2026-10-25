@@ -253,23 +253,4 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
   { method: "PATCH", path: "/api/admin/staff/:id" },
   { method: "POST", path: "/api/admin/roles" },
   { method: "PATCH", path: "/api/admin/roles/:id" },
-  // docs/configuracoes/rotas.md, built by #41; the company data (#37) is real.
-  {
-    method: "GET",
-    path: "/api/admin/settings/business-hours",
-    load: () =>
-      import("@/lib/demo/settings").then(
-        (settings) => settings.answerBusinessHours,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/admin/settings/payment-fees",
-    load: () =>
-      import("@/lib/demo/settings").then(
-        (settings) => settings.answerPaymentFees,
-      ),
-  },
-  { method: "PUT", path: "/api/admin/settings/business-hours" },
-  { method: "PUT", path: "/api/admin/settings/payment-fees" },
 ];

@@ -33,6 +33,12 @@ import { WEEKDAY_LABELS } from "@/shared/constants/weekdays";
 const BUSINESS_HOURS_PATH = "/api/admin/settings/business-hours";
 const DAY_COUNT = WEEKDAY_LABELS.length;
 
+// The API reports an error of the list as <index>.<field>; the form keeps the
+// days under `days`, with the index equal to the weekday.
+function toFieldName(field: string): string {
+  return `days.${field}`;
+}
+
 export function AvailabilityForm() {
   return (
     <SettingsSection<BusinessDay[]>
@@ -45,9 +51,12 @@ export function AvailabilityForm() {
 }
 
 function AvailabilityFields({ days }: { days: BusinessDay[] }) {
-  const { control, handleSubmit, setError, reset, formState } =
+  const { control, handleSubmit, setError, clearErrors, reset, formState } =
     useForm<AvailabilityFormValues>({ defaultValues: toFormValues(days) });
-  const { failure, showFailure, clearFailure } = useFormFailure(setError);
+  const { failure, showFailure, clearFailure } = useFormFailure(
+    setError,
+    toFieldName,
+  );
   const [isSaved, setIsSaved] = useState(false);
 
   async function submit(values: AvailabilityFormValues) {
@@ -76,7 +85,13 @@ function AvailabilityFields({ days }: { days: BusinessDay[] }) {
       />
       <form
         noValidate
-        onSubmit={handleSubmit(submit)}
+        onSubmit={(event) => {
+          // A message from the route may be about a field the person already
+          // fixed through another one, such as the closing and a break; it would
+          // keep the form from being sent.
+          clearErrors();
+          return handleSubmit(submit)(event);
+        }}
         onChange={() => setIsSaved(false)}
         className="flex flex-col gap-5"
       >
@@ -212,7 +227,7 @@ type TimeFieldProps = {
 };
 
 // The combobox has no name from the label, so it gets one that holds the
-// visible text.
+// visible text. The message of the route for the time is tied to it.
 function TimeField({ control, name, label, dayLabel }: TimeFieldProps) {
   return (
     <FormField
@@ -230,6 +245,8 @@ function TimeField({ control, name, label, dayLabel }: TimeFieldProps) {
           <SelectTrigger
             id={field.id}
             aria-label={`${dayLabel}: ${label.toLowerCase()}`}
+            aria-invalid={field["aria-invalid"]}
+            aria-describedby={field["aria-describedby"]}
             className="w-full"
           >
             <SelectValue />

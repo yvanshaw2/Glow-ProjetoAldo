@@ -365,6 +365,125 @@ paths:
           $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/settings/business-hours:
+    get:
+      tags:
+        - settings
+      operationId: getBusinessHours
+      summary: Devolve a disponibilidade da empresa
+      description: Os sete dias da semana, de domingo (0) a sábado (6) (UC23).
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Os sete dias, com situação, horários e pausa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessHours"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      tags:
+        - settings
+      operationId: updateBusinessHours
+      summary: Grava a disponibilidade da empresa
+      description: >-
+        Substitui os sete dias numa só instrução (UC23, RN013), com os horários
+        em hora cheia ou meia hora (RN035). Não tem updatedAt: a última
+        gravação prevalece. O campo com problema vai em fields com o índice do
+        item (1.closesAt); a lista sem os sete dias, uma só vez cada, é erro do
+        corpo.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessHours"
+      responses:
+        "200":
+          description: Os sete dias gravados.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessHours"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/settings/payment-fees:
+    get:
+      tags:
+        - settings
+      operationId: getPaymentFees
+      summary: Devolve os percentuais das formas de pagamento
+      description: Crédito, débito, Pix e dinheiro, nessa ordem (UC24).
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: As quatro formas, com o percentual com sinal.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentFees"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      tags:
+        - settings
+      operationId: updatePaymentFees
+      summary: Grava os percentuais das formas de pagamento
+      description: >-
+        Substitui as quatro formas numa só instrução (UC24, RN012); o desconto
+        é negativo. Não tem updatedAt: a última gravação prevalece. O campo com
+        problema vai em fields com o índice do item (2.percent); a lista sem as
+        quatro formas, uma só vez cada, é erro do corpo.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentFees"
+      responses:
+        "200":
+          description: As quatro formas gravadas.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentFees"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/admin/categories:
     get:
       tags:
@@ -956,6 +1075,46 @@ components:
       description: >-
         Campos não previstos são descartados (RS013). O opcional ausente, null
         ou vazio apaga o valor gravado.
+    BusinessHours:
+      type: array
+      minItems: 7
+      maxItems: 7
+      description: Os sete dias, de domingo (0) a sábado (6), cada um uma só vez.
+      items:
+        $ref: "#/components/schemas/BusinessDay"
+    PaymentFee:
+      type: object
+      required:
+        - paymentMethod
+        - percent
+      properties:
+        paymentMethod:
+          type: string
+          enum:
+            - credit
+            - debit
+            - pix
+            - cash
+          description: Forma de pagamento (RN011).
+        percent:
+          type: number
+          minimum: -100
+          maximum: 100
+          multipleOf: 0.01
+          description: >-
+            Positivo para acréscimo, negativo para desconto e zero sem ajuste
+            (RN012).
+          examples:
+            - -3
+    PaymentFees:
+      type: array
+      minItems: 4
+      maxItems: 4
+      description: >-
+        As quatro formas, uma só vez cada, na ordem crédito, débito, Pix e
+        dinheiro.
+      items:
+        $ref: "#/components/schemas/PaymentFee"
     AdminCategory:
       type: object
       required:

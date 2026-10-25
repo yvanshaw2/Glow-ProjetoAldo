@@ -46,3 +46,30 @@ export async function listBusinessHours(): Promise<BusinessDay[]> {
   }
   return data.map(toBusinessDay);
 }
+
+// UC23: the seven rows are written by one statement, so a day is never saved
+// without the others. The panel only changes the rows of the seed.
+export async function replaceBusinessHours(
+  days: BusinessDay[],
+): Promise<BusinessDay[]> {
+  const { data, error } = await getServiceClient()
+    .from("business_hours")
+    .upsert(
+      days.map((day) => ({
+        weekday: day.weekday,
+        is_open: day.isOpen,
+        opens_at: day.opensAt,
+        closes_at: day.closesAt,
+        break_starts_at: day.breakStartsAt,
+        break_ends_at: day.breakEndsAt,
+      })),
+      { onConflict: "weekday" },
+    )
+    .select(BUSINESS_HOURS_COLUMNS)
+    .order("weekday")
+    .overrideTypes<BusinessHoursRow[], { merge: false }>();
+  if (error) {
+    throw error;
+  }
+  return data.map(toBusinessDay);
+}

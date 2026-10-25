@@ -349,6 +349,17 @@ export const percentSchema = numberFormat({
     value >= 0 && value <= PERCENT_MAX && hasAtMostTwoDecimals(value),
 });
 
+// The payment fee as the API keeps it: a surcharge is positive and a discount
+// negative (RN012). The screen asks for the size from 0 to 100, so the
+// message is the one of percentSchema.
+export const signedPercentSchema = numberFormat({
+  message: PERCENT_MESSAGE,
+  isValid: (value) =>
+    value >= -PERCENT_MAX &&
+    value <= PERCENT_MAX &&
+    hasAtMostTwoDecimals(value),
+});
+
 export const durationMinutesSchema = numberFormat({
   message: DURATION_MESSAGE,
   isValid: (minutes) =>

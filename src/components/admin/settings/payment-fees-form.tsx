@@ -31,6 +31,13 @@ import {
 
 const PAYMENT_FEES_PATH = "/api/admin/settings/payment-fees";
 
+// The API reports an error of the list as <index>.<field>, with the index of
+// the method in PAYMENT_METHODS; the form keeps them under `fees.<method>`.
+function toFieldName(field: string): string {
+  const [index, ...rest] = field.split(".");
+  return ["fees", PAYMENT_METHODS[Number(index)], ...rest].join(".");
+}
+
 const ADJUSTMENT_CHOICES: Choice<FeeAdjustment>[] = [
   {
     value: "surcharge",
@@ -56,9 +63,12 @@ export function PaymentFeesForm() {
 }
 
 function PaymentFeesFields({ fees }: { fees: PaymentFee[] }) {
-  const { control, handleSubmit, setError, reset, formState } =
+  const { control, handleSubmit, setError, clearErrors, reset, formState } =
     useForm<PaymentFeesFormValues>({ defaultValues: toFormValues(fees) });
-  const { failure, showFailure, clearFailure } = useFormFailure(setError);
+  const { failure, showFailure, clearFailure } = useFormFailure(
+    setError,
+    toFieldName,
+  );
   const [isSaved, setIsSaved] = useState(false);
 
   async function submit(values: PaymentFeesFormValues) {
@@ -88,7 +98,13 @@ function PaymentFeesFields({ fees }: { fees: PaymentFee[] }) {
       />
       <form
         noValidate
-        onSubmit={handleSubmit(submit)}
+        onSubmit={(event) => {
+          // A message from the route may be about a field the person already
+          // fixed through another one, such as the closing and a break; it would
+          // keep the form from being sent.
+          clearErrors();
+          return handleSubmit(submit)(event);
+        }}
         onChange={() => setIsSaved(false)}
         className="flex flex-col gap-5"
       >

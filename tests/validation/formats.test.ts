@@ -20,6 +20,7 @@ import {
   plainTextSchema,
   plateSchema,
   searchTermSchema,
+  signedPercentSchema,
   signInPasswordSchema,
   vehicleBrandModelSchema,
   vehicleColorSchema,
@@ -428,6 +429,31 @@ describe("percentSchema", () => {
     expect(messageOf(percentSchema, -1)).toBe(PERCENT);
     expect(messageOf(percentSchema, 100.01)).toBe(PERCENT);
     expect(messageOf(percentSchema, 5.255)).toBe(PERCENT);
+  });
+});
+
+describe("signedPercentSchema", () => {
+  it("accepts a surcharge, a discount and zero", () => {
+    for (const percent of [5, -3, 0, 100, -100, 5.25, -0.5]) {
+      expect(signedPercentSchema.parse(percent)).toBe(percent);
+    }
+  });
+
+  it("rejects a value outside -100 to 100", () => {
+    expect(messageOf(signedPercentSchema, 100.01)).toBe(PERCENT);
+    expect(messageOf(signedPercentSchema, -100.01)).toBe(PERCENT);
+  });
+
+  it("rejects more than two decimals and what is not a number", () => {
+    expect(messageOf(signedPercentSchema, 1.234)).toBe(PERCENT);
+    expect(messageOf(signedPercentSchema, "abc")).toBe(PERCENT);
+    expect(messageOf(signedPercentSchema, "5")).toBe(PERCENT);
+    expect(messageOf(signedPercentSchema, Number.NaN)).toBe(PERCENT);
+  });
+
+  it("requires the value", () => {
+    expect(messageOf(signedPercentSchema, null)).toBe(REQUIRED);
+    expect(messageOf(signedPercentSchema, undefined)).toBe(REQUIRED);
   });
 });
 

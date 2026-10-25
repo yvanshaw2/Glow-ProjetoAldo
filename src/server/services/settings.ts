@@ -1,10 +1,22 @@
 import "server-only";
-import { listBusinessHours } from "@/server/repositories/business-hours";
+import {
+  listBusinessHours,
+  replaceBusinessHours,
+} from "@/server/repositories/business-hours";
 import {
   findBusinessSettings,
   updateBusinessSettings,
 } from "@/server/repositories/business-settings";
-import type { CompanySettings, PublicCompany } from "@/shared/api/settings";
+import {
+  listPaymentFees,
+  replacePaymentFees,
+} from "@/server/repositories/payment-fees";
+import type {
+  BusinessDay,
+  CompanySettings,
+  PaymentFee,
+  PublicCompany,
+} from "@/shared/api/settings";
 import { AppError } from "@/shared/errors/app-error";
 import type { CompanySettingsInput } from "@/shared/validation/settings";
 
@@ -49,4 +61,25 @@ export async function updateCompanySettings({
     throw new AppError("VERSION_CONFLICT");
   }
   return settings;
+}
+
+// UC23: the seven days, from Sunday. The PUT has no updatedAt: the list is
+// replaced as a whole and the last save prevails (docs/padroes/api.md).
+export function getBusinessHours(): Promise<BusinessDay[]> {
+  return listBusinessHours();
+}
+
+export function updateBusinessHours(
+  days: BusinessDay[],
+): Promise<BusinessDay[]> {
+  return replaceBusinessHours(days);
+}
+
+// UC24, RN012: credit, debit, Pix and cash, the percent signed.
+export function getPaymentFees(): Promise<PaymentFee[]> {
+  return listPaymentFees();
+}
+
+export function updatePaymentFees(fees: PaymentFee[]): Promise<PaymentFee[]> {
+  return replacePaymentFees(fees);
 }

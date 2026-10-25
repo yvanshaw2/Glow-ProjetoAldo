@@ -6,7 +6,7 @@ origem: Documentação de Arquitetura de Software, seção 3.2 (Quadros 3 e 4) e
 
 # Telas e rotas: Configurações
 
-Valem para todas as rotas, sem repetição abaixo ([../padroes/api.md](../padroes/api.md)): erros comuns 400, 401, 403 e 404 no formato Problem Details; parâmetros `page` e `pageSize` em toda listagem; `updatedAt` obrigatório em `PATCH` e `PUT`, com 409 `VERSION_CONFLICT`. Campos com `*` são obrigatórios.
+Valem para todas as rotas, sem repetição abaixo ([../padroes/api.md](../padroes/api.md)): erros comuns 400, 401, 403 e 404 no formato Problem Details; parâmetros `page` e `pageSize` em toda listagem; `updatedAt` obrigatório em `PATCH` e `PUT`, com 409 `VERSION_CONFLICT`, exceto no `PUT` das duas listas, `business-hours` e `payment-fees`. Campos com `*` são obrigatórios.
 
 ## Telas
 
@@ -61,7 +61,7 @@ Disponibilidade (UC23).
 Grava a disponibilidade.
 
 - Entrada: Lista com `weekday*, isOpen*, opensAt, closesAt, breakStartsAt, breakEndsAt`.
-- Resposta: **200** disponibilidade atualizada; 400 horário fora de hora cheia ou meia hora, encerramento anterior ou igual à abertura, ou pausa fora do expediente.
+- Resposta: **200** disponibilidade atualizada; 400 horário fora de hora cheia ou meia hora, encerramento anterior ou igual à abertura, ou pausa fora do expediente; o campo com problema vai em `fields` com o índice do item da lista (`1.closesAt`), e a lista sem os sete dias, uma só vez cada, é erro do corpo, sem campo.
 
 #### `GET /api/admin/settings/payment-fees`
 
@@ -75,4 +75,4 @@ Percentuais das formas de pagamento (UC24).
 Grava os percentuais.
 
 - Entrada: Lista com `paymentMethod*, percent*`; percentual negativo para desconto.
-- Resposta: **200** o mesmo corpo do `GET`, atualizado; 400 percentual fora do intervalo de −100 a 100.
+- Resposta: **200** o mesmo corpo do `GET`, atualizado; 400 percentual fora do intervalo de −100 a 100, em `fields` com o índice do item (`2.percent`); a lista sem as quatro formas, uma só vez cada, é erro do corpo, sem campo.

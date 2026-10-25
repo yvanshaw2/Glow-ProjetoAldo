@@ -65,7 +65,7 @@ Toda resposta de erro é Problem Details, com `Content-Type: application/problem
 }
 ```
 
-Em `fields`, cada campo aparece uma vez, com a primeira mensagem; o campo dentro de objeto ou lista usa o caminho com pontos (`vehicle.plate`, `services.0.serviceId`).
+Em `fields`, cada campo aparece uma vez, com a primeira mensagem; o campo dentro de objeto ou lista usa o caminho com pontos (`vehicle.plate`, `services.0.serviceId`); no corpo que é uma lista, o índice do item (`0.closesAt`).
 
 | HTTP | `code` | Mensagem |
 |---|---|---|
@@ -101,4 +101,4 @@ Os códigos e as mensagens ficam em `src/shared/errors`, usados pelo backend par
 
 ## Concorrência (RNF011)
 
-Toda leitura de registro editável devolve `updatedAt`. `PATCH` e `PUT` exigem esse valor de volta, e a gravação só acontece se o registro ainda tiver o mesmo `updatedAt`, numa única instrução; senão nada é gravado e a resposta é 409 `VERSION_CONFLICT`. Em configurações gravadas em lista (disponibilidade, formas de pagamento), vale o `updatedAt` mais recente da lista. O frontend trata o valor como texto, sem convertê-lo em data. O valor só detecta conflito; permissões e regras continuam decididas pelo servidor.
+Toda leitura de registro editável devolve `updatedAt`. `PATCH` e `PUT` exigem esse valor de volta, e a gravação só acontece se o registro ainda tiver o mesmo `updatedAt`, numa única instrução; senão nada é gravado e a resposta é 409 `VERSION_CONFLICT`. As configurações gravadas em lista (disponibilidade, formas de pagamento) não têm `updatedAt`: o `PUT` substitui a lista inteira numa só instrução, e a última gravação prevalece (exceção a RNF011, decisão 0009). O frontend trata o valor como texto, sem convertê-lo em data. O valor só detecta conflito; permissões e regras continuam decididas pelo servidor.

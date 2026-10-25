@@ -24,13 +24,19 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Cor | Use de 3 a 30 letras. |
 | Ano | Informe um ano de 1886 a <ano seguinte ao corrente>. |
 | Valor em reais | Informe um valor maior que zero e de até R$ 99.999,99. |
-| Percentual | Informe um percentual de 0 a 100, com até duas casas decimais. |
+| Percentual (a rota das formas de pagamento o recebe com sinal, de −100 a 100; a mesma mensagem vale) | Informe um percentual de 0 a 100, com até duas casas decimais. |
 | Duração | Informe a duração em minutos, de 5 a 2.400. |
 | CNPJ | Informe um CNPJ válido. |
 | Instagram | Informe o endereço do perfil no Instagram, começando por https://. |
 | Facebook | Informe o endereço da página no Facebook, começando por https://. |
 | Nomes de serviço, categoria e cargo; descrição do cargo ocupado | Use de 2 a 60 caracteres. |
 | Horário | Escolha um horário em hora cheia ou meia hora. |
+| Encerramento igual ou anterior à abertura | O encerramento deve ser depois da abertura. |
+| Início da pausa antes da abertura | A pausa deve começar a partir da abertura. |
+| Fim da pausa depois do encerramento | A pausa deve terminar até o encerramento. |
+| Fim da pausa igual ou anterior ao início | O fim da pausa deve ser depois do início. |
+| Dias da semana incompletos ou repetidos (erro da lista, sem campo) | Informe os sete dias da semana, sem repetir. |
+| Formas de pagamento incompletas ou repetidas (erro da lista, sem campo) | Informe as quatro formas de pagamento, sem repetir. |
 | Nome da empresa, endereço, descrições e termo de busca | Use até <limite> caracteres. |
 | Versão do registro (`updatedAt`) ausente ou fora do formato | Atualize a página e tente novamente. |
 | `page` e `pageSize` | Informe um número inteiro a partir de 1. |
