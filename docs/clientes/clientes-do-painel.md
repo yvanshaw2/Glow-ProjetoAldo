@@ -9,7 +9,7 @@ relacionados: [UC16, UC17, UC18, RF016, RF069, RF070, RF071, RF072, RF073, RF074
 
 Lista, detalhes, janelas, confirmações e estados de `/admin/clients`, do [UC16](UC16-cadastrar-cliente.md), do [UC17](UC17-manter-cliente.md) e do [UC18](UC18-manter-veiculos-do-cliente.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, campo de senha e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md); cadastro e edição de veículo do cliente: [area-do-cliente.md](area-do-cliente.md).
 
-Os clientes vêm das rotas `/api/admin/clients`. Enquanto os veículos do cliente usarem os dados de demonstração de `src/lib/demo/admin-clients.ts` (decisão 0055, até a #45), o aviso de demonstração fica no início da seção "Veículos" dos detalhes; um cliente que não é do seed mostra "Nenhum veículo cadastrado".
+Os clientes e os veículos vêm das rotas `/api/admin/clients` e `/api/admin/vehicles`, e a página não tem aviso de demonstração. Os dados de demonstração vêm do banco (`supabase/seed-demo.sql`); um cliente cadastrado pelo painel mostra "Nenhum veículo cadastrado".
 
 ## Página
 
@@ -56,7 +56,7 @@ Os clientes vêm das rotas `/api/admin/clients`. Enquanto os veículos do client
 
 ## Veículos do cliente (UC18, RF016, RF075, RF076)
 
-- **Cadastrar veículo.** Janela "Cadastrar veículo" como a do portal ([area-do-cliente.md](area-do-cliente.md), Cadastro), com "Adicionar à conta" no lugar de "Adicionar à minha conta"; a consulta é `GET /api/admin/vehicles/lookup`, e o envio, `POST /api/admin/clients/:id/vehicles`. Placa já entre os veículos do cliente (FE02): o aviso é o de `VEHICLE_ALREADY_LINKED`, com a mensagem do catálogo de erros ("Este veículo já está na sua conta.", escrita para o portal); a rota (#45) define se o painel usa um texto próprio.
+- **Cadastrar veículo.** Janela "Cadastrar veículo" como a do portal ([area-do-cliente.md](area-do-cliente.md), Cadastro), com "Adicionar à conta" no lugar de "Adicionar à minha conta"; a consulta é `GET /api/admin/vehicles/lookup`, e o envio, `POST /api/admin/clients/:id/vehicles`. Placa já entre os veículos do cliente (FE02): o aviso é "Este veículo já está na conta do cliente.", no topo da janela, com os dados mantidos. A consulta da placa não sabe de qual cliente é o cadastro; por isso o aviso vem do envio, depois de a janela mostrar os dados do veículo cadastrado.
 - **Editar veículo.** Janela "Editar veículo" como a do portal, sem a trava do veículo compartilhado: no que está em mais de uma conta, o aviso "As alterações valem para todas as contas vinculadas a este veículo." fica no topo do formulário. O envio é `PATCH /api/admin/vehicles/:id`; `PLATE_IN_USE` (FE03) e `VERSION_CONFLICT` aparecem no topo da janela.
 
 ## Fora da tela

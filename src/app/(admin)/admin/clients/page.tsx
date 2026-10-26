@@ -4,8 +4,7 @@ import { PERMISSION_LABELS } from "@/shared/constants/permissions";
 
 export const metadata: Metadata = { title: "Clientes – Glow" };
 
-// UC16 and UC17: the clients in the panel; the vehicles of the client keep
-// the data of src/lib/demo/ until #45 (decision 0055).
+// UC16, UC17 and UC18: the clients in the panel and their vehicles.
 export default function ClientsPage() {
   return (
     <>

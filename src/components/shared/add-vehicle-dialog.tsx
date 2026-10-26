@@ -1,9 +1,10 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeftIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import {
   PlateField,
   VehicleDetailFields,
@@ -26,6 +27,10 @@ import { useFormFailure } from "@/hooks/use-form-failure";
 import { apiRequest, withQuery } from "@/lib/api-client";
 import type { ClientVehicle, VehicleLookup } from "@/shared/api/vehicles";
 import { VEHICLE_TYPE_LABELS } from "@/shared/constants/vehicle-types";
+import {
+  vehicleFormSchema,
+  vehiclePlateFormSchema,
+} from "@/shared/validation/vehicles";
 
 // UC05 (docs/clientes/area-do-cliente.md) and UC18 (docs/clientes/
 // clientes-do-painel.md): the register starts with the
@@ -33,7 +38,9 @@ import { VEHICLE_TYPE_LABELS } from "@/shared/constants/vehicle-types";
 // vehicle without editing, and the submit sends only the plate (FA01); a new
 // plate asks for the type and the data. A single form, so going back to the
 // plate keeps what was typed. The client area, the booking and the panel use
-// this dialog, each with its own routes.
+// this dialog, each with its own routes. The forms are checked by the schemas
+// of src/shared/validation/vehicles.ts: the plate alone in the first two
+// steps, and the five data of a new plate.
 
 const EMPTY_VALUES: VehicleFormValues = {
   plate: "",
@@ -80,8 +87,25 @@ export function AddVehicleDialog({
 }: AddVehicleDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>(PLATE_STEP);
-  const { control, handleSubmit, setError, setFocus, reset, formState } =
-    useForm<VehicleFormValues>({ defaultValues: EMPTY_VALUES });
+  // The values stay as typed (raw), the routes normalize them again.
+  const resolver = zodResolver(
+    step.name === "new" ? vehicleFormSchema() : vehiclePlateFormSchema,
+    undefined,
+    { raw: true },
+  ) as unknown as Resolver<VehicleFormValues>;
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    setFocus,
+    reset,
+    formState,
+  } = useForm<VehicleFormValues>({
+    resolver,
+    mode: "onTouched",
+    defaultValues: EMPTY_VALUES,
+  });
   const { failure, showFailure, clearFailure } = useFormFailure(setError);
 
   // docs/padroes/componentes.md, Diálogos: the dialog does not close during
@@ -97,6 +121,8 @@ export function AddVehicleDialog({
   }
 
   async function submit(values: VehicleFormValues) {
+    // The route can answer for a field the person has corrected since.
+    clearErrors();
     clearFailure();
     try {
       if (step.name === "plate") await lookUpPlate(values.plate);
@@ -133,7 +159,7 @@ export function AddVehicleDialog({
     const body =
       step.name === "registered"
         ? { plate }
-        : { plate, type, brand, model, color, year };
+        : { plate, type, brand, model, color, year: Number(year) };
     await apiRequest<ClientVehicle>(createPath, { method: "POST", body });
     setIsOpen(false);
     onAdded();

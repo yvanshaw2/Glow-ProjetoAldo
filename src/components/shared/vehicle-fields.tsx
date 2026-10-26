@@ -19,8 +19,8 @@ import {
 import { formatPlate } from "@/shared/format/plate";
 
 // The fields of the vehicle forms (docs/clientes/area-do-cliente.md), shared
-// by the register and the edit dialogs. With the demo data, the forms have no
-// validation schema yet (decision 0055), so the values go as typed.
+// by the register and the edit dialogs. The schemas of src/shared/validation/
+// vehicles.ts check them.
 
 export type VehicleFormValues = {
   // With the mask, as typed (RN035).

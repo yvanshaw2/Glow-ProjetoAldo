@@ -1,8 +1,9 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import {
   PlateField,
   VehicleDetailFields,
@@ -25,11 +26,13 @@ import { useFormFailure } from "@/hooks/use-form-failure";
 import { ApiError, apiRequest } from "@/lib/api-client";
 import type { ClientVehicle } from "@/shared/api/vehicles";
 import { formatPlate } from "@/shared/format/plate";
+import { vehicleFormSchema } from "@/shared/validation/vehicles";
 
 // UC05 FA02 (docs/clientes/area-do-cliente.md) and UC18 FA02 (docs/clientes/
 // clientes-do-painel.md): the edit of a vehicle. The client area offers it
 // only when no other account has the vehicle (FE03, RN036); the panel always
-// does, with a notice on a shared one.
+// does, with a notice on a shared one. The form is checked by the schema of
+// src/shared/validation/vehicles.ts.
 
 function toFormValues({
   plate,
@@ -67,8 +70,16 @@ export function EditVehicleDialog({
   onConflict,
 }: EditVehicleDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { control, handleSubmit, setError, reset, formState } =
-    useForm<VehicleFormValues>({ defaultValues: toFormValues(vehicle) });
+  // The values stay as typed (raw), the route normalizes them again.
+  const resolver = zodResolver(vehicleFormSchema(), undefined, {
+    raw: true,
+  }) as unknown as Resolver<VehicleFormValues>;
+  const { control, handleSubmit, setError, clearErrors, reset, formState } =
+    useForm<VehicleFormValues>({
+      resolver,
+      mode: "onTouched",
+      defaultValues: toFormValues(vehicle),
+    });
   const { failure, showFailure, clearFailure } = useFormFailure(setError);
 
   // RNF011: after a version conflict the list is read again, and the
@@ -96,6 +107,8 @@ export function EditVehicleDialog({
     color,
     year,
   }: VehicleFormValues) {
+    // The route can answer for a field the person has corrected since.
+    clearErrors();
     clearFailure();
     try {
       await apiRequest<ClientVehicle>(`${vehiclesPath}/${vehicle.id}`, {
@@ -106,7 +119,7 @@ export function EditVehicleDialog({
           brand,
           model,
           color,
-          year,
+          year: Number(year),
           updatedAt: vehicle.updatedAt,
         },
       });

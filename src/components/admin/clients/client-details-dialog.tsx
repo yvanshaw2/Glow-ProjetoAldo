@@ -18,7 +18,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { useApiQuery } from "@/hooks/use-api-query";
 import type { AdminClient } from "@/shared/api/clients";
 import { formatPhone } from "@/shared/format/phone";
@@ -161,8 +160,6 @@ function ClientContent({
           <h3 id="client-vehicles-title" className="font-semibold">
             Veículos
           </h3>
-          {/* Until #45 the vehicles of the client are demo data. */}
-          <DemoNotice />
           <ClientVehicleList clientId={client.id} />
         </section>
       </div>
