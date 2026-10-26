@@ -88,7 +88,7 @@ Detalha um cliente.
 Lista os veículos do cliente.
 
 - Entrada: Nenhuma.
-- Resposta: **200** lista paginada de `id`, `plate`, `type`, `size`, `brand`, `model`, `color`, `year`, `isShared` e `updatedAt`, na ordem em que foram vinculados à conta.
+- Resposta: **200** lista paginada de `id`, `plate`, `type`, `size`, `brand`, `model`, `color`, `year`, `isShared` e `updatedAt`, na ordem do vínculo com a conta e, no empate, pelo identificador do veículo; `isShared` é verdadeiro quando há outro vínculo com o veículo, inclusive de conta excluída. 404 se o cliente não existe ou foi excluído.
 
 #### `POST /api/admin/clients`
 
@@ -122,12 +122,12 @@ Consulta uma placa antes do cadastro (UC18).
 
 Cadastra um veículo para o cliente ou vincula o veículo de uma placa já cadastrada (UC18).
 
-- Entrada: `plate*`; Placa nova: `type*, brand*, model*, color*, year*`.
-- Resposta: **201** veículo criado ou vinculado, com o porte definido; 409 `VEHICLE_ALREADY_LINKED`.
+- Entrada: `plate*`; Placa nova: `type*, brand*, model*, color*, year*`. Com a placa já cadastrada, só `plate` vale e os demais campos são ignorados: o veículo existente é vinculado sem ser alterado (RN036). Com a placa nova, os cinco dados são obrigatórios; faltando algum, 400 com os campos.
+- Resposta: **201** veículo criado ou vinculado, com o porte definido; 404 se o cliente não existe ou foi excluído; 409 `VEHICLE_ALREADY_LINKED`, com a mensagem "Este veículo já está na conta do cliente.".
 
 #### `PATCH /api/admin/vehicles/:id`
 
 Edita um veículo, inclusive o vinculado a mais de uma conta (UC18).
 
-- Entrada: `type, plate, brand, model, color, year`
-- Resposta: **200** veículo atualizado, com o porte redefinido se o tipo mudar; 409 `PLATE_IN_USE`.
+- Entrada: `updatedAt*` e, ao menos um, `type`, `plate`, `brand`, `model`, `color` e `year`. Só o que veio é alterado.
+- Resposta: **200** o veículo, com os campos da lista e o porte redefinido se o tipo mudar; 400; 404; 409 `PLATE_IN_USE` e `VERSION_CONFLICT`. Os agendamentos já registrados não mudam (RN037).

@@ -1329,6 +1329,204 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/clients/{id}/vehicles:
+    get:
+      tags:
+        - clients
+      operationId: listClientVehicles
+      summary: Lista os veículos de um cliente
+      description: >-
+        Veículos vinculados à conta, 10 por página, na ordem dos vínculos e,
+        no empate, pelo identificador do veículo (UC17, UC18, RF076). O
+        cliente excluído e o id que não é UUID respondem o mesmo 404 do
+        cliente inexistente.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        "200":
+          description: Página de veículos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehiclePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - clients
+      operationId: addClientVehicle
+      summary: Cadastra ou vincula um veículo à conta do cliente
+      description: >-
+        Com a placa já cadastrada, vincula o veículo existente sem alterá-lo e
+        sem criar outro; os demais campos são ignorados (UC18 FA01, RN036).
+        Com a placa nova, os cinco dados são obrigatórios; o veículo e o vínculo
+        são gravados numa só transação, e o porte vem do tipo (RN002).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleInput"
+      responses:
+        "201":
+          description: Veículo cadastrado ou vinculado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehicle"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            VEHICLE_ALREADY_LINKED: o veículo já está na conta do cliente
+            (RN036, UC18 FE02).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/vehicles/lookup:
+    get:
+      tags:
+        - clients
+      operationId: lookUpVehicle
+      summary: Consulta uma placa
+      description: >-
+        Devolve o tipo, a marca, o modelo, a cor e o ano do veículo, se a placa
+        já estiver cadastrada, ou null; nunca devolve dados de clientes (UC18,
+        RN036). A placa vale com ou sem hífen, em qualquer caixa (RN035).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: plate
+          in: query
+          required: true
+          schema:
+            type: string
+            examples:
+              - ABC-1234
+      responses:
+        "200":
+          description: O veículo da placa, ou null.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/VehicleLookup"
+                  - type: "null"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/vehicles/{id}:
+    patch:
+      tags:
+        - clients
+      operationId: updateVehicle
+      summary: Edita um veículo
+      description: >-
+        Altera só os campos enviados, ao menos um, em todas as contas a que o
+        veículo está vinculado (UC18 FA02, RF076, RN036). O porte é redefinido
+        pelo tipo (RN002), e os agendamentos já registrados não mudam (RN037).
+        A gravação só acontece se o veículo ainda tiver o updatedAt enviado
+        (RNF011, decisão 0009).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleUpdateInput"
+      responses:
+        "200":
+          description: Veículo atualizado, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehicle"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            PLATE_IN_USE: a placa pertence a outro veículo (RN036, UC18 FE03);
+            ou VERSION_CONFLICT: o veículo foi alterado depois da leitura
+            (RNF011).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
     sessionCookie:
@@ -2509,6 +2707,151 @@ components:
           type: string
           format: date-time
           description: O updatedAt lido com o cliente.
+    VehicleType:
+      type: string
+      enum:
+        - hatch
+        - sedan
+        - suv
+        - pickup
+      description: Hatch (P), sedan (M), SUV (G) e picape (GG) (RN002).
+    VehicleLookup:
+      type: object
+      required:
+        - type
+        - brand
+        - model
+        - color
+        - year
+      properties:
+        type:
+          $ref: "#/components/schemas/VehicleType"
+        brand:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        year:
+          type: integer
+    ClientVehicle:
+      type: object
+      required:
+        - id
+        - plate
+        - type
+        - size
+        - brand
+        - model
+        - color
+        - year
+        - isShared
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        plate:
+          type: string
+          description: Em maiúsculas e sem hífen (RN035).
+          examples:
+            - ABC1234
+        type:
+          $ref: "#/components/schemas/VehicleType"
+        size:
+          type: string
+          enum:
+            - small
+            - medium
+            - large
+            - extra_large
+          description: Calculado pelo banco a partir do tipo (RN002); nunca é enviado.
+        brand:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        year:
+          type: integer
+        isShared:
+          type: boolean
+          description: >-
+            O veículo está vinculado a mais de uma conta, inclusive de cliente
+            excluído (RN036).
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão do veículo (RNF011); volta no PATCH como veio.
+          examples:
+            - "2026-10-26T13:45:12.345678+00:00"
+    ClientVehiclePage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientVehicle"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    VehicleInput:
+      type: object
+      required:
+        - plate
+      description: >-
+        Placa já cadastrada: só plate vale. Placa nova: type, brand, model,
+        color e year também são obrigatórios.
+      properties:
+        plate:
+          type: string
+          description: Com ou sem hífen, em qualquer caixa (RN035).
+          examples:
+            - abc-1234
+        type:
+          $ref: "#/components/schemas/VehicleType"
+        brand:
+          type: string
+          description: De 1 a 40 caracteres (RN035).
+        model:
+          type: string
+          description: De 1 a 40 caracteres (RN035).
+        color:
+          type: string
+          description: De 3 a 30 letras (RN035).
+        year:
+          type: integer
+          description: De 1886 ao ano seguinte ao corrente (RN035).
+    VehicleUpdateInput:
+      type: object
+      required:
+        - updatedAt
+      description: Ao menos um entre type, plate, brand, model, color e year.
+      properties:
+        type:
+          $ref: "#/components/schemas/VehicleType"
+        plate:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        year:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+          description: O updatedAt lido com o veículo.
     ProblemDetails:
       type: object
       required:

@@ -66,7 +66,7 @@ Vínculo entre clientes e veículos.
 
 Feitas por função SQL, em uma única transação, chamada pelo repositório (RNF010):
 
-- `link_vehicle`: veículo, quando a placa ainda não existe, e vínculo com a conta do cliente.
+- `link_vehicle(p_client_id, p_plate, p_type, p_brand, p_model, p_color, p_year)`: veículo, quando a placa ainda não existe, e vínculo com a conta do cliente; devolve o id do veículo, ou `null` se ele já está vinculado à conta. Com a placa já cadastrada, os demais parâmetros são ignorados.
 
 ## Índices adicionais
 
