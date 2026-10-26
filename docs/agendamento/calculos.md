@@ -25,6 +25,7 @@ Os indicadores (seção 5) não ficam em `rules/`: são agregações por períod
 - Subtotal: soma dos itens. Total: subtotal ajustado pelo percentual da forma (positivo acréscimo, negativo desconto). Desconto de 100% dá total zero.
 - Cálculo em centavos inteiros: as funções recebem e devolvem reais, como o banco, a API e as telas, e convertem para centavos por dentro. Só o total é arredondado, uma vez, ao centavo mais próximo, e o meio centavo sobe: R$ 150,10 com acréscimo de 5% (R$ 157,605) dá R$ 157,61, e com desconto de 5% (R$ 142,595), R$ 142,60. Como o total nunca é negativo, é o mesmo resultado do `round` do PostgreSQL.
 - Composição: ao menos um serviço principal ou complementar (RN005); adicional só com o principal a que está vinculado (RN006).
+- Total por forma de pagamento do agendamento finalizado (RF053): a forma do agendamento mantém o percentual e o total gravados nele (RN037), e as outras três usam o percentual vigente sobre o subtotal.
 - A mesma função serve ao novo agendamento, à edição, ao reagendamento (sempre pelo catálogo atual, RN020) e à conclusão com troca da forma de pagamento (RN018).
 
 ## 2. Transições de status (RN017 a RN020)

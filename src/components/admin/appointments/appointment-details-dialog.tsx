@@ -7,6 +7,7 @@ import { AppointmentWizard } from "@/components/admin/appointments/appointment-w
 import { CompleteAppointmentDialog } from "@/components/admin/appointments/complete-appointment-dialog";
 import { RescheduleAppointmentDialog } from "@/components/admin/appointments/reschedule-appointment-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { FormAlert } from "@/components/shared/form-alert";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -304,6 +305,8 @@ function AppointmentContent({
           </p>
         </div>
       </div>
+      {/* The actions below are still the demo (decision 0055). */}
+      <DemoNotice />
       <DialogFooter>
         {/* UC26 FA01, RN032: the staff edits in any status. A nested window,
             so "Cancelar" and Esc return to the detail. */}

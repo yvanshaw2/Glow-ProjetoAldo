@@ -9,11 +9,11 @@ relacionados: [UC10, UC11, UC12, UC25, UC26, RF044, RF045, RF046, RF047, RF048, 
 
 Visões, filtros, cartão, detalhe, ações de status e estados de `/admin/appointments`, do [UC10](UC10-consultar-agendamentos.md), do [UC12](UC12-atualizar-status-do-agendamento.md) e do [UC25](UC25-reagendar-servico-concluido.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, etiqueta de status e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato da rota: [rotas.md](rotas.md).
 
-Enquanto as rotas `/api/admin/appointments` usarem os dados de demonstração de `src/lib/demo/admin-appointments.ts` (decisão 0055), o aviso de demonstração fica logo abaixo do título da página.
+A listagem e o detalhe são reais (`GET /api/admin/appointments` e `GET /api/admin/appointments/:id`). Enquanto a gravação e a prévia de valores usarem os dados de demonstração de `src/lib/demo/admin-appointments.ts` (decisão 0055), o aviso de demonstração fica no alto das janelas "Novo agendamento", "Editar", "Reagendar" e "Concluir" e acima dos botões do detalhe.
 
 ## Página
 
-- Título: "Agendamentos". Abaixo dele, o aviso de demonstração e as abas "Hoje", "Futuros" e "Histórico", cada uma com a descrição da visão e a listagem dela.
+- Título: "Agendamentos". Abaixo dele, as abas "Hoje", "Futuros" e "Histórico", cada uma com a descrição da visão e a listagem dela.
 - Cada aba lê a rota de novo ao ser escolhida e começa sem busca, filtro nem ordem escolhida. O acesso à página é da permissão `appointments` ([RN025](../equipe/RN025-permissoes.md)).
 
 ## Visões (UC10 passos 2 a 4, RF044)
@@ -30,7 +30,7 @@ A agenda do dashboard ([dashboard-do-painel.md](dashboard-do-painel.md), RF043) 
 
 ## Controles (RF045 a RF049)
 
-- Busca "Buscar por cliente ou veículo", com a ajuda "Cliente, placa, marca ou modelo": vale 300 ms depois da última tecla e volta à primeira página (RF047).
+- Busca "Buscar por cliente ou veículo", com a ajuda "Cliente, placa, marca ou modelo" (várias palavras restringem a busca, e a placa vale com ou sem hífen): vale 300 ms depois da última tecla e volta à primeira página (RF047).
 - Filtro "Filtrar por status", com "Todos os status" e só os status da visão (RF046). Ordem, "Ordenar por horário" ou "Ordenar por status" (RF045): o horário vai do mais próximo ao mais distante em "Hoje" e "Futuros" e do mais recente ao mais antigo no "Histórico"; o status segue a ordem de RN017 e, dentro de cada um, o horário.
 - "Limpar filtros" aparece quando há busca, status ou outra ordem, e tira os três numa ação só, de volta à listagem completa da visão (RF048, FA04). O foco vai à busca.
 - "Atualizar", com o ícone `RefreshCw`, lê a listagem de novo (RF049, FA05).

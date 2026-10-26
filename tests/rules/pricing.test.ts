@@ -3,6 +3,7 @@ import {
   calculateServicePrice,
   calculateTotal,
   findCompositionError,
+  listPaymentOptions,
   priceServices,
   type CompositionService,
   type PricedService,
@@ -197,5 +198,74 @@ describe("findCompositionError", () => {
     expect(findCompositionError([MAIN_B, ADDITIONAL_OF_A])).toBe(
       "ADDITIONAL_WITHOUT_MAIN",
     );
+  });
+});
+
+// docs/agendamento/rotas.md, GET /api/admin/appointments/:id: the total of
+// each payment method of an appointment Finalizado (RF053), in the order of
+// RN011. The method of the appointment keeps what was recorded in it (RN037),
+// the others use the percent of today (RN012).
+describe("listPaymentOptions", () => {
+  const FEES = [
+    { paymentMethod: "credit", percent: 5 },
+    { paymentMethod: "debit", percent: 2.5 },
+    { paymentMethod: "pix", percent: -5 },
+    { paymentMethod: "cash", percent: 0 },
+  ] as const;
+
+  it("gives the four methods in the order of RN011", () => {
+    const options = listPaymentOptions({
+      subtotal: 100,
+      recorded: { paymentMethod: "cash", feePercent: 0, total: 100 },
+      fees: FEES,
+    });
+    expect(options).toEqual([
+      { paymentMethod: "credit", feePercent: 5, total: 105 },
+      { paymentMethod: "debit", feePercent: 2.5, total: 102.5 },
+      { paymentMethod: "pix", feePercent: -5, total: 95 },
+      { paymentMethod: "cash", feePercent: 0, total: 100 },
+    ]);
+  });
+
+  it("keeps the percent and the total recorded for the method it has", () => {
+    const options = listPaymentOptions({
+      subtotal: 100,
+      recorded: { paymentMethod: "credit", feePercent: 3, total: 103 },
+      fees: FEES,
+    });
+    expect(options[0]).toEqual({
+      paymentMethod: "credit",
+      feePercent: 3,
+      total: 103,
+    });
+    expect(options[1]).toEqual({
+      paymentMethod: "debit",
+      feePercent: 2.5,
+      total: 102.5,
+    });
+  });
+
+  it("rounds the total once, half a cent up", () => {
+    const options = listPaymentOptions({
+      subtotal: 150.1,
+      recorded: { paymentMethod: "cash", feePercent: 0, total: 150.1 },
+      fees: FEES,
+    });
+    expect(options[0].total).toBe(157.61);
+    expect(options[2].total).toBe(142.6);
+  });
+
+  it("gives zero for a 100% discount", () => {
+    const options = listPaymentOptions({
+      subtotal: 80,
+      recorded: { paymentMethod: "cash", feePercent: 0, total: 80 },
+      fees: [
+        FEES[0],
+        FEES[1],
+        { paymentMethod: "pix", percent: -100 },
+        FEES[3],
+      ],
+    });
+    expect(options[2].total).toBe(0);
   });
 });

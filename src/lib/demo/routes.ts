@@ -103,24 +103,8 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
   { method: "POST", path: "/api/me/appointments" },
   { method: "PATCH", path: "/api/me/appointments/:id" },
   { method: "POST", path: "/api/me/appointments/:id/reschedule" },
-  // docs/agendamento/rotas.md, built by #46, #49 and #50; the preview is a
-  // POST that writes nothing.
-  {
-    method: "GET",
-    path: "/api/admin/appointments",
-    load: () =>
-      import("@/lib/demo/admin-appointments").then(
-        (appointments) => appointments.answerAdminAppointments,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/admin/appointments/:id",
-    load: () =>
-      import("@/lib/demo/admin-appointments").then(
-        (appointments) => appointments.answerAdminAppointment,
-      ),
-  },
+  // docs/agendamento/rotas.md, built by #49 and #50; the preview is a POST
+  // that writes nothing.
   {
     method: "POST",
     path: "/api/admin/appointments/preview",

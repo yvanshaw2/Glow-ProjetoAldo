@@ -6,6 +6,7 @@ import { BookingPaymentStep } from "@/components/shared/booking-payment-step";
 import { BookingScheduleStep } from "@/components/shared/booking-schedule-step";
 import { BookingSummary } from "@/components/shared/booking-summary";
 import type { BookingFormValues } from "@/components/shared/booking-form-values";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { FormAlert } from "@/components/shared/form-alert";
 import { StepForm, type FormStep } from "@/components/shared/step-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -193,6 +194,7 @@ function RescheduleForm({
           {/* The heading between the title of the dialog and the h3 of each
               step. */}
           <h2 className="sr-only">Etapas do reagendamento</h2>
+          <DemoNotice />
           {failure && (
             <FormAlert key={failure.key}>{failure.error.message}</FormAlert>
           )}

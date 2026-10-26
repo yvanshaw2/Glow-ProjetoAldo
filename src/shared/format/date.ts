@@ -125,3 +125,15 @@ function readOffset(instant: Date): string {
     .find((part) => part.type === "timeZoneName")?.value;
   return !zoneName || zoneName === "GMT" ? "+00:00" : zoneName.slice(3);
 }
+
+// The instant the next day starts in the company's time zone, as the API
+// takes it: the end of the day of `now` for the view "Hoje" of the panel
+// (UC10, RF044). The day is read in the company's zone, so at 23h30 in Maceió
+// (already the next day in UTC) it is still the same day.
+export function startOfNextCompanyDay(now: Date): string {
+  const [year, month, day] = formatCalendarDate(now.toISOString())
+    .split("-")
+    .map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + 1));
+  return toCompanyInstant(next.toISOString().slice(0, 10), "00:00");
+}

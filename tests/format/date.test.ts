@@ -8,6 +8,7 @@ import {
   formatMonth,
   formatTime,
   formatYear,
+  startOfNextCompanyDay,
   toCompanyInstant,
 } from "@/shared/format/date";
 
@@ -128,5 +129,31 @@ describe("formatDayMonth", () => {
   it("writes the last day of the year and a leap day", () => {
     expect(formatDayMonth("2026-12-31")).toBe("31/12");
     expect(formatDayMonth("2028-02-29")).toBe("29/02");
+  });
+});
+
+// UC10, RF044: the appointments of "Hoje" are the ones before the instant
+// this returns, the day of the company at the instant of the call.
+describe("startOfNextCompanyDay", () => {
+  it("gives the midnight of the next day in the company's time zone", () => {
+    // 23h30 of 25/10 in Maceió is already 26/10 in UTC.
+    expect(startOfNextCompanyDay(new Date("2026-10-26T02:30:00Z"))).toBe(
+      "2026-10-26T00:00:00-03:00",
+    );
+  });
+
+  it("moves to the next day at midnight sharp", () => {
+    expect(startOfNextCompanyDay(new Date("2026-10-26T03:00:00Z"))).toBe(
+      "2026-10-27T00:00:00-03:00",
+    );
+  });
+
+  it("crosses the end of the month and of the year", () => {
+    expect(startOfNextCompanyDay(new Date("2026-10-31T15:00:00Z"))).toBe(
+      "2026-11-01T00:00:00-03:00",
+    );
+    expect(startOfNextCompanyDay(new Date("2026-12-31T15:00:00Z"))).toBe(
+      "2027-01-01T00:00:00-03:00",
+    );
   });
 });

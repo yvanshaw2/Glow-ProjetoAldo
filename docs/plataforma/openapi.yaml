@@ -38,6 +38,10 @@ tags:
   - name: clients
     description: >-
       Clientes do painel, com a permissão clients (docs/clientes/rotas.md).
+  - name: appointments
+    description: >-
+      Agendamentos do painel, com a permissão appointments
+      (docs/agendamento/rotas.md).
 paths:
   /api/auth/register:
     post:
@@ -1527,6 +1531,123 @@ paths:
           $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/appointments:
+    get:
+      tags:
+        - appointments
+      operationId: listAdminAppointments
+      summary: Lista os agendamentos de uma visão
+      description: >-
+        Agendamentos de hoje, futuros ou do histórico, 20 por página (UC10,
+        RF044 a RF049, RNF008). Em today estão Agendado, Em espera, Em
+        execução e Finalizado marcados para hoje, no fuso da empresa, ou para
+        dias anteriores; em future, os mesmos status marcados para depois de
+        hoje; em history, Concluído, Cancelado e Reagendado de qualquer data.
+        Os dados vêm da cópia gravada no agendamento (RN037). Dois
+        agendamentos no mesmo instante saem pelo identificador.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: view
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - today
+              - future
+              - history
+        - name: status
+          in: query
+          description: >-
+            Um dos status da visão (RF046); outro status responde 400. Vazio
+            não filtra.
+          schema:
+            $ref: "#/components/schemas/AppointmentStatus"
+        - name: search
+          in: query
+          description: >-
+            Até 100 caracteres; vazio não filtra. O termo se separa em
+            palavras, e cada uma precisa aparecer, sem diferenciar maiúsculas,
+            no nome do cliente, na placa (com ou sem hífen), na marca ou no
+            modelo (RF047).
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: >-
+            time (padrão): pelo horário marcado, do mais próximo ao mais
+            distante, e no history do mais recente ao mais antigo; status: na
+            ordem de RN017 e, dentro de cada status, por time (RF045).
+          schema:
+            type: string
+            enum:
+              - time
+              - status
+            default: time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: Página de agendamentos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointmentPage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/{id}:
+    get:
+      tags:
+        - appointments
+      operationId: getAdminAppointment
+      summary: Detalha um agendamento
+      description: >-
+        O agendamento com os dados copiados nele (UC10, RN037). No status
+        awaiting_payment, também o total de cada forma de pagamento, para a
+        conclusão (RF053): a forma do agendamento mantém o percentual e o
+        total gravados, e as outras usam o percentual vigente (RN012).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Agendamento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
     sessionCookie:
@@ -2852,6 +2973,240 @@ components:
           type: string
           format: date-time
           description: O updatedAt lido com o veículo.
+    AppointmentStatus:
+      type: string
+      enum:
+        - scheduled
+        - checked_in
+        - in_progress
+        - awaiting_payment
+        - completed
+        - cancelled
+        - rescheduled
+      description: >-
+        Agendado, Em espera, Em execução, Finalizado, Concluído, Cancelado e
+        Reagendado (RN017).
+    PaymentMethod:
+      type: string
+      enum:
+        - credit
+        - debit
+        - pix
+        - cash
+      description: Crédito, Débito, Pix e Dinheiro, nesta ordem (RN011).
+    AppointmentServiceSummary:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Nome copiado no agendamento (RN037).
+    AdminAppointmentSummary:
+      type: object
+      required:
+        - id
+        - status
+        - scheduledAt
+        - estimatedEndAt
+        - clientName
+        - vehicle
+        - services
+        - total
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AppointmentStatus"
+        scheduledAt:
+          type: string
+          format: date-time
+        estimatedEndAt:
+          type: string
+          format: date-time
+          description: Previsão de conclusão (RN034).
+        clientName:
+          type: string
+          description: Nome do cliente copiado no agendamento (RN037).
+        vehicle:
+          type: object
+          required:
+            - plate
+            - brand
+            - model
+          properties:
+            plate:
+              type: string
+            brand:
+              type: string
+            model:
+              type: string
+        services:
+          type: array
+          description: >-
+            Por tipo (principal, complementar e adicional) e, dentro do tipo,
+            pelo nome.
+          items:
+            $ref: "#/components/schemas/AppointmentServiceSummary"
+        total:
+          type: number
+    AdminAppointmentPage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminAppointmentSummary"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    AppointmentService:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - price
+        - durationMinutes
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/ServiceType"
+        price:
+          type: number
+          description: Valor do serviço no registro ou na última edição.
+        durationMinutes:
+          type: integer
+    PaymentOption:
+      type: object
+      required:
+        - paymentMethod
+        - feePercent
+        - total
+      properties:
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        feePercent:
+          type: number
+          description: Positivo para acréscimo, negativo para desconto.
+        total:
+          type: number
+    AdminAppointment:
+      type: object
+      required:
+        - id
+        - status
+        - scheduledAt
+        - estimatedEndAt
+        - estimatedDurationMinutes
+        - clientId
+        - clientName
+        - paymentMethod
+        - subtotal
+        - feePercent
+        - total
+        - vehicle
+        - services
+        - updatedAt
+        - paymentOptions
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AppointmentStatus"
+        scheduledAt:
+          type: string
+          format: date-time
+        estimatedEndAt:
+          type: string
+          format: date-time
+        estimatedDurationMinutes:
+          type: integer
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+          description: Nome do cliente copiado no agendamento (RN037).
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        subtotal:
+          type: number
+        feePercent:
+          type: number
+          description: Positivo para acréscimo, negativo para desconto.
+        total:
+          type: number
+        vehicle:
+          type: object
+          description: O veículo como era no agendamento (RN037).
+          required:
+            - id
+            - plate
+            - type
+            - size
+            - brand
+            - model
+            - color
+            - year
+          properties:
+            id:
+              type: string
+              format: uuid
+            plate:
+              type: string
+            type:
+              $ref: "#/components/schemas/VehicleType"
+            size:
+              type: string
+              enum:
+                - small
+                - medium
+                - large
+                - extra_large
+            brand:
+              type: string
+            model:
+              type: string
+            color:
+              type: string
+            year:
+              type: integer
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppointmentService"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão do agendamento (RNF011).
+        paymentOptions:
+          description: >-
+            Só no status awaiting_payment: as quatro formas, na ordem de RN011;
+            nos outros, null.
+          oneOf:
+            - type: "null"
+            - type: array
+              items:
+                $ref: "#/components/schemas/PaymentOption"
     ProblemDetails:
       type: object
       required:

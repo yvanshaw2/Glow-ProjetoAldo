@@ -1,4 +1,7 @@
 import "server-only";
+import type { PaymentOption } from "@/shared/api/appointments";
+import type { PaymentFee } from "@/shared/api/settings";
+import { PAYMENT_METHODS } from "@/shared/constants/payment-methods";
 import type { ServiceType } from "@/shared/constants/service-types";
 import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
 
@@ -129,4 +132,33 @@ export function findCompositionError(
       !service.linkedMainServiceIds.some((id) => mainServiceIds.has(id)),
   );
   return hasAdditionalWithoutMain ? "ADDITIONAL_WITHOUT_MAIN" : null;
+}
+
+// RF053, RN011, RN012, RN037: the total of each payment method of an
+// appointment, in the order of RN011, for its conclusion. The method the
+// appointment has keeps the percent and the total recorded in it; the others
+// take the percent of today over the subtotal.
+export function listPaymentOptions({
+  subtotal,
+  recorded,
+  fees,
+}: {
+  subtotal: number;
+  recorded: PaymentOption;
+  fees: readonly PaymentFee[];
+}): PaymentOption[] {
+  return PAYMENT_METHODS.map((paymentMethod) => {
+    if (paymentMethod === recorded.paymentMethod) {
+      return { ...recorded };
+    }
+    const fee = fees.find((item) => item.paymentMethod === paymentMethod);
+    if (!fee) {
+      throw new Error(`No percent for the payment method ${paymentMethod}.`);
+    }
+    return {
+      paymentMethod,
+      feePercent: fee.percent,
+      total: calculateTotal({ subtotal, feePercent: fee.percent }),
+    };
+  });
 }

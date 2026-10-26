@@ -11,7 +11,7 @@ function quoted(pattern: string): string {
   return `"${pattern.replace(/[\\"]/g, "\\$&")}"`;
 }
 
-function likePattern(text: string): string {
+export function likePattern(text: string): string {
   return quoted(`%${text.replace(/[\\%_]/g, "\\$&")}%`);
 }
 

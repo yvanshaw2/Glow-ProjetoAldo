@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { FormAlert } from "@/components/shared/form-alert";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -163,6 +164,7 @@ function CompletionForm({
 
   return (
     <form onSubmit={(event) => void submit(event)} className="contents">
+      <DemoNotice />
       {failure && (
         <FormAlert key={failure.key}>{failure.error.message}</FormAlert>
       )}
