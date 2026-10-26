@@ -59,9 +59,13 @@ export function StepForm<T extends FieldValues, R extends FieldValues>({
   const isSubmitting = form.formState.isSubmitting;
 
   // RNF005: after a step change, the focus goes to the title of the new
-  // step, so a screen reader user hears where they are.
+  // step, so a screen reader user hears where they are. A failure notice that
+  // already holds the focus, as when an error of the API leads back to an
+  // earlier step, keeps it (RNF003).
   useEffect(() => {
-    if (hasMovedRef.current) headingRef.current?.focus();
+    if (!hasMovedRef.current) return;
+    if (document.activeElement?.closest('[role="alert"]')) return;
+    headingRef.current?.focus();
   }, [stepIndex]);
 
   function goToStep(index: number) {

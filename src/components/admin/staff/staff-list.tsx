@@ -37,7 +37,11 @@ export function StaffList() {
         <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {members.map((member) => (
             <li key={member.id}>
-              <StaffCard member={member} onChange={list.reload} />
+              <StaffCard
+                member={member}
+                isInactiveShown={list.filters.includeInactive}
+                onChange={list.reload}
+              />
             </li>
           ))}
         </ul>

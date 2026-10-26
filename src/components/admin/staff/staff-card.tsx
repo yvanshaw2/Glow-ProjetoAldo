@@ -11,10 +11,16 @@ import type { AdminStaffMember } from "@/shared/api/staff";
 
 type StaffCardProps = {
   member: AdminStaffMember;
+  // The list shows the inactive staff too.
+  isInactiveShown: boolean;
   onChange: () => void;
 };
 
-export function StaffCard({ member, onChange }: StaffCardProps) {
+export function StaffCard({
+  member,
+  isInactiveShown,
+  onChange,
+}: StaffCardProps) {
   const { id, firstName, lastName, email, jobTitle, roleName, isActive } =
     member;
   const fullName = `${firstName} ${lastName}`;
@@ -55,6 +61,7 @@ export function StaffCard({ member, onChange }: StaffCardProps) {
           name={fullName}
           isActive={isActive}
           updatedAt={member.updatedAt}
+          isInactiveShown={isInactiveShown}
           deactivateTitle="Desativar este funcionário?"
           deactivateDescription="O funcionário perde o acesso ao painel administrativo. Você pode reativá-lo depois."
           reactivateTitle="Reativar este funcionário?"

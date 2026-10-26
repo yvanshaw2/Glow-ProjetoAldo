@@ -197,13 +197,4 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
         (dashboard) => dashboard.answerDashboardAnalysis,
       ),
   },
-  // docs/equipe/rotas.md, built by #43; the roles (#39) are real.
-  {
-    method: "GET",
-    path: "/api/admin/staff",
-    load: () =>
-      import("@/lib/demo/staff").then((staff) => staff.answerAdminStaff),
-  },
-  { method: "POST", path: "/api/admin/staff" },
-  { method: "PATCH", path: "/api/admin/staff/:id" },
 ];

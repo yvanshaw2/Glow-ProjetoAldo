@@ -9,7 +9,7 @@ relacionados: [UC19, UC20, UC21, RF077, RF078, RF079, RF080, RF081, RF082, RF083
 
 Abas, listas, cartões, janelas, confirmações e estados de `/admin/staff`, do [UC19](UC19-cadastrar-funcionario.md), do [UC20](UC20-manter-funcionarios.md) e do [UC21](UC21-gerenciar-cargos-e-permissoes.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, formulário em etapas, campo de senha e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
-Enquanto a rota `/api/admin/staff` usar os dados de demonstração de `src/lib/demo/staff.ts` (decisão 0055), o aviso de demonstração fica no topo da aba "Funcionários"; a aba "Cargos" usa os cargos do banco, pela rota `/api/admin/roles`.
+As rotas `/api/admin/staff` e `/api/admin/roles` são reais, e a página não tem aviso de demonstração.
 
 ## Página
 
@@ -33,7 +33,7 @@ Enquanto a rota `/api/admin/staff` usar os dados de demonstração de `src/lib/d
 - Janela "Novo funcionário", ancorada embaixo no celular, com a indicação das etapas "Informações" e "Cargo".
 - Etapa 1: "Nome", "Sobrenome", "E-mail", "Senha inicial" (descrição "De 8 a 72 caracteres, com letra maiúscula, número e caractere especial. O funcionário troca a senha no primeiro acesso.", com o botão de mostrar) e "Cargo na empresa (opcional)" (descrição "Texto livre, como Recepcionista. Não altera as permissões."). Botões "Cancelar" e "Próximo".
 - Etapa 2: "Escolha o cargo do sistema." com os cargos ativos em botões de opção (nome, descrição e "N permissões"), "Voltar" e "Cadastrar funcionário" ("Cadastrando…"). Sem cargo ativo, o aviso "Não há cargo ativo. Cadastre um cargo antes de cadastrar funcionários." com o botão que leva à aba "Cargos" (pré-condição do UC19).
-- A falha aparece no topo da janela; um erro do e-mail leva à etapa 1 (UC19 FE02). `EMAIL_IN_USE` usa a mensagem do catálogo de erros, escrita para o cadastro público; a rota (#43) define se o painel usa um texto próprio.
+- A falha aparece no topo da janela; um erro do e-mail leva à etapa 1 (UC19 FE02). `EMAIL_IN_USE` usa "Já existe uma conta com este e-mail." no topo da janela, e a janela volta à etapa 1 com os dados mantidos e o foco no aviso.
 
 ## Editar funcionário (UC20 passos 3 a 6, RF080)
 
@@ -44,7 +44,7 @@ Enquanto a rota `/api/admin/staff` usar os dados de demonstração de `src/lib/d
 
 - Confirmação "Desativar este funcionário?", "O funcionário perde o acesso ao painel administrativo. Você pode reativá-lo depois.", botões "Voltar" e "Desativar" ("Desativando…").
 - Reativar: "Reativar este funcionário?", "O funcionário volta a acessar o painel com o cargo atual.", "Voltar" e "Reativar" ("Reativando…").
-- A falha aparece dentro da confirmação; com sucesso, a lista é lida de novo.
+- A falha aparece dentro da confirmação; com sucesso, a lista é lida de novo. Com o interruptor "Exibir inativos" desligado, o cartão desativado sai da lista e o foco vai ao interruptor.
 
 ## Novo cargo (UC21, RF082, RN025)
 
@@ -64,4 +64,4 @@ Enquanto a rota `/api/admin/staff` usar os dados de demonstração de `src/lib/d
 
 ## Dados de demonstração
 
-Os cargos de demonstração (Gerente, Atendente, Detalhista e o inativo Auxiliar) vêm do banco, do `seed-demo.sql`. Os funcionários de demonstração são fictícios e vivem só em `src/lib/demo/staff.ts` (decisão 0055); a rota #43 retira esses dados e o aviso da aba "Funcionários".
+Os cargos (Gerente, Atendente, Detalhista e o inativo Auxiliar) e os funcionários de demonstração vêm do banco, do `seed-demo.sql`. Os funcionários são fictícios e ficam em contas do Auth sem senha: aparecem no painel e ninguém entra com eles. Um deles está inativo, para mostrar "Exibir inativos".

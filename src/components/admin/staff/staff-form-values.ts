@@ -36,12 +36,3 @@ export function getStaffSteps(isEditing: boolean): FormStep<StaffFormValues>[] {
     { title: "Cargo", fields: ["roleId"] },
   ];
 }
-
-// The body of POST and PATCH /api/admin/staff (docs/equipe/rotas.md); an empty
-// optional field goes as empty text.
-export function toRequestBody(values: StaffFormValues, isEditing: boolean) {
-  const { firstName, lastName, email, password, jobTitle, roleId } = values;
-  return isEditing
-    ? { firstName, lastName, jobTitle, roleId }
-    : { firstName, lastName, email, password, jobTitle, roleId };
-}

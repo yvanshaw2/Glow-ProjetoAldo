@@ -1,4 +1,4 @@
--- Fictitious demo data for the staff roles, the catalog and the dashboard (docs/plataforma/infraestrutura.md).
+-- Fictitious demo data for the staff roles, the staff, the catalog and the dashboard (docs/plataforma/infraestrutura.md).
 -- Optional: load it after the migration and seed.sql, pasting it into the SQL Editor.
 -- Every id derives from a fixed key, so loading it again duplicates nothing: it only adds
 -- appointments to the days that have none yet. Appointment dates are relative to the load
@@ -207,6 +207,40 @@ from (values
   ('Detalhista', 'appointments'),
   ('Auxiliar', 'services')
 ) as p(role_name, permission_key)
+on conflict do nothing;
+
+-- Staff (RN024, RN026), with an account in Supabase Auth that has no password and no
+-- login identity: they appear on the panel but nobody signs in as them. The empty text
+-- columns are the ones Supabase Auth reads as text and does not accept as null.
+
+insert into auth.users (instance_id, id, aud, role, email, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change)
+select '00000000-0000-0000-0000-000000000000', pg_temp.glow_demo_id('staff:' || s.email),
+  'authenticated', 'authenticated', s.email, now() - interval '90 days',
+  '{"provider": "email", "providers": ["email"]}', '{}',
+  now() - interval '90 days', now() - interval '90 days', '', '', '', ''
+from (values
+  ('rafael.moura@example.com'),
+  ('camila.duarte@example.com'),
+  ('bruno.teixeira@example.com'),
+  ('larissa.campos@example.com'),
+  ('tiago.freitas@example.com')
+) as s(email)
+on conflict do nothing;
+
+insert into public.staff (id, first_name, last_name, email, role_id, job_title, is_active,
+  created_at, updated_at)
+select pg_temp.glow_demo_id('staff:' || s.email), s.first_name, s.last_name, s.email,
+  pg_temp.glow_demo_id('role:' || s.role_name), s.job_title, s.is_active,
+  now() - interval '90 days', now() - interval '90 days'
+from (values
+  ('Rafael', 'Moura', 'rafael.moura@example.com', 'Gerente', 'Gerente da loja', true),
+  ('Camila', 'Duarte', 'camila.duarte@example.com', 'Atendente', 'Recepcionista', true),
+  ('Bruno', 'Teixeira', 'bruno.teixeira@example.com', 'Detalhista', null, true),
+  ('Larissa', 'Campos', 'larissa.campos@example.com', 'Detalhista', 'Detalhista sênior', true),
+  ('Tiago', 'Freitas', 'tiago.freitas@example.com', 'Atendente', 'Auxiliar de lavagem', false)
+) as s(first_name, last_name, email, role_name, job_title, is_active)
 on conflict do nothing;
 
 -- Catalog (RN006 to RN009, RN030, RN031) ---------------------------------------

@@ -19,7 +19,6 @@ import { MAX_PAGE_SIZE } from "@/shared/constants/pagination";
 
 const ROLES_PATH = "/api/admin/roles";
 const LOADING_PLACES = 3;
-const REQUIRED_MESSAGE = "Escolha o cargo do sistema.";
 
 type StaffRoleStepProps = {
   // The role of the member being edited, as the list of staff gives it.
@@ -44,7 +43,6 @@ export function StaffRoleStep({
 }: StaffRoleStepProps) {
   const { field, fieldState } = useController<StaffFormValues, "roleId">({
     name: "roleId",
-    rules: { validate: (roleId) => roleId !== null || REQUIRED_MESSAGE },
   });
   const query = useApiQuery<Page<AdminRole>>(
     withQuery(ROLES_PATH, { pageSize: MAX_PAGE_SIZE }),

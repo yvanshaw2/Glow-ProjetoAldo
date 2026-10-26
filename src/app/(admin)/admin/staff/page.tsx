@@ -4,8 +4,7 @@ import { PERMISSION_LABELS } from "@/shared/constants/permissions";
 
 export const metadata: Metadata = { title: "Funcionários – Glow" };
 
-// UC19 to UC21: the staff and the roles of the panel; the staff list uses the
-// data of src/lib/demo/ until its routes exist (decision 0055).
+// UC19 to UC21: the staff and the roles of the panel.
 export default function StaffPage() {
   return (
     <>

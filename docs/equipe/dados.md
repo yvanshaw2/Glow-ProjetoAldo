@@ -78,3 +78,4 @@ Feitas por função SQL, em uma única transação, chamada pelo repositório (R
 
 - A conta de administrador é um registro de `staff` com `is_admin` verdadeiro e sem cargo, criada pelo script de dados iniciais, com o nome "Administrador" e o sobrenome "Glow"; nunca aparece nas listagens nem pode ser editada pelo painel ([RN027](RN027-administrador.md)).
 - Funcionários e cargos não são excluídos, apenas desativados (`is_active`) ([RN026](RN026-desativacao.md)).
+- As contas de funcionário de demonstração do `seed-demo.sql` existem em `auth.users` sem senha: aparecem nas listagens e ninguém entra com elas.

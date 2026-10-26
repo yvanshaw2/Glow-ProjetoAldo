@@ -45,7 +45,7 @@ O fuso da empresa não é variável de ambiente: é a constante `COMPANY_TIME_ZO
 
 Nada é configurado à mão no painel do Supabase (decisão 0044): a senha é exigida pelo esquema de `src/shared/validation`, as contas são criadas pelo servidor já com o e-mail confirmado, e o bucket vem da migration.
 
-O arquivo opcional `supabase/seed-demo.sql` cadastra dados fictícios de demonstração para os cargos, o catálogo e o dashboard. É carregado à parte, colando o arquivo no SQL Editor do painel; carregar de novo não duplica nada e só acrescenta os dias ainda sem agendamentos.
+O arquivo opcional `supabase/seed-demo.sql` cadastra dados fictícios de demonstração para os cargos, os funcionários, o catálogo e o dashboard. É carregado à parte, colando o arquivo no SQL Editor do painel; carregar de novo não duplica nada e só acrescenta os dias ainda sem agendamentos.
 
 ## Publicação
 
