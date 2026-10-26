@@ -27,21 +27,21 @@ Acesso: Perfis `staff` ou `admin` com a permissão `staff`.
 Lista os funcionários, sem a conta de administrador (UC20).
 
 - Entrada: `includeInactive`
-- Resposta: **200** lista paginada de `id`, `firstName`, `lastName`, `email`, `jobTitle` (ou `null`), `roleId`, `roleName`, `isActive` e `updatedAt`, em ordem alfabética pelo nome completo; sem a conta de administrador (RN027).
+- Resposta: **200** lista paginada de `id`, `firstName`, `lastName`, `email`, `jobTitle` (ou `null`), `roleId`, `roleName`, `isActive` e `updatedAt`, em ordem alfabética pelo nome e, em seguida, pelo sobrenome; sem a conta de administrador (RN027).
 
 #### `POST /api/admin/staff`
 
 Cadastra um funcionário (UC19).
 
-- Entrada: `firstName*, lastName*, email*, password*, jobTitle, roleId*`
-- Resposta: **201** o funcionário, com os campos da lista e a troca de senha pendente; 409 `EMAIL_IN_USE`.
+- Entrada: `firstName*, lastName*, email*, password*, jobTitle, roleId*`; `roleId` precisa ser de um cargo ativo (RN026): cargo inexistente ou inativo, 400 em `roleId`.
+- Resposta: **201** o funcionário, com os campos da lista e a troca de senha pendente; 409 `EMAIL_IN_USE` com a mensagem "Já existe uma conta com este e-mail.", pois o e-mail vale entre clientes, funcionários e o administrador (RN022).
 
 #### `PATCH /api/admin/staff/:id`
 
 Edita, desativa ou reativa um funcionário.
 
-- Entrada: `firstName, lastName, jobTitle, roleId, isActive`
-- Resposta: **200** o funcionário, com os campos da lista.
+- Entrada: `updatedAt*` e, ao menos um, `firstName`, `lastName`, `jobTitle`, `roleId` e `isActive`. Só o que veio é alterado; `jobTitle` vazio apaga a descrição. `roleId` precisa ser de um cargo ativo; manter o cargo atual vale mesmo que ele esteja inativo (RN026). `email`, `password` e `id` não são alterados por esta rota e são descartados.
+- Resposta: **200** o funcionário, com os campos da lista; 404 também para a conta de administrador (RN027); 409 `VERSION_CONFLICT`.
 
 #### `GET /api/admin/roles`
 

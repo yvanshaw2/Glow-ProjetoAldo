@@ -32,6 +32,8 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Nomes de serviço, categoria e cargo; descrição do cargo ocupado | Use de 2 a 60 caracteres. |
 | Categoria de serviço inexistente ou inativa | Escolha uma categoria ativa. |
 | Serviço vinculado inexistente, excluído ou do tipo errado | Escolha serviços cadastrados. |
+| Cargo do funcionário ausente | Escolha o cargo do sistema. |
+| Cargo do funcionário inexistente ou inativo | Escolha um cargo ativo. |
 | Horário | Escolha um horário em hora cheia ou meia hora. |
 | Encerramento igual ou anterior à abertura | O encerramento deve ser depois da abertura. |
 | Início da pausa antes da abertura | A pausa deve começar a partir da abertura. |
