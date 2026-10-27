@@ -193,3 +193,23 @@ export async function findAdminAppointment(
   }
   return data === null ? null : toAdminAppointment(data);
 }
+
+// UC09, RF043: the appointments scheduled in [from, to), of any status, by
+// time and, in the same instant, by id.
+export async function listAppointmentsBetween(
+  from: string,
+  to: string,
+): Promise<AdminAppointmentSummary[]> {
+  const { data, error } = await getServiceClient()
+    .from("appointments")
+    .select(APPOINTMENT_COLUMNS)
+    .gte("scheduled_at", from)
+    .lt("scheduled_at", to)
+    .order("scheduled_at")
+    .order("id")
+    .returns<AppointmentRow[]>();
+  if (error) {
+    throw error;
+  }
+  return data.map(toAdminAppointmentSummary);
+}

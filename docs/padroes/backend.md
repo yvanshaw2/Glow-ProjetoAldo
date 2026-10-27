@@ -16,7 +16,7 @@ Cada camada só conhece a de baixo.
 |---|---|---|---|
 | Rota | `src/app/api/**/route.ts` | identifica o usuário, aplica o guard, valida com Zod, chama o serviço, responde | regra de negócio |
 | Serviço | `src/server/services/` | aplica as regras da análise: busca os dados, chama as funções puras, grava | HTTP ou SQL |
-| Regras | `src/server/rules/` | funções puras de preço, status, datas, edição e da análise do dashboard | banco, relógio, ambiente |
+| Regras | `src/server/rules/` | funções puras de preço, status, datas, edição, dos indicadores e da análise do dashboard | banco, relógio, ambiente |
 | Repositório | `src/server/repositories/` | lê e grava com `supabase-js`; converte nomes do banco para os do código | regra de negócio |
 | Apoio | `src/server/auth/`, `src/server/http/`, `src/server/ai/`, `src/shared/` | sessão e permissões, tratamento único, adaptador do serviço de IA, esquemas e mensagens | – |
 
@@ -24,7 +24,7 @@ Cada camada só conhece a de baixo.
 src/server/                    todo arquivo começa com import 'server-only'
 ├── auth/          session.ts (sessão e perfil), guards.ts (requireUser, requireClient, requirePermission), login-attempts.ts, accounts.ts (criação e remoção de contas no Supabase Auth)
 ├── http/          handler.ts (tratamento único e requestId), logger.ts (registro com níveis), respond.ts (JSON e paginação)
-├── rules/         pricing.ts, status-transitions.ts, scheduling.ts, editing.ts, dashboard-analysis.ts
+├── rules/         pricing.ts, status-transitions.ts, scheduling.ts, editing.ts, dashboard-indicators.ts, dashboard-analysis.ts
 ├── services/      um arquivo por módulo: auth.ts, catalog.ts, clients.ts, vehicles.ts, appointments.ts, dashboard.ts, staff.ts, roles.ts, settings.ts
 ├── repositories/  um arquivo por tabela ou grupo de tabelas
 ├── supabase/      clientes do Supabase (chave de serviço para dados; @supabase/ssr para a sessão) e envio ao Storage
@@ -50,7 +50,7 @@ As regras de preço, status, datas, edição e da análise do dashboard são fun
 
 ## Gravações e consultas
 
-- Gravação em mais de uma tabela é feita por função SQL, chamada pelo repositório via `rpc`, numa transação (RNF010): `create_appointment`, `update_appointment`, `reschedule_appointment`, `save_service`, `save_role`, `link_vehicle`.
+- Gravação em mais de uma tabela é feita por função SQL, chamada pelo repositório via `rpc`, numa transação (RNF010): `create_appointment`, `update_appointment`, `reschedule_appointment`, `save_service`, `save_role`, `link_vehicle`. A de leitura `dashboard_figures` agrega no banco os números do dashboard.
 - O controle de tentativas de login também usa funções SQL (`reserve_login_attempt` e `release_login_attempt`), para contar sem corrida entre requisições simultâneas (decisão 0047).
 - Cadastro de conta: cria no Supabase Auth com `auth.admin.createUser` e o e-mail confirmado, nunca com `signUp`, e depois o perfil; se o perfil falhar, remove a conta recém-criada. A violação de `uq_clients_email` na gravação do perfil vira `EMAIL_IN_USE`, depois de removida a conta; se a remoção falhar, o id da conta vai ao registro numa linha `error`.
 - Dados relacionados na mesma consulta (seleção aninhada do `supabase-js`) ou em lote (`in`); nunca uma consulta por item de lista (N+1).

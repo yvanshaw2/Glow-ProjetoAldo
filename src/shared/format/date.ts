@@ -137,3 +137,63 @@ export function startOfNextCompanyDay(now: Date): string {
   const next = new Date(Date.UTC(year, month - 1, day + 1));
   return toCompanyInstant(next.toISOString().slice(0, 10), "00:00");
 }
+
+// UC09, RN035: the days of a period are calendar days, counted in days since
+// 1970-01-01, so the arithmetic never meets a time change.
+const MS_PER_DAY = 86_400_000;
+
+function toDayNumber(day: string): number {
+  return Date.parse(`${day}T00:00:00Z`) / MS_PER_DAY;
+}
+
+function fromDayNumber(dayNumber: number): string {
+  return new Date(dayNumber * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+// A day written as 2026-10-01 that exists: 2026-02-30 is not one, although
+// Date.parse moves it to the next month.
+export function isCalendarDay(value: string): boolean {
+  return (
+    CALENDAR_DATE_PATTERN.test(value) &&
+    !Number.isNaN(toDayNumber(value)) &&
+    fromDayNumber(toDayNumber(value)) === value
+  );
+}
+
+export function addCalendarDays(day: string, amount: number): string {
+  return fromDayNumber(toDayNumber(day) + amount);
+}
+
+export type CalendarPeriod = { from: string; to: string };
+
+// Both dates count; it is negative when the first one is after the last one.
+export function countCalendarDays({ from, to }: CalendarPeriod): number {
+  return toDayNumber(to) - toDayNumber(from) + 1;
+}
+
+export function listCalendarDays(period: CalendarPeriod): string[] {
+  return Array.from({ length: countCalendarDays(period) }, (_, index) =>
+    addCalendarDays(period.from, index),
+  );
+}
+
+// The month of a day, from its first day to its last one.
+export function findMonthPeriod(day: string): CalendarPeriod {
+  const date = new Date(`${day}T00:00:00Z`);
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  return {
+    from: fromDayNumber(Date.UTC(year, month, 1) / MS_PER_DAY),
+    // Day 0 of the next month is the last one of this month.
+    to: fromDayNumber(Date.UTC(year, month + 1, 0) / MS_PER_DAY),
+  };
+}
+
+// The instants a period of calendar days covers in the company's time zone:
+// the start of the first day and the start of the day after the last one.
+export function companyDayRange({ from, to }: CalendarPeriod): CalendarPeriod {
+  return {
+    from: toCompanyInstant(from, "00:00"),
+    to: toCompanyInstant(addCalendarDays(to, 1), "00:00"),
+  };
+}

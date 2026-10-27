@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  addCalendarDays,
+  companyDayRange,
+  countCalendarDays,
+  findMonthPeriod,
   formatCalendarDate,
   formatDate,
   formatDateTime,
@@ -8,6 +12,7 @@ import {
   formatMonth,
   formatTime,
   formatYear,
+  listCalendarDays,
   startOfNextCompanyDay,
   toCompanyInstant,
 } from "@/shared/format/date";
@@ -155,5 +160,80 @@ describe("startOfNextCompanyDay", () => {
     expect(startOfNextCompanyDay(new Date("2026-12-31T15:00:00Z"))).toBe(
       "2027-01-01T00:00:00-03:00",
     );
+  });
+});
+
+// UC09, RN035: the days of a period of the dashboard are calendar days, with
+// no time zone.
+describe("addCalendarDays", () => {
+  it("crosses the end of the month, of the year and of February", () => {
+    expect(addCalendarDays("2026-10-31", 1)).toBe("2026-11-01");
+    expect(addCalendarDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addCalendarDays("2028-02-28", 1)).toBe("2028-02-29");
+    expect(addCalendarDays("2027-02-28", 1)).toBe("2027-03-01");
+    expect(addCalendarDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+});
+
+describe("listCalendarDays", () => {
+  it("lists one day, both ends included", () => {
+    expect(listCalendarDays({ from: "2026-10-05", to: "2026-10-05" })).toEqual([
+      "2026-10-05",
+    ]);
+  });
+
+  it("lists a month and a leap year", () => {
+    expect(
+      listCalendarDays({ from: "2026-10-01", to: "2026-10-31" }),
+    ).toHaveLength(31);
+    expect(
+      listCalendarDays({ from: "2028-01-01", to: "2028-12-31" }),
+    ).toHaveLength(366);
+  });
+});
+
+describe("countCalendarDays", () => {
+  it("counts both dates", () => {
+    expect(countCalendarDays({ from: "2026-10-01", to: "2026-10-31" })).toBe(
+      31,
+    );
+    expect(countCalendarDays({ from: "2026-10-05", to: "2026-10-05" })).toBe(1);
+    expect(countCalendarDays({ from: "2026-10-31", to: "2026-10-01" })).toBe(
+      -29,
+    );
+  });
+});
+
+describe("findMonthPeriod", () => {
+  it("gives the first and the last day of the month of a day", () => {
+    expect(findMonthPeriod("2026-10-26")).toEqual({
+      from: "2026-10-01",
+      to: "2026-10-31",
+    });
+    expect(findMonthPeriod("2026-12-05")).toEqual({
+      from: "2026-12-01",
+      to: "2026-12-31",
+    });
+  });
+
+  it("knows February of a leap year", () => {
+    expect(findMonthPeriod("2028-02-10").to).toBe("2028-02-29");
+    expect(findMonthPeriod("2027-02-10").to).toBe("2027-02-28");
+  });
+});
+
+describe("companyDayRange", () => {
+  it("gives the instants the first day starts and the day after the last one starts", () => {
+    expect(companyDayRange({ from: "2026-10-01", to: "2026-10-31" })).toEqual({
+      from: "2026-10-01T00:00:00-03:00",
+      to: "2026-11-01T00:00:00-03:00",
+    });
+  });
+
+  it("gives a day of 24 hours for a period of one day", () => {
+    expect(companyDayRange({ from: "2026-12-31", to: "2026-12-31" })).toEqual({
+      from: "2026-12-31T00:00:00-03:00",
+      to: "2027-01-01T00:00:00-03:00",
+    });
   });
 });

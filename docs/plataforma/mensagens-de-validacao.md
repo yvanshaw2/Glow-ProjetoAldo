@@ -20,6 +20,9 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Nova senha igual à atual | A nova senha precisa ser diferente da atual. |
 | Confirmação de senha diferente da senha | As senhas não conferem. |
 | Placa | Informe uma placa válida. |
+| Data de calendário fora do formato aaaa-mm-dd ou inexistente | Informe uma data válida. |
+| Data final anterior à inicial | A data final não pode ser anterior à inicial. |
+| Período do dashboard de mais de 12 meses | O período não pode passar de 12 meses. |
 | Tipo do veículo ausente ou fora da lista | Escolha o tipo do veículo. |
 | Marca e modelo | Use de 1 a 40 caracteres. |
 | Cor | Use de 3 a 30 letras. |

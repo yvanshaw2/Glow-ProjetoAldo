@@ -42,6 +42,10 @@ tags:
     description: >-
       Agendamentos do painel, com a permissão appointments
       (docs/agendamento/rotas.md).
+  - name: dashboard
+    description: >-
+      Indicadores e agenda do dia do painel, com a permissão dashboard
+      (docs/agendamento/rotas.md).
 paths:
   /api/auth/register:
     post:
@@ -1648,6 +1652,49 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/dashboard:
+    get:
+      tags:
+        - dashboard
+      operationId: getDashboard
+      summary: Indicadores do período e agenda do dia
+      description: >-
+        Receita, quantidade de agendamentos, ticket médio e taxa de
+        cancelamento do período, a receita por dia, os agendamentos por status e
+        a agenda do dia corrente (UC09, RN021). A quantidade, a taxa e os
+        status usam a data marcada; a receita, a data de conclusão dos
+        concluídos e reagendados. Sem as datas, vale o mês atual no fuso da
+        empresa; o período vai até 366 dias contando as duas datas (RN035).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: from
+          in: query
+          description: Primeiro dia do período (aaaa-mm-dd); vem com `to`.
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: Último dia do período (aaaa-mm-dd); vem com `from`.
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Dashboard.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
     sessionCookie:
@@ -3055,6 +3102,73 @@ components:
             $ref: "#/components/schemas/AppointmentServiceSummary"
         total:
           type: number
+    Dashboard:
+      type: object
+      required:
+        - from
+        - to
+        - revenue
+        - appointmentCount
+        - averageTicket
+        - cancellationRate
+        - revenueByDay
+        - appointmentsByStatus
+        - agenda
+      properties:
+        from:
+          type: string
+          format: date
+          description: Primeiro dia do período aplicado.
+        to:
+          type: string
+          format: date
+          description: Último dia do período aplicado.
+        revenue:
+          type: number
+          description: Soma dos concluídos e reagendados com a conclusão no período (RN021).
+        appointmentCount:
+          type: integer
+          description: Agendamentos com a data marcada no período, de qualquer status.
+        averageTicket:
+          type: number
+          description: Receita sobre os pagos, com duas casas; zero sem pagos.
+        cancellationRate:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Cancelados sobre o total do período, com duas casas.
+        revenueByDay:
+          type: array
+          description: Todos os dias do período, com 0 nos sem receita.
+          items:
+            type: object
+            required:
+              - date
+              - revenue
+            properties:
+              date:
+                type: string
+                format: date
+              revenue:
+                type: number
+        appointmentsByStatus:
+          type: array
+          description: Os sete status, na ordem de RN017.
+          items:
+            type: object
+            required:
+              - status
+              - count
+            properties:
+              status:
+                $ref: "#/components/schemas/AppointmentStatus"
+              count:
+                type: integer
+        agenda:
+          type: array
+          description: Agendamentos do dia corrente, por horário, com os dados copiados (RN037).
+          items:
+            $ref: "#/components/schemas/AdminAppointmentSummary"
     AdminAppointmentPage:
       type: object
       required:

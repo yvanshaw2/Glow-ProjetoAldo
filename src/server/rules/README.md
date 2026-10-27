@@ -1,6 +1,6 @@
 # `src/server/rules/` – Regras puras
 
-Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `status-transitions.ts`, `scheduling.ts`, `editing.ts`, `services.ts` (a edição parcial de um serviço) e `appointment-services.ts` (a ordem dos serviços de um agendamento na listagem do painel). Recebem tudo por parâmetro, inclusive o instante atual e a disponibilidade, e devolvem resultados; não gravam nada.
+Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `status-transitions.ts`, `scheduling.ts`, `editing.ts`, `services.ts` (a edição parcial de um serviço) e `appointment-services.ts` (a ordem dos serviços de um agendamento na listagem do painel) e `dashboard-indicators.ts` (os indicadores do dashboard a partir dos números agregados pelo banco). Recebem tudo por parâmetro, inclusive o instante atual e a disponibilidade, e devolvem resultados; não gravam nada.
 
 ## Vai aqui
 
@@ -10,7 +10,7 @@ Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `st
 ## Não vai aqui
 
 - imports de `repositories/`, do Supabase, de `process.env` ou leitura do relógio (`new Date()` sem parâmetro)
-- indicadores do dashboard: são agregações por período, calculadas no banco ou no serviço `dashboard`, como o plano da tarefa decidir (`docs/agendamento/calculos.md`)
+- a agregação dos agendamentos por período: é feita no banco (`dashboard_figures`, `docs/agendamento/calculos.md`)
 - código HTTP
 
 ## Referências

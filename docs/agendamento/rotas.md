@@ -90,7 +90,7 @@ Acesso: Perfis `staff` ou `admin` com a permissão `dashboard`.
 Indicadores e agenda do dia (UC09).
 
 - Entrada: `from, to` (datas `aaaa-mm-dd`; padrão: o mês atual inteiro, no fuso da empresa).
-- Resposta: **200** `from` e `to` (o período aplicado), `revenue`, `appointmentCount`, `averageTicket`, `cancellationRate` (percentual, de 0 a 100, com duas casas), `revenueByDay` (`date` e `revenue` de cada dia do período, com 0 nos dias sem receita), `appointmentsByStatus` (`status` e `count` dos sete status, na ordem de RN017) e `agenda` (os agendamentos do dia corrente, por horário: `id`, `status`, `scheduledAt`, `estimatedEndAt`, `clientName`, `vehicle` com `plate`, `brand` e `model`, `services` com `id` e `name`, e `total`, com os dados copiados no agendamento, RN037); 400 período inválido ou maior que 12 meses.
+- Resposta: **200** `from` e `to` (o período aplicado), `revenue`, `appointmentCount`, `averageTicket`, `cancellationRate` (percentual, de 0 a 100, com duas casas), `revenueByDay` (`date` e `revenue` de cada dia do período, com 0 nos dias sem receita), `appointmentsByStatus` (`status` e `count` dos sete status, na ordem de RN017, dos agendamentos com a data marcada no período) e `agenda` (os agendamentos do dia corrente, por horário: `id`, `status`, `scheduledAt`, `estimatedEndAt`, `clientName`, `vehicle` com `plate`, `brand` e `model`, `services` com `id` e `name`, e `total`, com os dados copiados no agendamento, RN037); 400 com o campo em `fields` quando só uma das datas vem, quando uma data não existe, quando `from` é depois de `to` ou quando o intervalo passa de 366 dias contando as duas datas (RN035).
 
 #### `POST /api/admin/dashboard/analysis`
 

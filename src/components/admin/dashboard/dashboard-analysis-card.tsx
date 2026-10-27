@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { Period } from "@/components/admin/dashboard/dashboard-period";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { DemoNotice } from "@/components/shared/demo-notice";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, toApiError } from "@/lib/api-client";
 import type { DashboardAnalysis } from "@/shared/api/dashboard";
@@ -89,6 +90,8 @@ export function DashboardAnalysisCard({
           inteligência artificial a partir dos números do sistema.
         </p>
       </div>
+      {/* The analysis is demo data until its route exists (#66). */}
+      <DemoNotice />
       <div className="flex flex-col items-start gap-2">
         <Button
           ref={buttonRef}

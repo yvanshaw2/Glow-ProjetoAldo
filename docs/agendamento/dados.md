@@ -73,6 +73,8 @@ Feitas por função SQL, em uma única transação, chamada pelo repositório (R
 
 - `create_appointment`, `update_appointment` e `reschedule_appointment`: agendamento, cópia dos dados e serviços;
 
+Uma função de leitura agrega no banco o que passaria do limite de linhas de uma consulta: `dashboard_figures(p_from, p_to, p_time_zone)` devolve os agendamentos do período por status (`scheduled_at`) e a receita e a quantidade dos pagos por dia (`completed_at` no fuso `p_time_zone`), para o dashboard (RN021).
+
 ## Índices adicionais
 
 | Tabela | Colunas | Consulta atendida |

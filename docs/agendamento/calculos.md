@@ -58,10 +58,13 @@ Os indicadores (seção 5) não ficam em `rules/`: são agregações por períod
 
 ## 5. Indicadores do dashboard (RN021)
 
+Os números do período são agregados no banco pela função `dashboard_figures` (só leitura), que devolve, por status, a quantidade dos agendamentos com a data marcada no período e, por dia de conclusão no fuso da empresa, a receita e a quantidade dos pagos; o serviço `dashboard` monta com eles os indicadores, a receita de todos os dias do período e os sete status (`rules/dashboard-indicators.ts`).
+
 - Receita: soma de `total` dos agendamentos `completed` ou `rescheduled` com `completed_at` no período; receita por dia agrupada por `completed_at`.
 - Ticket médio: receita dividida pela quantidade desses agendamentos.
 - Taxa de cancelamento: cancelados sobre o total de agendamentos do período.
-- Quantidade de agendamentos e taxa de cancelamento: o período é o da data marcada (`scheduled_at`), e a quantidade conta todos os status. Sem agendamentos pagos, o ticket médio é zero.
+- Quantidade de agendamentos, taxa de cancelamento e agendamentos por status: o período é o da data marcada (`scheduled_at`), a quantidade conta todos os status, e a soma dos status é a quantidade. Sem agendamentos pagos, o ticket médio é zero.
+- O ticket médio e a taxa de cancelamento têm duas casas decimais, arredondadas com meio centavo para cima, como o total (RN012).
 - Agenda do dia (RF043): os agendamentos de qualquer status marcados para o dia corrente no fuso da empresa.
 - Período padrão: mês atual; no máximo 12 meses (RN035).
 
@@ -76,4 +79,4 @@ Os indicadores (seção 5) não ficam em `rules/`: são agregações por períod
 
 ## Persistência
 
-`create_appointment`, `update_appointment` e `reschedule_appointment` são funções SQL que gravam, em uma transação, o agendamento, a cópia dos dados e os serviços; o reagendamento também muda o original para `rescheduled` (`dados.md`).
+`create_appointment`, `update_appointment` e `reschedule_appointment` são funções SQL que gravam, em uma transação, o agendamento, a cópia dos dados e os serviços; o reagendamento também muda o original para `rescheduled` (`dados.md`). `dashboard_figures` é a única função de leitura: agrega no banco o que passaria do limite de linhas de uma consulta.

@@ -9,7 +9,7 @@ relacionados: [UC09, UC27, RF040, RF041, RF042, RF043, RF089, RF090, RN017, RN02
 
 Período, indicadores, análise do período, gráficos, agenda do dia e estados de `/admin`, do [UC09](UC09-visualizar-dashboard.md) e do [UC27](UC27-gerar-analise-do-dashboard.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); etiqueta de status e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato da rota: [rotas.md](rotas.md).
 
-Enquanto as rotas do dashboard usarem os dados de demonstração de `src/lib/demo/dashboard.ts` (decisão 0055), o aviso de demonstração fica logo abaixo do título da página.
+Os indicadores, os gráficos e a agenda são reais. Enquanto a análise do período usar os dados de demonstração de `src/lib/demo/dashboard.ts` (decisão 0055), o aviso de demonstração fica no alto do cartão "Análise do período".
 
 ## Página
 
