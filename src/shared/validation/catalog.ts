@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { ADMIN_LIST_PAGE_SIZE } from "@/shared/constants/pagination";
+import {
+  ADMIN_LIST_PAGE_SIZE,
+  CATALOG_PAGE_SIZE,
+} from "@/shared/constants/pagination";
 import { PRICING_MODES } from "@/shared/constants/pricing-modes";
 import { SERVICE_TYPES } from "@/shared/constants/service-types";
 import { VEHICLE_SIZES } from "@/shared/constants/vehicle-sizes";
@@ -191,3 +194,13 @@ export const serviceListQuerySchema = paginationSchema(
 });
 
 export type ServiceListQuery = z.output<typeof serviceListQuerySchema>;
+
+// UC01 step 4: the public catalog is read by page of 12, optionally of one
+// category. A category that does not exist gets an empty page.
+export const publicServiceQuerySchema = paginationSchema(
+  CATALOG_PAGE_SIZE,
+).extend({
+  categoryId: idField(CATEGORY_MESSAGE).optional(),
+});
+
+export type PublicServiceQuery = z.output<typeof publicServiceQuerySchema>;

@@ -1,6 +1,6 @@
 # `/api/public`
 
-Rotas públicas, sem autenticação: dados da empresa e catálogo. Subpastas: `services/`, `company/`.
+Rotas públicas, sem autenticação: dados da empresa e catálogo. Subpastas: `services/`, `categories/`, `company/`.
 
 ## Vai aqui
 

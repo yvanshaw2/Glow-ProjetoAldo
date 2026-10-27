@@ -25,23 +25,6 @@ export type DemoRoute = {
 };
 
 export const DEMO_ROUTES: readonly DemoRoute[] = [
-  // docs/catalogo/rotas.md, built by #48.
-  {
-    method: "GET",
-    path: "/api/public/categories",
-    load: () =>
-      import("@/lib/demo/catalog").then(
-        (catalog) => catalog.answerPublicCategories,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/public/services",
-    load: () =>
-      import("@/lib/demo/catalog").then(
-        (catalog) => catalog.answerPublicServices,
-      ),
-  },
   // docs/clientes/rotas.md, built in phase 3.
   {
     method: "GET",

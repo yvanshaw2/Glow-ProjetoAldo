@@ -3,6 +3,7 @@ import {
   categoryInputSchema,
   categoryListQuerySchema,
   categoryUpdateSchema,
+  publicServiceQuerySchema,
   serviceInputSchema,
   serviceListQuerySchema,
   serviceUpdateSchema,
@@ -619,5 +620,47 @@ describe("imagePath of the service", () => {
         updatedAt: UPDATED_AT,
       }).success,
     ).toBe(true);
+  });
+});
+
+describe("publicServiceQuerySchema", () => {
+  it("uses the first page of 12 and no category", () => {
+    expect(publicServiceQuerySchema.parse({})).toEqual({
+      page: 1,
+      pageSize: 12,
+    });
+  });
+
+  it.each([
+    "4e31423b-fe30-cf42-7e5a-eebc618ac6e6",
+    "0f8fad5b-d9cb-469f-a165-70867728950e",
+  ])("accepts the category id %s", (categoryId) => {
+    expect(publicServiceQuerySchema.parse({ categoryId })).toMatchObject({
+      categoryId,
+    });
+  });
+
+  it("rejects a category id that is not a UUID", () => {
+    expect(
+      messagesOf(publicServiceQuerySchema, { categoryId: "lavagem" }),
+    ).toEqual({ categoryId: CATEGORY });
+  });
+
+  it("caps the page size at 50", () => {
+    expect(publicServiceQuerySchema.parse({ pageSize: "80" }).pageSize).toBe(
+      50,
+    );
+  });
+
+  it("rejects a page below 1", () => {
+    expect(messagesOf(publicServiceQuerySchema, { page: "0" })).toEqual({
+      page: PAGINATION,
+    });
+  });
+
+  it("drops unknown fields", () => {
+    expect(
+      publicServiceQuerySchema.parse({ type: "main", search: "x" }),
+    ).toEqual({ page: 1, pageSize: 12 });
   });
 });

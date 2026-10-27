@@ -6,6 +6,10 @@ import {
   updateCategory as saveCategory,
 } from "@/server/repositories/categories";
 import {
+  listPublicCategories as selectPublicCategories,
+  listPublicServices as selectPublicServices,
+} from "@/server/repositories/catalog-public";
+import {
   findService,
   findServicesByIds,
   listServices as selectServices,
@@ -27,6 +31,8 @@ import type {
   AdminCategory,
   AdminService,
   AdminServiceSummary,
+  PublicCategory,
+  PublicService,
   ServiceImage,
 } from "@/shared/api/catalog";
 import { AppError } from "@/shared/errors/app-error";
@@ -36,6 +42,7 @@ import {
   type CategoryInput,
   type CategoryListQuery,
   type CategoryUpdate,
+  type PublicServiceQuery,
   type ServiceInput,
   type ServiceListQuery,
   type ServiceUpdate,
@@ -249,4 +256,16 @@ async function readSavedService(id: string | null): Promise<AdminService> {
     throw new Error("The service saved by save_service was not found");
   }
   return service;
+}
+
+// UC01 step 4 (RN008, RN031): the filters are in the query.
+export async function listPublicServices(
+  query: PublicServiceQuery,
+): Promise<{ services: PublicService[]; total: number }> {
+  return selectPublicServices(query);
+}
+
+// UC01: the categories of the catalog filter.
+export async function listPublicCategories(): Promise<PublicCategory[]> {
+  return selectPublicCategories();
 }

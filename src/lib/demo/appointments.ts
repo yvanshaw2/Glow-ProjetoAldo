@@ -318,8 +318,8 @@ const APPOINTMENTS: DemoAppointment[] = [
 // The two vehicles of the account, for the booking.
 const VEHICLES: readonly AppointmentVehicle[] = [TORO, SW4];
 
-// The categories of the services to book, with the seed's ids, as in
-// src/lib/demo/catalog.ts.
+// The categories of the services to book, with the ids of
+// seed-demo.sql.
 const WASH: PublicCategory = {
   id: "4e31423b-fe30-cf42-7e5a-eebc618ac6e6",
   name: "Lavagem",

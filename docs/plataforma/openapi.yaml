@@ -298,6 +298,70 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /api/public/categories:
+    get:
+      tags:
+        - public
+      operationId: listPublicCategories
+      summary: Lista as categorias do filtro do catálogo
+      description: >-
+        As categorias ativas com ao menos um serviço principal ou complementar
+        ativo e não excluído (UC01, RN008, RN031), por nome e sem paginação,
+        porque o filtro precisa delas inteiras.
+      security: []
+      responses:
+        "200":
+          description: Categorias do filtro.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublicCategory"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/public/services:
+    get:
+      tags:
+        - public
+      operationId: listPublicServices
+      summary: Lista os serviços do catálogo público
+      description: >-
+        Serviços principais e complementares ativos, de categorias ativas e
+        não excluídos (UC01, RN008, RN031, RN030), por nome, 12 por página. Com
+        categoryId, só os da categoria; categoria inexistente, inativa ou sem
+        serviço ativo devolve a página vazia.
+      security: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 12
+      responses:
+        "200":
+          description: Página de serviços.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicServicePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/public/company:
     get:
       tags:
@@ -1971,6 +2035,61 @@ components:
           description: Fim da pausa em HH:MM; null sem pausa.
           examples:
             - "13:00"
+    PublicCategory:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    PublicService:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - imageUrl
+        - category
+        - avgDurationMinutes
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type:
+            - string
+            - "null"
+          description: Endereço público da imagem no Storage (RS015), ou null.
+        category:
+          $ref: "#/components/schemas/PublicCategory"
+        avgDurationMinutes:
+          type: integer
+    PublicServicePage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicService"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
     PublicCompany:
       type: object
       required:

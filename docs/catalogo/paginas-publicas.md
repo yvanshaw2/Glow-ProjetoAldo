@@ -47,7 +47,7 @@ As seções seguem a ordem do UC01 (passo 2). Quem já entrou vê a mesma págin
 Os serviços principais e complementares ativos de categorias ativas (UC01, passo 4; RN008, RN031), de `GET /api/public/services`, em páginas de 12 ([../padroes/api.md](../padroes/api.md)).
 
 - Título: "Serviços".
-- Parágrafo, abaixo do título e do aviso de demonstração enquanto a tela usar os dados de demonstração ([../padroes/componentes.md](../padroes/componentes.md)): "Conheça os serviços disponíveis e filtre por categoria."
+- Parágrafo, abaixo do título: "Conheça os serviços disponíveis e filtre por categoria."
 - Filtro: legenda "Categoria" e a primeira opção "Todas", seguida das categorias de `GET /api/public/categories`.
 - Nenhum serviço (UC01 FE01): "Não há serviços disponíveis no momento."
 - Enquanto os dados carregam, o lugar fica reservado; na falha, o aviso com a mensagem e "Tentar novamente" (UC01 FE02).

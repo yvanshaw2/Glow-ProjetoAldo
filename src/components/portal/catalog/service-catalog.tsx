@@ -22,8 +22,9 @@ import { CATALOG_PAGE_SIZE } from "@/shared/constants/pagination";
 
 const SERVICES_PATH = "/api/public/services";
 
-// Cards held while the first page loads, so the page does not shift.
-const LOADING_PLACES = 3;
+// Cards held while the first page loads, as many as a page, so the page does
+// not shift when it arrives.
+const LOADING_PLACES = CATALOG_PAGE_SIZE;
 
 const GRID_CLASS = "grid gap-8 md:grid-cols-2 lg:grid-cols-3";
 

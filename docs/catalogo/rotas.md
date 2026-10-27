@@ -35,8 +35,8 @@ Categorias do filtro do catálogo (UC01): as ativas com ao menos um serviço pri
 
 Catálogo de serviços principais e complementares ativos (UC01).
 
-- Entrada: `categoryId` (opcional).
-- Resposta: **200** lista paginada de `id`, `name`, `description`, `imageUrl` (endereço público da imagem, ou `null`), `category` (`id` e `name`) e `avgDurationMinutes`.
+- Entrada: `categoryId` (opcional, UUID; outro valor: 400 em `categoryId`). Categoria inexistente, inativa ou sem serviço ativo: 200 com a lista vazia.
+- Resposta: **200** lista paginada, em ordem alfabética do nome (o `id` desempata), de `id`, `name`, `description`, `imageUrl` (endereço público da imagem, ou `null`), `category` (`id` e `name`) e `avgDurationMinutes`.
 
 ### Rotas do painel: serviços e categorias
 
