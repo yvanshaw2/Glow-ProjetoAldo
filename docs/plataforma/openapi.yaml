@@ -1725,6 +1725,46 @@ paths:
           $ref: "#/components/responses/PanelForbidden"
         "500":
           $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - appointments
+      operationId: createAdminAppointment
+      summary: Registra um agendamento para um cliente
+      description: >-
+        Registra o agendamento com o status scheduled, a cópia dos dados do
+        cliente, do veículo e dos serviços e os valores calculados pelo
+        servidor, em uma transação (UC11, RN003, RN037, RNF010). Não há
+        controle de capacidade: outro agendamento no mesmo horário é aceito
+        (RN016).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentInput"
+      responses:
+        "201":
+          description: Agendamento registrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/admin/appointments/{id}:
     get:
       tags:
@@ -1758,6 +1798,192 @@ paths:
           $ref: "#/components/responses/PanelForbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/lookup/clients:
+    get:
+      tags:
+        - appointments
+      operationId: lookUpAppointmentClients
+      summary: Busca clientes para o novo agendamento
+      description: >-
+        Clientes ativos, em ordem alfabética do nome, 10 por página (UC11
+        passo 2, RN030). O termo se separa em palavras, e cada uma precisa
+        aparecer, sem diferenciar maiúsculas, no nome, no sobrenome ou no
+        e-mail; o telefone não entra na busca.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: search
+          in: query
+          required: true
+          description: Até 100 caracteres; vazio responde 400.
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        "200":
+          description: Página de clientes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClientOptionPage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/lookup/vehicles:
+    get:
+      tags:
+        - appointments
+      operationId: lookUpAppointmentVehicles
+      summary: Lista os veículos do cliente escolhido
+      description: >-
+        Os veículos da conta do cliente, na ordem em que foram vinculados, 10
+        por página (UC11 passo 3, RN003).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: clientId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        "200":
+          description: Página de veículos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehiclePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/lookup/services:
+    get:
+      tags:
+        - appointments
+      operationId: lookUpAppointmentServices
+      summary: Lista os serviços para agendar, com o preço do porte do veículo
+      description: >-
+        Serviços principais e complementares ativos, não excluídos e de
+        categoria ativa, por nome, 12 por página, com o preço do porte do
+        veículo ou o fixo e, no principal, os adicionais ativos vinculados
+        (UC11 passo 4, RN006, RN008, RN009, RN031).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 12
+      responses:
+        "200":
+          description: Página de serviços.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookableServicePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/preview:
+    post:
+      tags:
+        - appointments
+      operationId: previewAdminAppointment
+      summary: Calcula os valores de um agendamento, sem gravar
+      description: >-
+        Pelo catálogo vigente: os serviços que podem ser agendados ficam, os
+        outros saem. A data, o horário e a composição só são conferidos no
+        registro. appointmentId identifica a edição e não muda o cálculo (UC11
+        passo 6, RN010, RN012, RN014, RN034).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentPreviewInput"
+      responses:
+        "200":
+          description: Valores calculados.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentPreview"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
   /api/admin/dashboard:
@@ -3557,6 +3783,202 @@ components:
           pattern: "^[0-9a-f]{8}$"
           examples:
             - 7f3c9a1e
+    AdminClientOption:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    AdminClientOptionPage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminClientOption"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    BookableAdditional:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - durationMinutes
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        price:
+          type: number
+          description: Valor fixo (RN009).
+        durationMinutes:
+          type: integer
+    BookableService:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - type
+        - category
+        - price
+        - durationMinutes
+        - additionals
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum:
+            - main
+            - complementary
+        category:
+          $ref: "#/components/schemas/PublicCategory"
+        price:
+          type: number
+          description: O valor do porte do veículo ou o fixo (RN009).
+        durationMinutes:
+          type: integer
+        additionals:
+          type: array
+          description: Adicionais ativos vinculados ao principal, por nome; vazio no complementar (RN006).
+          items:
+            $ref: "#/components/schemas/BookableAdditional"
+    BookableServicePage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookableService"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    AppointmentPreviewInput:
+      type: object
+      required:
+        - vehicleId
+        - serviceIds
+      properties:
+        vehicleId:
+          type: string
+          format: uuid
+        serviceIds:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        scheduledAt:
+          type: string
+          format: date-time
+          description: Instante com fuso, como 2026-11-03T09:00:00-03:00.
+        appointmentId:
+          type: string
+          format: uuid
+          description: Só na edição; não muda o cálculo.
+    AppointmentPreview:
+      type: object
+      required:
+        - services
+        - subtotal
+        - feePercent
+        - total
+        - estimatedDurationMinutes
+        - estimatedEndAt
+      properties:
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppointmentService"
+        subtotal:
+          type: number
+        feePercent:
+          type:
+            - number
+            - "null"
+          description: O percentual da forma de pagamento; nulo sem paymentMethod (RN012).
+        total:
+          type: number
+          description: Igual ao subtotal sem paymentMethod (RN010).
+        estimatedDurationMinutes:
+          type: integer
+        estimatedEndAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Nulo sem scheduledAt (RN034).
+    AppointmentInput:
+      type: object
+      description: >-
+        Valores calculados pelo sistema (preços, total, status, previsão e
+        cópias) não são aceitos e são descartados.
+      required:
+        - clientId
+        - vehicleId
+        - serviceIds
+        - paymentMethod
+        - scheduledAt
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        vehicleId:
+          type: string
+          format: uuid
+        serviceIds:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        scheduledAt:
+          type: string
+          format: date-time
+          description: Instante com fuso, como 2026-11-03T09:00:00-03:00.
   responses:
     ValidationError:
       description: >-

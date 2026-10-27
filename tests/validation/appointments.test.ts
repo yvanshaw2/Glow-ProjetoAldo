@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { adminAppointmentListQuerySchema } from "@/shared/validation/appointments";
+import { z } from "zod";
+import {
+  adminAppointmentListQuerySchema,
+  appointmentInputSchema,
+  appointmentPreviewSchema,
+  bookingFormSchema,
+  clientLookupQuerySchema,
+  serviceLookupQuerySchema,
+  vehicleLookupQuerySchema,
+} from "@/shared/validation/appointments";
 
 // The query of GET /api/admin/appointments (UC10, RF044 to RF047, docs/
 // agendamento/rotas.md).
@@ -115,5 +124,228 @@ describe("adminAppointmentListQuerySchema", () => {
     expect(
       adminAppointmentListQuerySchema.parse({ view: "today", clientId: "x" }),
     ).not.toHaveProperty("clientId");
+  });
+});
+
+// The routes of the form of a new appointment (UC11, docs/agendamento/
+// rotas.md). The messages are those of docs/plataforma/mensagens-de-validacao.md.
+
+const CLIENT_ID = "11111111-1111-4111-8111-111111111111";
+const VEHICLE_ID = "22222222-2222-4222-8222-222222222222";
+const SERVICE_A = "33333333-3333-4333-8333-333333333333";
+const SERVICE_B = "44444444-4444-4444-8444-444444444444";
+
+const SEARCH_REQUIRED = "Digite o nome ou o e-mail para buscar o cliente.";
+const CLIENT_CHOICE = "Escolha o cliente.";
+const VEHICLE_CHOICE = "Escolha o veículo.";
+const SERVICES_COUNT = "Escolha de 1 a 20 serviços, sem repetir.";
+const SERVICES_REGISTERED = "Escolha serviços cadastrados.";
+const PAYMENT_CHOICE = "Escolha a forma de pagamento.";
+const DATE_CHOICE = "Escolha a data e o horário.";
+
+const VALID_ORDER = {
+  clientId: CLIENT_ID,
+  vehicleId: VEHICLE_ID,
+  serviceIds: [SERVICE_A, SERVICE_B],
+  paymentMethod: "pix",
+  scheduledAt: "2026-11-03T12:00:00.000Z",
+};
+
+function issues(schema: z.ZodType, input: unknown) {
+  const result = schema.safeParse(input);
+  if (result.success) return {};
+  return Object.fromEntries(
+    result.error.issues.map((issue) => [issue.path.join("."), issue.message]),
+  );
+}
+
+describe("clientLookupQuerySchema", () => {
+  it("requires a search for the clients", () => {
+    expect(issues(clientLookupQuerySchema, {})).toEqual({
+      search: SEARCH_REQUIRED,
+    });
+    expect(issues(clientLookupQuerySchema, { search: "   " })).toEqual({
+      search: SEARCH_REQUIRED,
+    });
+  });
+
+  it("normalizes the search and applies the page of 10", () => {
+    expect(clientLookupQuerySchema.parse({ search: "  ana   souza " })).toEqual(
+      { search: "ana souza", page: 1, pageSize: 10 },
+    );
+  });
+
+  it("rejects a search over 100 characters", () => {
+    expect(
+      issues(clientLookupQuerySchema, { search: "a".repeat(101) }),
+    ).toEqual({ search: "Use até 100 caracteres." });
+  });
+});
+
+describe("vehicleLookupQuerySchema and serviceLookupQuerySchema", () => {
+  it("require the id of the client and of the vehicle", () => {
+    expect(issues(vehicleLookupQuerySchema, {})).toEqual({
+      clientId: CLIENT_CHOICE,
+    });
+    expect(issues(vehicleLookupQuerySchema, { clientId: "x" })).toEqual({
+      clientId: CLIENT_CHOICE,
+    });
+    expect(issues(serviceLookupQuerySchema, {})).toEqual({
+      vehicleId: VEHICLE_CHOICE,
+    });
+  });
+
+  it("apply the page of 10 to the vehicles and of 12 to the services", () => {
+    expect(vehicleLookupQuerySchema.parse({ clientId: CLIENT_ID })).toEqual({
+      clientId: CLIENT_ID,
+      page: 1,
+      pageSize: 10,
+    });
+    expect(serviceLookupQuerySchema.parse({ vehicleId: VEHICLE_ID })).toEqual({
+      vehicleId: VEHICLE_ID,
+      page: 1,
+      pageSize: 12,
+    });
+  });
+});
+
+describe("appointmentInputSchema", () => {
+  it("accepts a complete order", () => {
+    expect(appointmentInputSchema.parse(VALID_ORDER)).toEqual(VALID_ORDER);
+  });
+
+  it("requires every field, each with its message", () => {
+    expect(issues(appointmentInputSchema, {})).toEqual({
+      clientId: CLIENT_CHOICE,
+      vehicleId: VEHICLE_CHOICE,
+      serviceIds: SERVICES_COUNT,
+      paymentMethod: PAYMENT_CHOICE,
+      scheduledAt: DATE_CHOICE,
+    });
+  });
+
+  it("discards the price, the total, the status and the copies", () => {
+    const parsed = appointmentInputSchema.parse({
+      ...VALID_ORDER,
+      subtotal: 1,
+      total: 1,
+      feePercent: -100,
+      status: "completed",
+      createdByStaffId: CLIENT_ID,
+      clientName: "Outro",
+      estimatedEndAt: "2026-11-03T12:00:00.000Z",
+    });
+    expect(parsed).toEqual(VALID_ORDER);
+  });
+
+  it("rejects an empty list, a repeated id and more than 20 services", () => {
+    const check = (serviceIds: unknown) =>
+      issues(appointmentInputSchema, { ...VALID_ORDER, serviceIds });
+    expect(check([])).toEqual({ serviceIds: SERVICES_COUNT });
+    expect(check([SERVICE_A, SERVICE_A])).toEqual({
+      serviceIds: SERVICES_COUNT,
+    });
+    const many = Array.from(
+      { length: 21 },
+      (_, index) =>
+        `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+    );
+    expect(check(many)).toEqual({ serviceIds: SERVICES_COUNT });
+    expect(check(many.slice(0, 20))).toEqual({});
+  });
+
+  it("rejects a service id that is not an id", () => {
+    expect(
+      issues(appointmentInputSchema, { ...VALID_ORDER, serviceIds: ["x"] }),
+    ).toEqual({ "serviceIds.0": SERVICES_REGISTERED });
+  });
+
+  it("rejects an unknown payment method", () => {
+    expect(
+      issues(appointmentInputSchema, {
+        ...VALID_ORDER,
+        paymentMethod: "boleto",
+      }),
+    ).toEqual({ paymentMethod: PAYMENT_CHOICE });
+  });
+
+  it("rejects a scheduledAt without an offset or that is not an instant", () => {
+    for (const scheduledAt of ["2026-11-03T09:00:00", "2026-11-03", "amanhã"]) {
+      expect(
+        issues(appointmentInputSchema, { ...VALID_ORDER, scheduledAt }),
+      ).toEqual({ scheduledAt: DATE_CHOICE });
+    }
+    expect(
+      appointmentInputSchema.parse({
+        ...VALID_ORDER,
+        scheduledAt: "2026-11-03T09:00:00-03:00",
+      }).scheduledAt,
+    ).toBe("2026-11-03T09:00:00-03:00");
+  });
+});
+
+describe("appointmentPreviewSchema", () => {
+  it("accepts a preview without the payment method and the date", () => {
+    expect(
+      appointmentPreviewSchema.parse({
+        vehicleId: VEHICLE_ID,
+        serviceIds: [SERVICE_A],
+      }),
+    ).toEqual({ vehicleId: VEHICLE_ID, serviceIds: [SERVICE_A] });
+  });
+
+  it("accepts the appointmentId of an edition", () => {
+    const parsed = appointmentPreviewSchema.parse({
+      vehicleId: VEHICLE_ID,
+      serviceIds: [SERVICE_A],
+      paymentMethod: "cash",
+      scheduledAt: "2026-11-03T12:00:00.000Z",
+      appointmentId: CLIENT_ID,
+    });
+    expect(parsed.appointmentId).toBe(CLIENT_ID);
+  });
+
+  it("applies the same rules of the services and of the vehicle", () => {
+    expect(issues(appointmentPreviewSchema, {})).toEqual({
+      vehicleId: VEHICLE_CHOICE,
+      serviceIds: SERVICES_COUNT,
+    });
+  });
+});
+
+describe("bookingFormSchema", () => {
+  const values = {
+    client: { id: CLIENT_ID, name: "Ana", email: "ana@example.com" },
+    vehicle: { id: VEHICLE_ID },
+    serviceIds: [SERVICE_A],
+    additionalIds: [],
+    date: "2026-11-03",
+    time: "09:00",
+    paymentMethod: "pix",
+  };
+
+  it("keeps the fields of the choices it was given", () => {
+    expect(bookingFormSchema.parse(values)).toEqual(values);
+  });
+
+  it("asks for each choice with the message of its step", () => {
+    expect(
+      issues(bookingFormSchema, {
+        ...values,
+        client: null,
+        vehicle: null,
+        serviceIds: [],
+        date: null,
+        time: null,
+        paymentMethod: null,
+      }),
+    ).toEqual({
+      client: "Escolha o cliente.",
+      vehicle: "Escolha o veículo.",
+      serviceIds: "Escolha ao menos um serviço principal ou complementar.",
+      date: "Escolha a data.",
+      time: "Escolha o horário.",
+      paymentMethod: "Escolha a forma de pagamento.",
+    });
   });
 });

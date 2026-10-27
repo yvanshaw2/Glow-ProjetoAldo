@@ -498,7 +498,7 @@ const SEED_WORKING_PERIODS: readonly (readonly (readonly [
 ];
 
 // The body of POST /api/me/appointments/preview, as the booking sends it.
-export type PreviewBody = {
+type PreviewBody = {
   vehicleId: string;
   serviceIds: string[];
   paymentMethod?: PaymentMethod | null;
@@ -543,9 +543,8 @@ export function answerBookableServices({
   });
 }
 
-// The services to book with the prices of a vehicle size, which the lookup of
-// the panel (src/lib/demo/admin-appointments.ts) also answers.
-export function listBookableServices(size: VehicleSize): BookableService[] {
+// The services to book with the prices of a vehicle size.
+function listBookableServices(size: VehicleSize): BookableService[] {
   return BOOKABLE_SERVICES.map((service) => toBookableService(service, size));
 }
 
@@ -559,9 +558,8 @@ export function answerAppointmentPreview({
   return previewOrder(findVehicle(vehicleId).size, order);
 }
 
-// The values of an order for a vehicle size, which the preview of the panel
-// (src/lib/demo/admin-appointments.ts) works out the same way.
-export function previewOrder(
+// The values of an order for a vehicle size.
+function previewOrder(
   size: VehicleSize,
   { serviceIds, paymentMethod, scheduledAt }: Omit<PreviewBody, "vehicleId">,
 ): AppointmentPreview {
@@ -592,7 +590,7 @@ export function previewOrder(
   };
 }
 
-export function notFound(): ApiError {
+function notFound(): ApiError {
   return new ApiError({
     status: ERROR_CATALOG.NOT_FOUND.status,
     code: "NOT_FOUND",

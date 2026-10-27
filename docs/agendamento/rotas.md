@@ -121,15 +121,15 @@ Detalha um agendamento.
 
 Calcula os valores de um novo agendamento ou da edição de um agendamento, sem gravar.
 
-- Entrada: `vehicleId*, serviceIds*, paymentMethod, scheduledAt`; `appointmentId`, na edição.
-- Resposta: **200** itens, subtotal, percentual, total, duração estimada e, com `scheduledAt`, previsão de conclusão.
+- Entrada: `vehicleId*, serviceIds*` (de 1 a 20 ids, sem repetição), `paymentMethod, scheduledAt`; `appointmentId`, na edição.
+- Resposta: **200** `AppointmentPreview`, como a prévia do cliente: os serviços que podem ser agendados, `subtotal`, `feePercent`, `total`, `estimatedDurationMinutes` e, com `scheduledAt`, `estimatedEndAt`; 404 veículo inexistente. A prévia só calcula, pelo catálogo vigente: o serviço que não pode ser agendado fica de fora, e a data, o horário e a composição são conferidos só no registro. `appointmentId` identifica a edição (UC26) e, nesta rota, não muda o cálculo.
 
 #### `POST /api/admin/appointments`
 
 Registra um agendamento para um cliente (UC11).
 
-- Entrada: `clientId*, vehicleId*, serviceIds*, paymentMethod*, scheduledAt*`
-- Resposta: **201** agendamento com o status `scheduled`; 400 data ou horário inválido.
+- Entrada: `clientId*, vehicleId*, serviceIds*` (de 1 a 20 ids, sem repetição), `paymentMethod*, scheduledAt*` (instante com fuso). Preço, total, porte, previsão, cópias e status são calculados pelo servidor; o `created_by_staff_id` é o funcionário da sessão.
+- Resposta: **201** agendamento com o status `scheduled`, no formato do detalhe; 400 com o campo em `fields`: data ou horário fora do funcionamento ou no passado (`scheduledAt`), serviços sem principal ou complementar, adicional sem o seu principal ou serviço que não pode ser agendado (`serviceIds`) ou veículo que não é do cliente (`vehicleId`); 404 cliente inexistente ou excluído.
 
 #### `PATCH /api/admin/appointments/:id`
 
@@ -170,19 +170,19 @@ Reagenda um serviço concluído (UC25).
 
 Busca clientes para o formulário de novo agendamento.
 
-- Entrada: `search*` (parte do nome ou do e-mail, sem distinção de maiúsculas), `page`, `pageSize`
-- Resposta: **200** lista paginada de `id`, `name` e `email`, em ordem alfabética do nome; só clientes ativos (RN030).
+- Entrada: `search*` (até 100 caracteres; o termo se separa em palavras, e cada uma precisa aparecer, sem distinção de maiúsculas, no nome, no sobrenome ou no e-mail, sem o telefone), `page`, `pageSize` (10 por página)
+- Resposta: **200** lista paginada de `id`, `name` e `email`, em ordem alfabética do nome; só clientes ativos (RN030); 400 em `search` quando falta ou está vazio.
 
 #### `GET /api/admin/appointments/lookup/vehicles`
 
 Lista os veículos do cliente escolhido.
 
-- Entrada: `clientId*`, `page`, `pageSize`
-- Resposta: **200** lista paginada dos veículos do cliente, nos campos de `GET /api/me/vehicles`, na ordem em que foram vinculados (RN003).
+- Entrada: `clientId*`, `page`, `pageSize` (10 por página)
+- Resposta: **200** lista paginada dos veículos do cliente, nos campos de `GET /api/me/vehicles`, na ordem em que foram vinculados (RN003); 404 cliente inexistente ou excluído.
 
 #### `GET /api/admin/appointments/lookup/services`
 
 Lista os serviços com os valores aplicáveis ao veículo.
 
-- Entrada: `vehicleId*`, `page`, `pageSize`
-- Resposta: **200** lista paginada nos campos e na ordem de `GET /api/me/bookable-services`, com o preço do porte do veículo (RN009).
+- Entrada: `vehicleId*`, `page`, `pageSize` (12 por página)
+- Resposta: **200** lista paginada nos campos e na ordem de `GET /api/me/bookable-services`, com o preço do porte do veículo (RN009); 404 veículo inexistente.

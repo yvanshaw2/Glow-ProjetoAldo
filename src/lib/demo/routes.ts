@@ -86,41 +86,7 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
   { method: "POST", path: "/api/me/appointments" },
   { method: "PATCH", path: "/api/me/appointments/:id" },
   { method: "POST", path: "/api/me/appointments/:id/reschedule" },
-  // docs/agendamento/rotas.md, built by #49 and #50; the preview is a POST
-  // that writes nothing.
-  {
-    method: "POST",
-    path: "/api/admin/appointments/preview",
-    load: () =>
-      import("@/lib/demo/admin-appointments").then(
-        (appointments) => appointments.answerAdminAppointmentPreview,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/admin/appointments/lookup/clients",
-    load: () =>
-      import("@/lib/demo/admin-appointments").then(
-        (appointments) => appointments.answerClientLookup,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/admin/appointments/lookup/vehicles",
-    load: () =>
-      import("@/lib/demo/admin-appointments").then(
-        (appointments) => appointments.answerVehicleLookup,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/admin/appointments/lookup/services",
-    load: () =>
-      import("@/lib/demo/admin-appointments").then(
-        (appointments) => appointments.answerServiceLookup,
-      ),
-  },
-  { method: "POST", path: "/api/admin/appointments" },
+  // docs/agendamento/rotas.md, built by #50.
   { method: "PATCH", path: "/api/admin/appointments/:id" },
   { method: "POST", path: "/api/admin/appointments/:id/advance" },
   { method: "POST", path: "/api/admin/appointments/:id/complete" },

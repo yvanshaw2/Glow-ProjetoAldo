@@ -125,6 +125,23 @@ export async function listVehiclesOfClient(
   };
 }
 
+// RN003: whether the vehicle is linked to the client's account.
+export async function isVehicleOfClient(
+  clientId: string,
+  vehicleId: string,
+): Promise<boolean> {
+  const { data, error } = await getServiceClient()
+    .from("client_vehicles")
+    .select("vehicle_id")
+    .eq("client_id", clientId)
+    .eq("vehicle_id", vehicleId)
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  return data !== null;
+}
+
 // UC18 step 6: the vehicle, created when the plate is new (data given), and
 // its link to the account, in one transaction (function link_vehicle). Null
 // when the vehicle is already linked to the account.

@@ -180,6 +180,51 @@ export async function listAdminAppointments(
   };
 }
 
+// What create_appointment saves, worked out by the service; the copies of
+// RN037 are made by the function (docs/agendamento/dados.md).
+export type NewAppointment = {
+  clientId: string;
+  vehicleId: string;
+  staffId: string;
+  scheduledAt: string;
+  paymentMethod: PaymentMethod;
+  feePercent: number;
+  subtotal: number;
+  total: number;
+  estimatedDurationMinutes: number;
+  estimatedEndAt: string;
+  items: { serviceId: string; price: number; durationMinutes: number }[];
+};
+
+// RNF010: the appointment, the copies and the services are written by
+// create_appointment in one transaction. Null, with nothing written, when the
+// client was deleted or the vehicle is not in the client's account.
+export async function insertAppointment(
+  appointment: NewAppointment,
+): Promise<string | null> {
+  const { data, error } = await getServiceClient().rpc("create_appointment", {
+    p_client_id: appointment.clientId,
+    p_vehicle_id: appointment.vehicleId,
+    p_staff_id: appointment.staffId,
+    p_scheduled_at: appointment.scheduledAt,
+    p_payment_method: appointment.paymentMethod,
+    p_fee_percent: appointment.feePercent,
+    p_subtotal: appointment.subtotal,
+    p_total: appointment.total,
+    p_estimated_duration_minutes: appointment.estimatedDurationMinutes,
+    p_estimated_end_at: appointment.estimatedEndAt,
+    p_items: appointment.items.map((item) => ({
+      service_id: item.serviceId,
+      price: item.price,
+      duration_minutes: item.durationMinutes,
+    })),
+  });
+  if (error) {
+    throw error;
+  }
+  return (data as string | null) ?? null;
+}
+
 export async function findAdminAppointment(
   id: string,
 ): Promise<AdminAppointment | null> {

@@ -47,3 +47,19 @@ describe("clientSearchFilters", () => {
     expect(quote).toContain('first_name.ilike."%x\\"y%"');
   });
 });
+
+// The search of the client in a new appointment (UC11 step 2) compares only the
+// name, the last name and the e-mail.
+describe("clientSearchFilters without the phone", () => {
+  it("leaves the phone out, even for a word of digits", () => {
+    const [filter] = clientSearchFilters("90000-0001", { withPhone: false });
+    expect(filter).not.toContain("phone");
+    expect(filter).toContain('email.ilike."%90000-0001%"');
+  });
+
+  it("still splits the term into words", () => {
+    expect(clientSearchFilters("ana souza", { withPhone: false })).toHaveLength(
+      2,
+    );
+  });
+});

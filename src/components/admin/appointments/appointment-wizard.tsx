@@ -1,8 +1,14 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useWatch,
+  type Resolver,
+} from "react-hook-form";
 import type { AppointmentFormValues } from "@/components/admin/appointments/appointment-form-values";
 import { BookingClientStep } from "@/components/admin/appointments/booking-client-step";
 import { BookingPaymentStep } from "@/components/shared/booking-payment-step";
@@ -29,14 +35,16 @@ import {
   formatTime,
   toCompanyInstant,
 } from "@/shared/format/date";
+import { bookingFormSchema } from "@/shared/validation/appointments";
 
 // UC11 and UC26 FA01 (docs/agendamento/agendamentos-do-painel.md, Novo
 // agendamento e Editar): the staff books for a client in five steps, or edits
 // an appointment of any status in four, with the client fixed (RN003). One
 // form for all the steps (RNF002), with the summary of the order below. The
 // values come from the preview of the API, never from a sum of the screen.
-// With the demo data the form has no validation schema yet (decision 0055):
-// "Próximo" only checks that the choice of the step was made.
+// "Próximo" checks the choice of the step with the schema of the form. The new
+// appointment is real (#49); the edition still writes with the demo data, so
+// it keeps the notice (decision 0055).
 
 const APPOINTMENTS_PATH = "/api/admin/appointments";
 const PREVIEW_PATH = "/api/admin/appointments/preview";
@@ -74,6 +82,18 @@ type PreviewBody = {
   scheduledAt?: string;
   appointmentId?: string;
 };
+
+// The fields of the body of the API in the fields of the form: the instant is
+// the date and the time, which the message of the date step covers.
+const FORM_FIELDS: Record<string, string> = {
+  clientId: "client",
+  vehicleId: "vehicle",
+  scheduledAt: "date",
+};
+
+function toFormField(field: string): string {
+  return FORM_FIELDS[field] ?? field;
+}
 
 type AppointmentWizardProps = {
   // The appointment being edited; without it, a new one.
@@ -126,10 +146,16 @@ export function AppointmentWizard({
   // The choice of a step checks it again, so its message leaves as soon as
   // it is made (RNF003).
   const form = useForm<AppointmentFormValues>({
+    resolver: zodResolver(
+      bookingFormSchema,
+    ) as unknown as Resolver<AppointmentFormValues>,
     defaultValues: initialValues(record),
     mode: "onChange",
   });
-  const { failure, showFailure, clearFailure } = useFormFailure(form.setError);
+  const { failure, showFailure, clearFailure } = useFormFailure(
+    form.setError,
+    toFormField,
+  );
   const [client, vehicle, serviceIds, additionalIds, date, time, payment] =
     useWatch({
       control: form.control,
@@ -279,7 +305,7 @@ export function AppointmentWizard({
           {/* The heading between the title of the dialog and the h3 of each
               step. */}
           <h2 className="sr-only">Etapas do agendamento</h2>
-          <DemoNotice />
+          {isEditing && <DemoNotice />}
           {failure && (
             <FormAlert key={failure.key}>{failure.error.message}</FormAlert>
           )}

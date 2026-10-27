@@ -15,7 +15,12 @@ export function likePattern(text: string): string {
   return quoted(`%${text.replace(/[\\%_]/g, "\\$&")}%`);
 }
 
-export function clientSearchFilters(term: string): string[] {
+// The phone is left out of the search of the client in a new appointment
+// (UC11 step 2: "Nome ou e-mail").
+export function clientSearchFilters(
+  term: string,
+  { withPhone = true }: { withPhone?: boolean } = {},
+): string[] {
   return term
     .split(/\s+/)
     .filter((word) => word !== "")
@@ -28,7 +33,7 @@ export function clientSearchFilters(term: string): string[] {
       ];
       // The phone is stored as digits, so only the digits of the word count.
       const digits = word.replace(DIGITS, "");
-      if (digits !== "") {
+      if (withPhone && digits !== "") {
         columns.push(`phone.ilike.${likePattern(digits)}`);
       }
       return columns.join(",");

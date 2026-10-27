@@ -72,6 +72,7 @@ Serviços de cada agendamento.
 Feitas por função SQL, em uma única transação, chamada pelo repositório (RNF010):
 
 - `create_appointment`, `update_appointment` e `reschedule_appointment`: agendamento, cópia dos dados e serviços;
+  - `create_appointment(p_client_id, p_vehicle_id, p_staff_id, p_scheduled_at, p_payment_method, p_fee_percent, p_subtotal, p_total, p_estimated_duration_minutes, p_estimated_end_at, p_items)` recebe os valores já calculados pelo serviço (`p_items`: `service_id`, `price` e `duration_minutes` de cada serviço) e faz a cópia do nome do cliente, dos dados do veículo e do nome e do tipo de cada serviço dentro da transação (RN037); devolve o id, ou `null`, sem gravar, quando o cliente foi excluído ou o veículo não está vinculado a ele;
 
 Uma função de leitura agrega no banco o que passaria do limite de linhas de uma consulta: `dashboard_figures(p_from, p_to, p_time_zone)` devolve os agendamentos do período por status (`scheduled_at`) e a receita e a quantidade dos pagos por dia (`completed_at` no fuso `p_time_zone`), para o dashboard (RN021).
 

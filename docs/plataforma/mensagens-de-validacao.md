@@ -55,6 +55,22 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Visão de agendamentos ausente ou desconhecida | Escolha uma visão válida. |
 | Status fora da visão de agendamentos | Escolha um status desta visão. |
 | Ordenação de agendamentos desconhecida | Escolha uma ordenação válida. |
+| Busca de cliente no novo agendamento ausente ou vazia | Digite o nome ou o e-mail para buscar o cliente. |
+| Cliente do agendamento ausente ou fora do formato | Escolha o cliente. |
+| Veículo do agendamento ausente ou fora do formato | Escolha o veículo. |
+| Veículo que não é do cliente | Escolha um veículo deste cliente. |
+| Serviços do agendamento ausentes, repetidos ou mais de 20 | Escolha de 1 a 20 serviços, sem repetir. |
+| Serviço que não é um identificador | Escolha serviços cadastrados. |
+| Pedido sem serviço principal ou complementar | Escolha ao menos um serviço principal ou complementar. |
+| Adicional sem o principal a que está ligado | Escolha o serviço principal a que o adicional está ligado. |
+| Serviço inativo, excluído ou de categoria inativa | Escolha serviços disponíveis para agendamento. |
+| Forma de pagamento ausente ou desconhecida | Escolha a forma de pagamento. |
+| Data e horário ausentes ou sem fuso | Escolha a data e o horário. |
+| Dia fechado | A empresa não atende neste dia. |
+| Horário fora do funcionamento | Escolha um horário dentro do funcionamento da empresa. |
+| Horário na pausa | Escolha um horário fora da pausa. |
+| Data e horário que já passaram | Escolha uma data e um horário que ainda não passaram. |
+| Identificador do agendamento (`appointmentId`) fora do formato | Informe um agendamento válido. |
 | Filtro de verdadeiro ou falso (`includeInactive`) | Informe true ou false. |
 
 ## Onde se aplica

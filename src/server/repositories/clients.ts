@@ -1,6 +1,7 @@
 import "server-only";
 import { getServiceClient } from "@/server/supabase/clients";
 import { clientSearchFilters } from "@/server/repositories/client-search";
+import type { AdminClientOption } from "@/shared/api/appointments";
 import type { AdminClient } from "@/shared/api/clients";
 import { AppError } from "@/shared/errors/app-error";
 
@@ -228,4 +229,40 @@ export async function restoreClient(id: string): Promise<void> {
   if (error) {
     throw error;
   }
+}
+
+// UC11 step 2: the clients not deleted (RN030) whose name or e-mail has every
+// word of the search, by name; the phone is not compared.
+export async function listClientOptions(
+  search: string,
+  page: number,
+  pageSize: number,
+): Promise<{ clients: AdminClientOption[]; total: number }> {
+  const from = (page - 1) * pageSize;
+  let query = getServiceClient()
+    .from("clients")
+    .select("id, first_name, last_name, email", { count: "exact" })
+    .is("deleted_at", null);
+  for (const filter of clientSearchFilters(search, { withPhone: false })) {
+    query = query.or(filter);
+  }
+  const { data, error, count } = await query
+    .order("first_name")
+    .order("last_name")
+    .order("id")
+    .range(from, from + pageSize - 1)
+    .returns<
+      { id: string; first_name: string; last_name: string; email: string }[]
+    >();
+  if (error) {
+    throw error;
+  }
+  return {
+    clients: data.map((row) => ({
+      id: row.id,
+      name: `${row.first_name} ${row.last_name}`,
+      email: row.email,
+    })),
+    total: count ?? 0,
+  };
 }

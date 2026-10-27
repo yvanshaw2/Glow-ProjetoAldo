@@ -35,7 +35,6 @@ import { SEARCH_TERM_MAX_LENGTH } from "@/shared/validation/formats";
 // RN004).
 
 const CLIENTS_PATH = "/api/admin/appointments/lookup/clients";
-const REQUIRED_MESSAGE = "Escolha o cliente.";
 // The search runs this long after the last key, as in a listing.
 const SEARCH_DELAY_MS = 300;
 const FIRST_PAGE = 1;
@@ -46,7 +45,6 @@ export function BookingClientStep() {
   const { setValue } = useFormContext<AppointmentFormValues>();
   const { field, fieldState } = useController<AppointmentFormValues, "client">({
     name: "client",
-    rules: { validate: (client) => client !== null || REQUIRED_MESSAGE },
   });
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
