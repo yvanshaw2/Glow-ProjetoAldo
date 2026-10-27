@@ -703,3 +703,116 @@ describe("log (RS017, RS018)", () => {
     });
   });
 });
+
+// docs/padroes/api.md (Validação): the image upload is the one write that is
+// not JSON, with a body up to 2 MB plus the framing of the format.
+describe("multipart body of an image upload", () => {
+  const MAX_IMAGE_BODY_BYTES = 2 * 1024 * 1024 + 4096;
+
+  // The multipart body written by hand, as bytes: a stream built from a
+  // FormData is still being written when the handler cancels it above the
+  // limit, which Node reports as an unhandled error.
+  function buildUpload(size: number, headers: Record<string, string> = {}) {
+    const boundary = "test-boundary";
+    const CRLF = "\r\n";
+    const head = new TextEncoder().encode(
+      [
+        `--${boundary}`,
+        'Content-Disposition: form-data; name="file"; filename="photo.png"',
+        "Content-Type: image/png",
+        "",
+        "",
+      ].join(CRLF),
+    );
+    const tail = new TextEncoder().encode(`${CRLF}--${boundary}--${CRLF}`);
+    const body = new Uint8Array(head.length + size + tail.length);
+    body.set(head);
+    body.set(tail, head.length + size);
+    return new Request(`${APP_ORIGIN}/api/admin/services/image`, {
+      method: "POST",
+      headers: {
+        host: APP_HOST,
+        origin: APP_ORIGIN,
+        "content-type": `multipart/form-data; boundary=${boundary}`,
+        ...headers,
+      },
+      body,
+    });
+  }
+
+  function callUpload(route: Route, request: Request) {
+    return handleRoute(route, { body: "multipart" })(request, {
+      params: Promise.resolve({}),
+    });
+  }
+
+  it("leaves the body to the route, which reads the form", async () => {
+    let received: unknown = "unset";
+    let fileSize = 0;
+    const response = await callUpload(async ({ request, body }) => {
+      received = body;
+      fileSize = ((await request.formData()).get("file") as File).size;
+      return respondOk({});
+    }, buildUpload(1024));
+
+    expect(response.status).toBe(200);
+    expect(received).toBeNull();
+    expect(fileSize).toBe(1024);
+  });
+
+  it("answers 415 when the content type is not multipart", async () => {
+    const request = buildRequest("/api/admin/services/image", {
+      method: "POST",
+      headers: { origin: APP_ORIGIN, "content-type": "application/json" },
+      body: "{}",
+    });
+    const response = await callUpload(async () => respondOk({}), request);
+
+    expect(response.status).toBe(415);
+    expect((await readProblem(response)).code).toBe("UNSUPPORTED_MEDIA_TYPE");
+  });
+
+  it("answers 413 above the limit of the image", async () => {
+    const route = vi.fn<Route>();
+    const response = await callUpload(
+      route,
+      buildUpload(MAX_IMAGE_BODY_BYTES + 1),
+    );
+
+    expect(response.status).toBe(413);
+    expect((await readProblem(response)).code).toBe("PAYLOAD_TOO_LARGE");
+    expect(route).not.toHaveBeenCalled();
+  });
+
+  it("accepts a body between 100 KB and the limit of the image", async () => {
+    const response = await callUpload(
+      async () => respondOk({}),
+      buildUpload(MAX_JSON_BODY_BYTES + 1024),
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("refuses another origin as any write", async () => {
+    const route = vi.fn<Route>();
+    const response = await callUpload(
+      route,
+      buildUpload(10, { origin: OTHER_SITE_ORIGIN }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(route).not.toHaveBeenCalled();
+  });
+
+  it("keeps the limit of 100 KB for the JSON routes", async () => {
+    const response = await callRoute(
+      async () => respondOk({}),
+      buildJsonWrite(
+        "/api/me/vehicles",
+        JSON.parse(jsonOfSize(MAX_JSON_BODY_BYTES + 1)),
+      ),
+    );
+
+    expect(response.status).toBe(413);
+  });
+});

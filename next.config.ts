@@ -24,6 +24,18 @@ const nextConfig: NextConfig = {
   // Minimal server for the Docker image (Dockerfile). Vercel still publishes
   // the regular build; this only adds .next/standalone/ to it.
   output: "standalone",
+  images: {
+    // RNF006: the images of the services, public in the Storage of the
+    // project. The address cannot come from SUPABASE_URL: the container image
+    // is built without the variables.
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/service-images/**",
+      },
+    ],
+  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

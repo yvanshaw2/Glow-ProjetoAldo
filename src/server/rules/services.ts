@@ -9,6 +9,9 @@ export type MergedService = {
   // The registration that results, with the fields of the type of the service.
   input: Record<string, unknown>;
   isActive: boolean;
+  // The image apart from the registration: undefined keeps it, null removes
+  // it, a path replaces it (UC14). The additional service has none.
+  imagePath?: string | null;
 };
 
 export function mergeServiceUpdate(
@@ -16,6 +19,7 @@ export function mergeServiceUpdate(
   update: ServiceUpdate,
 ): MergedService {
   const isActive = update.isActive ?? current.isActive;
+  const { imagePath } = update;
   const common = {
     type: current.type,
     name: update.name ?? current.name,
@@ -53,5 +57,5 @@ export function mergeServiceUpdate(
   if (current.type === "main") {
     input.additionalIds = update.additionalIds ?? current.additionalIds;
   }
-  return { input, isActive };
+  return { input, isActive, imagePath };
 }

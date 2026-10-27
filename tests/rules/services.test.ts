@@ -203,3 +203,50 @@ describe("mergeServiceUpdate", () => {
     expect(input).not.toHaveProperty("additionalIds");
   });
 });
+
+// UC14: the image goes by its own path, apart from the registration.
+describe("mergeServiceUpdate and the image", () => {
+  const IMAGE_PATH = "services/3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b.webp";
+
+  it("keeps the image when the update has no imagePath", () => {
+    expect(
+      mergeServiceUpdate(MAIN_BY_SIZE, { name: "Outro", updatedAt: UPDATED_AT })
+        .imagePath,
+    ).toBeUndefined();
+  });
+
+  it("replaces the image with the new path", () => {
+    expect(
+      mergeServiceUpdate(MAIN_BY_SIZE, {
+        imagePath: IMAGE_PATH,
+        updatedAt: UPDATED_AT,
+      }).imagePath,
+    ).toBe(IMAGE_PATH);
+  });
+
+  it("removes the image with null", () => {
+    expect(
+      mergeServiceUpdate(MAIN_BY_SIZE, {
+        imagePath: null,
+        updatedAt: UPDATED_AT,
+      }).imagePath,
+    ).toBeNull();
+  });
+
+  it("leaves the image out of the registration to validate", () => {
+    const { input } = mergeServiceUpdate(MAIN_BY_SIZE, {
+      imagePath: IMAGE_PATH,
+      updatedAt: UPDATED_AT,
+    });
+    expect(input).not.toHaveProperty("imagePath");
+  });
+
+  it("gives an additional service no image", () => {
+    expect(
+      mergeServiceUpdate(ADDITIONAL, {
+        imagePath: IMAGE_PATH,
+        updatedAt: UPDATED_AT,
+      }).imagePath,
+    ).toBeUndefined();
+  });
+});

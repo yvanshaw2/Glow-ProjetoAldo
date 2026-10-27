@@ -1,6 +1,6 @@
 # `src/server/supabase/` – Clientes do Supabase
 
-Criação dos clientes do Supabase usados no servidor: com a chave de serviço, para dados e criação de contas; com `@supabase/ssr`, para a sessão em cookies; e o envio de imagens ao bucket `service-images` do Storage.
+Criação dos clientes do Supabase usados no servidor: com a chave de serviço, para dados e criação de contas; com `@supabase/ssr`, para a sessão em cookies; e o envio de imagens ao bucket `service-images` do Storage (`storage.ts`).
 
 ## Vai aqui
 

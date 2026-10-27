@@ -9,7 +9,7 @@ relacionados: [UC13, UC14, UC15, RF057, RF058, RF059, RF060, RF061, RF062, RF063
 
 Abas, listagens, cartões, janelas, confirmações e estados de `/admin/services`, do [UC13](UC13-cadastrar-servico.md), do [UC14](UC14-manter-servicos.md) e do [UC15](UC15-manter-categorias.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, formulário em etapas, campo monetário e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
-As rotas `/api/admin/services` são reais. Até a #47, o campo de imagem do formulário mostra o aviso de demonstração: o arquivo escolhido aparece só na prévia, e nada é enviado.
+As rotas `/api/admin/services` são reais, inclusive o envio da imagem.
 
 ## Página
 
@@ -52,7 +52,7 @@ Primeiro a escolha do tipo, em três botões de opção com o nome e uma frase: 
 - **Adicional** (RF062): "Nome", "Duração média (minutos)", "Valor fixo" e, opcional, "Serviços principais vinculados"; sem categoria, descrição, imagem nem forma de precificação. Sem principal cadastrado: "Nenhum serviço principal cadastrado."
 - Sem categoria ativa, no principal e no complementar, o formulário diz "Cadastre uma categoria antes de criar este serviço." (FE03), com o botão "Ir para as categorias".
 - O último botão é "Salvar serviço" ("Salvando…"). A falha aparece no topo da janela, com o foco, e os dados informados continuam nos campos.
-- **Imagem** (UC13 passo 4 e FE02, [RS015](../plataforma/seguranca.md)): o campo de arquivo (JPEG, PNG ou WebP, até 2 MB), a prévia abaixo do campo, a troca por outro arquivo e "Remover imagem". Arquivo de outro tipo ou maior que 2 MB: "Use uma imagem JPEG, PNG ou WebP de até 2 MB." Até a #47 a imagem só aparece na prévia, e nada é enviado; o aviso de demonstração fica dentro do campo.
+- **Imagem** (UC13 passo 4 e FE02, [RS015](../plataforma/seguranca.md)): o campo de arquivo (JPEG, PNG ou WebP, até 2 MB), a prévia abaixo do campo, a troca por outro arquivo e "Remover imagem". Na edição, o campo mostra a imagem que o serviço já tem. Arquivo de outro tipo ou maior que 2 MB: "Use uma imagem JPEG, PNG ou WebP de até 2 MB." (conferido na escolha e, de novo, pela rota). O arquivo é enviado ao confirmar o cadastro ou a edição; a prévia é local, e quem desiste não grava nada no bucket.
 
 ## Editar serviço (UC14 passos 4 a 7, RF064)
 

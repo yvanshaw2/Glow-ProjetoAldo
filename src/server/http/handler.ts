@@ -18,6 +18,10 @@ import { ERROR_CATALOG, type ErrorCode } from "@/shared/errors/catalog";
 
 // docs/padroes/api.md (Validação): JSON bodies up to 100 KB.
 const MAX_JSON_BODY_BYTES = 100 * 1024;
+// The image upload (RS015): the file of up to 2 MB plus the framing of the
+// multipart format.
+const MAX_MULTIPART_BODY_BYTES = 2 * 1024 * 1024 + 4 * 1024;
+const MULTIPART_MEDIA_TYPE = "multipart/form-data";
 // 8 hexadecimal characters, as in the example of docs/padroes/api.md.
 const REQUEST_ID_BYTES = 4;
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -41,6 +45,12 @@ export type RouteInput<Params> = {
 };
 
 type Route<Params> = (input: RouteInput<Params>) => Promise<Response>;
+
+type RouteOptions = {
+  // "multipart": the route reads the form itself (request.formData()); the
+  // handler only checks the type and the size, and the body arrives as null.
+  body?: "json" | "multipart";
+};
 type RouteContext<Params> = { params: Promise<Params> };
 
 type ProblemTarget = { instance: string; requestId: string };
@@ -54,14 +64,23 @@ type Outcome = {
 
 // Every route exports its methods through this function:
 // export const POST = handleRoute(async ({ body }) => { ... });
-export function handleRoute<Params>(route: Route<Params>) {
+export function handleRoute<Params>(
+  route: Route<Params>,
+  options: RouteOptions = {},
+) {
   return (
     request: Request,
     context: RouteContext<Params>,
   ): Promise<Response> => {
     const requestId = randomBytes(REQUEST_ID_BYTES).toString("hex");
     return runWithRequestContext({ requestId }, () =>
-      respondAndLog({ route, request, context, requestId }),
+      respondAndLog({
+        route,
+        request,
+        context,
+        requestId,
+        bodyKind: options.body ?? "json",
+      }),
     );
   };
 }
@@ -71,6 +90,7 @@ type Call<Params> = {
   request: Request;
   context: RouteContext<Params>;
   requestId: string;
+  bodyKind: NonNullable<RouteOptions["body"]>;
 };
 
 async function respondAndLog<Params>(call: Call<Params>): Promise<Response> {
@@ -105,7 +125,7 @@ function withoutCache(response: Response): Response {
 }
 
 async function resolveOutcome<Params>(
-  { route, request, context }: Call<Params>,
+  { route, request, context, bodyKind }: Call<Params>,
   target: ProblemTarget,
 ): Promise<Outcome> {
   const isWrite = WRITE_METHODS.has(request.method);
@@ -118,9 +138,12 @@ async function resolveOutcome<Params>(
     };
   }
   try {
-    const body = isWrite ? await readJsonBody(request) : null;
     const params = await context.params;
-    const response = await route({ request, params, body });
+    const input =
+      isWrite && bodyKind === "multipart"
+        ? { request: await readMultipartRequest(request), body: null }
+        : { request, body: isWrite ? await readJsonBody(request) : null };
+    const response = await route({ ...input, params });
     return { response, level: "info", code: null };
   } catch (error) {
     return toErrorOutcome(error, target);
@@ -148,7 +171,7 @@ async function readJsonBody(request: Request): Promise<unknown> {
   const bytes =
     request.body === null
       ? new Uint8Array()
-      : await readLimitedBytes(request.body);
+      : await readLimitedBytes(request.body, MAX_JSON_BODY_BYTES);
   if (bytes.byteLength === 0) {
     return null;
   }
@@ -162,19 +185,46 @@ async function readJsonBody(request: Request): Promise<unknown> {
 // the body goes over it.
 async function readLimitedBytes(
   stream: ReadableStream<Uint8Array>,
+  limit: number,
 ): Promise<Uint8Array> {
   const reader = stream.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
   for (let next = await reader.read(); !next.done; next = await reader.read()) {
     size += next.value.byteLength;
-    if (size > MAX_JSON_BODY_BYTES) {
+    if (size > limit) {
       await reader.cancel();
       throw new AppError("PAYLOAD_TOO_LARGE");
     }
     chunks.push(next.value);
   }
   return Buffer.concat(chunks);
+}
+
+// The upload of an image: the body is read up to the limit, which holds also
+// without Content-Length, and handed to the route in a new request that
+// keeps the headers, with the boundary of the parts.
+async function readMultipartRequest(request: Request): Promise<Request> {
+  if (
+    Number(request.headers.get("content-length")) > MAX_MULTIPART_BODY_BYTES
+  ) {
+    throw new AppError("PAYLOAD_TOO_LARGE");
+  }
+  const mediaType = request.headers.get("content-type")?.split(";")[0];
+  if (mediaType?.trim().toLowerCase() !== MULTIPART_MEDIA_TYPE) {
+    throw new AppError("UNSUPPORTED_MEDIA_TYPE");
+  }
+  const bytes =
+    request.body === null
+      ? new Uint8Array()
+      : await readLimitedBytes(request.body, MAX_MULTIPART_BODY_BYTES);
+  // Not new Request(request): in Next.js the request is a NextRequest, which
+  // the constructor of Request does not take.
+  return new Request(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: new Uint8Array(bytes),
+  });
 }
 
 function isJsonMediaType(contentType: string | null): boolean {

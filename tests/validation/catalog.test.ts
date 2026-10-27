@@ -507,7 +507,7 @@ describe("serviceUpdateSchema", () => {
         type: "additional",
         isActive: true,
         id: "x",
-        imagePath: "a.png",
+        imageUrl: "a.png",
         updatedAt: UPDATED_AT,
       }),
     ).toEqual({ isActive: true, updatedAt: UPDATED_AT });
@@ -561,5 +561,63 @@ describe("serviceListQuerySchema", () => {
     expect(
       messagesOf(serviceListQuerySchema, { includeInactive: "abc" }),
     ).toEqual({ includeInactive: BOOLEAN });
+  });
+});
+
+// UC13, UC14, RS015: the path of the image is the one the upload generated.
+const IMAGE_ID = "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b";
+const IMAGE_PATH = `services/${IMAGE_ID}.jpg`;
+const INVALID_IMAGE = "Informe uma imagem válida.";
+
+describe("imagePath of the service", () => {
+  it.each(["jpg", "png", "webp"])(
+    "accepts the path the upload generates (%s)",
+    (extension) => {
+      const imagePath = `services/${IMAGE_ID}.${extension}`;
+      expect(
+        serviceInputSchema.parse({ ...MAIN_BY_SIZE, imagePath }),
+      ).toMatchObject({ imagePath });
+    },
+  );
+
+  it.each([
+    "other-bucket/3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b.jpg",
+    "services/../3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b.jpg",
+    `services/${IMAGE_ID}.gif`,
+    `services/${IMAGE_ID}.jpg.exe`,
+    "services/photo.jpg",
+    `/services/${IMAGE_ID}.jpg`,
+    "",
+  ])("rejects the path %j", (imagePath) => {
+    expect(
+      messagesOf(serviceInputSchema, { ...MAIN_BY_SIZE, imagePath }),
+    ).toEqual({ imagePath: INVALID_IMAGE });
+  });
+
+  it("does not require the image", () => {
+    expect(serviceInputSchema.safeParse(MAIN_BY_SIZE).success).toBe(true);
+  });
+
+  it("discards the image of an additional service (RS013)", () => {
+    const parsed = serviceInputSchema.parse({
+      ...ADDITIONAL,
+      imagePath: IMAGE_PATH,
+    });
+    expect(parsed).not.toHaveProperty("imagePath");
+  });
+
+  it("accepts null in the update, which removes the image", () => {
+    expect(
+      serviceUpdateSchema.parse({ imagePath: null, updatedAt: UPDATED_AT }),
+    ).toEqual({ imagePath: null, updatedAt: UPDATED_AT });
+  });
+
+  it("accepts the image as the only field of the update", () => {
+    expect(
+      serviceUpdateSchema.safeParse({
+        imagePath: IMAGE_PATH,
+        updatedAt: UPDATED_AT,
+      }).success,
+    ).toBe(true);
   });
 });

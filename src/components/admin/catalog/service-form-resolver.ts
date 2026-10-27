@@ -16,6 +16,8 @@ import { serviceInputSchema } from "@/shared/validation/catalog";
 export function toFormField(path: string): string {
   if (path === "avgDurationMinutes") return "durationMinutes";
   if (/^(additionalIds|mainServiceIds)(\.|$)/.test(path)) return "linkedIds";
+  // The upload answers on `file`, and the body on `imagePath`.
+  if (path === "file" || path === "imagePath") return "image";
   return path;
 }
 

@@ -11,15 +11,26 @@ import {
   listServices as selectServices,
   markServiceDeleted,
   saveService,
+  setServiceImage,
   type ServiceValues,
 } from "@/server/repositories/services";
+import {
+  IMAGE_MAX_BYTES,
+  validateImageFile,
+} from "@/server/rules/service-image";
 import { mergeServiceUpdate } from "@/server/rules/services";
+import {
+  getImageUrl,
+  uploadServiceImage as storeServiceImage,
+} from "@/server/supabase/storage";
 import type {
   AdminCategory,
   AdminService,
   AdminServiceSummary,
+  ServiceImage,
 } from "@/shared/api/catalog";
 import { AppError } from "@/shared/errors/app-error";
+import { REQUIRED_MESSAGE } from "@/shared/validation/formats";
 import {
   serviceInputSchema,
   type CategoryInput,
@@ -66,6 +77,7 @@ export async function updateCategory(
 }
 
 const CATEGORY_MESSAGE = "Escolha uma categoria ativa.";
+const IMAGE_FILE_MESSAGE = "Use uma imagem JPEG, PNG ou WebP de até 2 MB.";
 const LINKED_MESSAGE = "Escolha serviços cadastrados.";
 
 // RF058 and RF059: by name, the inactive ones only on request.
@@ -90,6 +102,9 @@ export async function createService(
   await checkCategory(input, null);
   await checkLinks(input);
   const id = await saveService(null, toValues(input, true), null);
+  if (id !== null && input.type !== "additional" && input.imagePath) {
+    await setServiceImage(id, input.imagePath);
+  }
   return readSavedService(id);
 }
 
@@ -102,7 +117,11 @@ export async function updateService(
   update: ServiceUpdate,
 ): Promise<AdminService> {
   const current = await getService(id);
-  const { input: candidate, isActive } = mergeServiceUpdate(current, update);
+  const {
+    input: candidate,
+    isActive,
+    imagePath,
+  } = mergeServiceUpdate(current, update);
   const input = serviceInputSchema.parse(candidate);
   await checkCategory(input, current);
   await checkLinks(input);
@@ -114,7 +133,36 @@ export async function updateService(
   if (savedId === null) {
     throw new AppError("VERSION_CONFLICT");
   }
+  // The image is saved apart from save_service, which does not take it.
+  if (imagePath !== undefined) {
+    await setServiceImage(savedId, imagePath);
+  }
   return readSavedService(savedId);
+}
+
+// UC13 step 4 and FE02, RS015: the image is checked by its content and stored
+// with a name generated here; the path goes back to be saved with the service.
+export async function uploadServiceImage(
+  file: File | null,
+): Promise<ServiceImage> {
+  if (file === null) {
+    throw new AppError("VALIDATION_ERROR", {
+      fields: { file: REQUIRED_MESSAGE },
+    });
+  }
+  if (file.size > IMAGE_MAX_BYTES) {
+    throw new AppError("PAYLOAD_TOO_LARGE");
+  }
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const check = validateImageFile(bytes);
+  if (!check.ok) {
+    if (check.error === "TOO_LARGE") throw new AppError("PAYLOAD_TOO_LARGE");
+    throw new AppError("VALIDATION_ERROR", {
+      fields: { file: IMAGE_FILE_MESSAGE },
+    });
+  }
+  const imagePath = await storeServiceImage(bytes, check.contentType);
+  return { imagePath, imageUrl: getImageUrl(imagePath) };
 }
 
 // UC14 FA04, RN030: the service leaves the panel and the portal; its

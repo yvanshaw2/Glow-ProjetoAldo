@@ -4,8 +4,12 @@ import type { PricingMode } from "@/shared/constants/pricing-modes";
 import type { ServiceType } from "@/shared/constants/service-types";
 import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
 
-// The file chosen and the local address of its preview.
-export type ServiceImageValue = { file: File; previewUrl: string };
+// The image of the form (UC13, UC14): the file chosen, with the local address
+// of its preview and sent when the form is confirmed, or the one the service
+// already has, with its public address. Without a value, there is no image.
+export type ServiceImageValue =
+  | { kind: "new"; file: File; previewUrl: string }
+  | { kind: "saved"; url: string };
 
 // The values of the form of a service (docs/catalogo/servicos-do-painel.md).
 // The type is not a field: it is chosen before the form and cannot change
@@ -16,7 +20,6 @@ export type ServiceFormValues = {
   durationMinutes: number | null;
   name: string;
   description: string;
-  // The image chosen, shown only in the preview until #47 sends it.
   image: ServiceImageValue | null;
   fixedPrice: number | null;
   prices: Record<VehicleSize, number | null>;
@@ -53,7 +56,7 @@ export function getInitialValues(
     durationMinutes: service.avgDurationMinutes,
     name: service.name,
     description: service.description ?? "",
-    image: null,
+    image: service.imageUrl ? { kind: "saved", url: service.imageUrl } : null,
     fixedPrice: service.fixedPrice,
     prices: service.prices ?? EMPTY_VALUES.prices,
     linkedIds:
@@ -85,6 +88,7 @@ export function getServiceSteps(
         "durationMinutes",
         "name",
         "description",
+        "image",
       ],
     },
     {
@@ -104,8 +108,9 @@ export function getServiceSteps(
   return steps;
 }
 
-// The body of POST and PATCH /api/admin/services (docs/catalogo/rotas.md).
-// The image goes by its own route, in #47, and leaves as imagePath.
+// The body of POST and PATCH /api/admin/services (docs/catalogo/rotas.md),
+// without the image: it goes by its own route and joins the body as imagePath
+// (see findImagePath).
 export function toRequestBody(type: ServiceType, values: ServiceFormValues) {
   const common = {
     name: values.name.trim(),
@@ -130,4 +135,21 @@ export function toRequestBody(type: ServiceType, values: ServiceFormValues) {
       : { prices: values.prices }),
     ...(type === "main" && { additionalIds: values.linkedIds }),
   };
+}
+
+// UC14: what the body says about the image. A new file has to be sent first,
+// so the path comes from the upload; the one the service has is kept (no
+// field), and one taken off leaves as null. An additional service has none.
+export function findImagePath(
+  type: ServiceType,
+  values: ServiceFormValues,
+  service: AdminService | undefined,
+  uploadedPath: string | null,
+): { imagePath?: string | null } {
+  if (type === "additional") return {};
+  if (values.image?.kind === "new" && uploadedPath !== null) {
+    return { imagePath: uploadedPath };
+  }
+  if (values.image === null && service?.imageUrl) return { imagePath: null };
+  return {};
 }

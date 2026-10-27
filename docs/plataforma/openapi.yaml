@@ -499,6 +499,50 @@ paths:
           $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/services/image:
+    post:
+      tags:
+        - catalog
+      operationId: uploadServiceImage
+      summary: Envia a imagem de um serviço
+      description: >-
+        Grava a imagem no bucket service-images (UC13 passo 4, UC14). O tipo
+        (JPEG, PNG ou WebP) vem do conteúdo do arquivo, e o tamanho vai até 2
+        MB; o nome é gerado pelo servidor (RS015). O imagePath devolvido entra
+        no cadastro ou na edição do serviço.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Imagem gravada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceImage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/admin/categories:
     get:
       tags:
@@ -711,8 +755,8 @@ paths:
         transação (RNF010). O nome não se repete entre os serviços não
         excluídos, sem diferenciar maiúsculas (RN035). A categoria precisa ser
         ativa (RN007); os vínculos, de serviços cadastrados do outro tipo
-        (RN006). Os campos de outro tipo são descartados. A imagem é gravada
-        pela rota de envio (#47).
+        (RN006). Os campos de outro tipo são descartados. A imagem vem pelo
+        imagePath que a rota de envio devolveu.
       security:
         - sessionCookie: []
       requestBody:
@@ -2458,6 +2502,11 @@ components:
             description:
               type: string
               description: Até 500 caracteres, em um único parágrafo (RN035).
+            imagePath:
+              type: string
+              description: >-
+                O caminho que a rota de envio devolveu (services/uuid.jpg, .png
+                ou .webp). Só no principal e no complementar.
             avgDurationMinutes:
               type: integer
               minimum: 5
@@ -2503,6 +2552,19 @@ components:
               items:
                 type: string
                 format: uuid
+    ServiceImage:
+      type: object
+      required:
+        - imagePath
+        - imageUrl
+      properties:
+        imagePath:
+          type: string
+          description: O caminho no bucket, para o imagePath do serviço.
+        imageUrl:
+          type: string
+          format: uri
+          description: O endereço público da imagem.
     ServiceUpdateInput:
       type: object
       required:
@@ -2516,6 +2578,13 @@ components:
           type: string
         description:
           type: string
+        imagePath:
+          type:
+            - string
+            - "null"
+          description: >-
+            O caminho da nova imagem (rota de envio); null remove a imagem; sem
+            o campo, ela continua. Só no principal e no complementar.
         avgDurationMinutes:
           type: integer
         pricingMode:
@@ -3385,7 +3454,9 @@ components:
           schema:
             $ref: "#/components/schemas/ProblemDetails"
     PayloadTooLarge:
-      description: "PAYLOAD_TOO_LARGE: corpo acima de 100 KB."
+      description: >-
+        PAYLOAD_TOO_LARGE: corpo acima de 100 KB, ou imagem acima de 2 MB na
+        rota de envio.
       content:
         application/problem+json:
           schema:

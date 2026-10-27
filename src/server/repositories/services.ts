@@ -1,5 +1,6 @@
 import "server-only";
 import { getServiceClient } from "@/server/supabase/clients";
+import { getImageUrl } from "@/server/supabase/storage";
 import type { AdminService, AdminServiceSummary } from "@/shared/api/catalog";
 import type { PricingMode } from "@/shared/constants/pricing-modes";
 import type { ServiceType } from "@/shared/constants/service-types";
@@ -16,7 +17,6 @@ import type { ServiceListQuery } from "@/shared/validation/catalog";
 
 const UNIQUE_VIOLATION = "23505";
 const NAME_CONSTRAINT = "uq_services_name";
-const IMAGE_BUCKET = "service-images";
 
 type ServiceRow = {
   id: string;
@@ -73,8 +73,7 @@ function imageUrlOf(path: string | null): string | null {
   if (path === null) {
     return null;
   }
-  return getServiceClient().storage.from(IMAGE_BUCKET).getPublicUrl(path).data
-    .publicUrl;
+  return getImageUrl(path);
 }
 
 // RN009: one price for each size, or none.
@@ -235,6 +234,24 @@ export async function saveService(
     throw toFailure(error);
   }
   return (data as string | null) ?? null;
+}
+
+// UC13, UC14: the path of the image, apart from save_service, which does not
+// take it. null removes the image. False when there is no such service.
+export async function setServiceImage(
+  id: string,
+  path: string | null,
+): Promise<boolean> {
+  const { data, error } = await getServiceClient()
+    .from("services")
+    .update({ image_path: path })
+    .eq("id", id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) {
+    throw toFailure(error);
+  }
+  return data.length > 0;
 }
 
 // RN030, UC14 FA04: only the mark; the prices and the links stay. False when

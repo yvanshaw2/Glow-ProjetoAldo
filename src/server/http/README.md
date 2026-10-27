@@ -1,6 +1,6 @@
 # `src/server/http/` – Tratamento das requisições
 
-`handler.ts` envolve toda rota: gera o `requestId`, converte `AppError` e erros de validação em Problem Details e qualquer outra falha em 500 genérico; `logger.ts` grava linhas JSON com nível e `requestId` (via `AsyncLocalStorage`); `respond.ts` padroniza respostas de sucesso e paginação.
+`handler.ts` envolve toda rota: gera o `requestId`, converte `AppError` e erros de validação em Problem Details e qualquer outra falha em 500 genérico; `logger.ts` grava linhas JSON com nível e `requestId` (via `AsyncLocalStorage`); `respond.ts` padroniza respostas de sucesso e paginação. A rota de envio de imagem declara `body: "multipart"` ao `handleRoute`, que confere o tipo e o tamanho e deixa a leitura do formulário à rota.
 
 ## Vai aqui
 

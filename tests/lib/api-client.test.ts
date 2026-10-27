@@ -633,3 +633,19 @@ describe("withQuery", () => {
     expect(withQuery(CLIENTS_PATH, {})).toBe(CLIENTS_PATH);
   });
 });
+
+describe("apiRequest with a form", () => {
+  it("sends a FormData body as is, with no JSON content type", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ imagePath: "services/a.png" }, 201),
+    );
+    const body = new FormData();
+    body.set("file", new File([new Uint8Array([1, 2, 3])], "photo.png"));
+
+    await apiRequest("/api/admin/services/image", { method: "POST", body });
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init?.body).toBe(body);
+    expect(new Headers(init?.headers).has("content-type")).toBe(false);
+  });
+});

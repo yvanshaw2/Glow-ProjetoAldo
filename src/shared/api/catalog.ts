@@ -62,3 +62,10 @@ export type AdminService = AdminServiceSummary & {
   // The main services of an additional service.
   mainServiceIds: string[];
 };
+
+// POST /api/admin/services/image (UC13, RS015): the path goes back as
+// `imagePath` when the service is saved, and the address shows the image.
+export type ServiceImage = {
+  imagePath: string;
+  imageUrl: string;
+};

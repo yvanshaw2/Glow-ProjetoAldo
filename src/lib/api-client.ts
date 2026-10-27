@@ -3,7 +3,7 @@ import type { ProblemDetails } from "@/shared/api/problem";
 import { ERROR_CATALOG, type ErrorCode } from "@/shared/errors/catalog";
 
 // The single HTTP client of the pages (docs/padroes/frontend.md): same origin,
-// JSON and the session in the cookie. No call is ever repeated: a write may
+// JSON (or a form, for the image of a service) and the session in the cookie. No call is ever repeated: a write may
 // have happened even when its answer was lost (docs/padroes/api.md).
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
@@ -110,11 +110,18 @@ async function send(
   }: Pick<ApiRequestOptions, "method" | "body" | "signal">,
 ): Promise<Response> {
   const hasBody = body !== undefined;
+  // A form (the upload of an image) goes as it is: the browser sets the
+  // content type, with the boundary of the parts.
+  const isForm = body instanceof FormData;
   try {
     return await fetch(path, {
       method,
-      headers: hasBody ? { "content-type": "application/json" } : undefined,
-      body: hasBody ? JSON.stringify(body) : undefined,
+      headers:
+        hasBody && !isForm ? { "content-type": "application/json" } : undefined,
+      body:
+        !hasBody || isForm
+          ? (body as FormData | undefined)
+          : JSON.stringify(body),
       signal,
       credentials: "same-origin",
       cache: "no-store",

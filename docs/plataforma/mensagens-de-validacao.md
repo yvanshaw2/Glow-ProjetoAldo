@@ -36,6 +36,8 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Nomes de serviço, categoria e cargo; descrição do cargo ocupado | Use de 2 a 60 caracteres. |
 | Categoria de serviço inexistente ou inativa | Escolha uma categoria ativa. |
 | Serviço vinculado inexistente, excluído ou do tipo errado | Escolha serviços cadastrados. |
+| Caminho da imagem do serviço que não foi gerado pelo envio | Informe uma imagem válida. |
+| Imagem do serviço de outro tipo ou acima de 2 MB (tela e rota de envio) | Use uma imagem JPEG, PNG ou WebP de até 2 MB. |
 | Cargo do funcionário ausente | Escolha o cargo do sistema. |
 | Cargo do funcionário inexistente ou inativo | Escolha um cargo ativo. |
 | Horário | Escolha um horário em hora cheia ou meia hora. |

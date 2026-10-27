@@ -60,7 +60,7 @@ Detalha um serviço, com valores e vínculos.
 
 Cadastra um serviço (UC13).
 
-- Entrada: `type*, name*, avgDurationMinutes*`; Principal e complementar: `categoryId*, description*, pricingMode*`, `fixedPrice*` ou os quatro `prices*`, conforme a precificação; Principal: `additionalIds`; Adicional: `fixedPrice*, mainServiceIds`. Os campos de outro tipo são descartados. A imagem é gravada pela rota de envio (#47); até lá o serviço é cadastrado sem imagem.
+- Entrada: `type*, name*, avgDurationMinutes*`; Principal e complementar: `categoryId*, description*, pricingMode*`, `fixedPrice*` ou os quatro `prices*`, conforme a precificação; Principal: `additionalIds`; Adicional: `fixedPrice*, mainServiceIds`. Os campos de outro tipo são descartados. Principal e complementar: `imagePath` (opcional), o caminho devolvido pela rota de envio; outro valor: 400 em `imagePath`.
 - `categoryId` precisa ser de uma categoria ativa; na edição, manter a categoria atual vale mesmo que ela esteja inativa (RN031). Categoria inexistente ou inativa: 400 em `categoryId`.
 - `additionalIds` (principal) e `mainServiceIds` (adicional) só aceitam serviços existentes, não excluídos e do tipo certo; o inativo pode ser vinculado. Id fora disso: 400 no campo.
 - Resposta: **201** serviço criado e ativo; 400; 409 `NAME_IN_USE`.
@@ -69,7 +69,7 @@ Cadastra um serviço (UC13).
 
 Edita, desativa ou reativa um serviço.
 
-- Entrada: `updatedAt*` e, ao menos um, os campos do cadastro e `isActive`. Só o que veio é alterado, e o resultado precisa ser um cadastro válido do tipo do serviço, que não muda. Trocar `pricingMode` exige os valores da nova forma e descarta os da antiga.
+- Entrada: `updatedAt*` e, ao menos um, os campos do cadastro e `isActive`. Só o que veio é alterado, e o resultado precisa ser um cadastro válido do tipo do serviço, que não muda. Trocar `pricingMode` exige os valores da nova forma e descarta os da antiga. `imagePath` troca a imagem (principal e complementar); `null` a remove; sem ele, a imagem continua.
 - Resposta: **200** serviço atualizado; 400; 404; 409 `NAME_IN_USE` ou `VERSION_CONFLICT`.
 
 #### `DELETE /api/admin/services/:id`
@@ -83,8 +83,8 @@ Exclui um serviço por exclusão lógica (RN030).
 
 Envia a imagem de um serviço.
 
-- Entrada: Arquivo em `multipart/form-data`.
-- Resposta: **201** caminho e endereço da imagem; 400 formato ou tamanho inválido.
+- Entrada: o arquivo, no campo `file` de `multipart/form-data`. O tipo (JPEG, PNG ou WebP) vem do conteúdo do arquivo, e o tamanho vai até 2 MB (RS015).
+- Resposta: **201** `imagePath` e `imageUrl`; 400 sem arquivo ou formato inválido, em `file`; 413 acima de 2 MB; 415 se não for `multipart/form-data`. O arquivo é gravado com nome gerado pelo servidor; o `imagePath` entra no cadastro ou na edição do serviço.
 
 #### `GET /api/admin/categories`
 

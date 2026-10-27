@@ -92,6 +92,6 @@ Feitas por função SQL, em uma única transação, chamada pelo repositório (R
 
 ## Observações
 
-- As imagens ficam no bucket `service-images` do Supabase Storage, com leitura pública e gravação apenas pelo backend, criado pela migration inicial com limite de 2 MB e os tipos JPEG, PNG e WebP; a tabela guarda só o caminho (`image_path`). Envio: JPEG, PNG ou WebP até 2 MB (RS015).
+- As imagens ficam no bucket `service-images` do Supabase Storage, com leitura pública e gravação apenas pelo backend, criado pela migration inicial com limite de 2 MB e os tipos JPEG, PNG e WebP; a tabela guarda só o caminho (`image_path`). Envio: JPEG, PNG ou WebP até 2 MB (RS015). O caminho é gravado por uma atualização própria, depois de `save_service`, que não o recebe.
 - A exclusão lógica de um serviço mantém os valores por porte e os vínculos; as leituras ignoram o serviço excluído e o nome fica livre para outro serviço.
 - Serviço e categoria inativos ficam ocultos para o cliente, mas disponíveis no painel ([RN008](RN008-servico-inativo.md), [RN031](RN031-categoria-inativa.md)); serviço excluído recebe `deleted_at` ([RN030](../plataforma/RN030-exclusao-logica.md)).

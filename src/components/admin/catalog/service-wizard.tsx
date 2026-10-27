@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { ServiceLinksField } from "@/components/admin/catalog/service-links-step";
 import {
@@ -8,6 +8,7 @@ import {
   ServiceInfoStep,
 } from "@/components/admin/catalog/service-data-step";
 import {
+  findImagePath,
   getInitialValues,
   getServiceSteps,
   toRequestBody,
@@ -22,16 +23,19 @@ import { FormAlert } from "@/components/shared/form-alert";
 import { StepForm } from "@/components/shared/step-form";
 import { useFormFailure } from "@/hooks/use-form-failure";
 import { ApiError, apiRequest } from "@/lib/api-client";
-import type { AdminService } from "@/shared/api/catalog";
+import type { AdminService, ServiceImage } from "@/shared/api/catalog";
 import type { ServiceType } from "@/shared/constants/service-types";
 
 // UC13 and UC14 steps 4 to 7 (docs/catalogo/servicos-do-painel.md): the
 // service in the steps of its type, or edited with its type fixed. One form
 // for all the steps (RNF002), checked by the schema of the route: "Próximo"
 // checks the fields of the step, and the send everything. An error of the API
-// goes to the top of the window, and the one with `fields`, next to them.
+// goes to the top of the window, and the one with `fields`, next to them. A new
+// image is sent when the form is confirmed, before the service is saved, so
+// whoever gives up leaves nothing in the bucket (UC13 step 4).
 
 const SERVICES_PATH = "/api/admin/services";
+const IMAGE_PATH = "/api/admin/services/image";
 
 type ServiceWizardProps = {
   type: ServiceType;
@@ -68,6 +72,9 @@ export function ServiceWizard({
   );
   const steps = getServiceSteps(type);
   const { getValues, reset } = form;
+  // The image already sent: a new try after a failure of the save does not
+  // send it twice.
+  const uploadedRef = useRef<{ file: File; path: string } | null>(null);
 
   // RNF011: the service read again after a conflict replaces what was typed;
   // the notice of the conflict stays.
@@ -79,7 +86,7 @@ export function ServiceWizard({
   useEffect(
     () => () => {
       const image = getValues("image");
-      if (image) URL.revokeObjectURL(image.previewUrl);
+      if (image?.kind === "new") URL.revokeObjectURL(image.previewUrl);
     },
     [getValues],
   );
@@ -90,7 +97,11 @@ export function ServiceWizard({
     form.clearErrors();
     onSubmittingChange(true);
     try {
-      const body = toRequestBody(type, values);
+      const imagePath = await uploadNewImage(values);
+      const body = {
+        ...toRequestBody(type, values),
+        ...findImagePath(type, values, service, imagePath),
+      };
       await apiRequest(
         service ? `${SERVICES_PATH}/${service.id}` : SERVICES_PATH,
         {
@@ -107,6 +118,25 @@ export function ServiceWizard({
     } finally {
       onSubmittingChange(false);
     }
+  }
+
+  // The path of the file chosen, or null when there is none to send.
+  async function uploadNewImage(
+    values: ServiceFormValues,
+  ): Promise<string | null> {
+    const { image } = values;
+    if (type === "additional" || image?.kind !== "new") return null;
+    if (uploadedRef.current?.file === image.file) {
+      return uploadedRef.current.path;
+    }
+    const form = new FormData();
+    form.set("file", image.file);
+    const uploaded = await apiRequest<ServiceImage>(IMAGE_PATH, {
+      method: "POST",
+      body: form,
+    });
+    uploadedRef.current = { file: image.file, path: uploaded.imagePath };
+    return uploaded.imagePath;
   }
 
   return (

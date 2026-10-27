@@ -58,6 +58,16 @@ export type CategoryListQuery = z.output<typeof categoryListQuerySchema>;
 
 const CATEGORY_MESSAGE = "Escolha uma categoria ativa.";
 const LINKED_MESSAGE = "Escolha serviços cadastrados.";
+const IMAGE_PATH_MESSAGE = "Informe uma imagem válida.";
+
+// RS015: only the path the upload generates (docs/catalogo/rotas.md), in the
+// folder of the services of the bucket, never one typed by the user.
+const IMAGE_PATH_PATTERN =
+  /^services\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/;
+
+const imagePathSchema = z
+  .string({ error: IMAGE_PATH_MESSAGE })
+  .regex(IMAGE_PATH_PATTERN, { error: IMAGE_PATH_MESSAGE });
 const NO_FIELD_MESSAGE = "Informe ao menos um campo para alterar.";
 
 // An id of the body: absent or empty is missing, anything else that is not an
@@ -99,6 +109,7 @@ function pricedService<
     type: z.literal(type),
     categoryId: idField(CATEGORY_MESSAGE),
     description: plainTextSchema(DESCRIPTION_MAX_LENGTH),
+    imagePath: imagePathSchema.optional(),
     ...serviceFields,
     ...extra,
   };
@@ -122,8 +133,8 @@ function pricedService<
 
 // UC13: the body of POST. The additional service has only a fixed price and
 // no category, description or image (FA01); the complementary has no
-// additionals (FA02). The fields of another type are discarded (RS013), and
-// the image comes by its own route.
+// additionals (FA02). The fields of another type are discarded (RS013). The
+// image is a path the upload route generated.
 export const serviceInputSchema = z.discriminatedUnion(
   "type",
   [
@@ -153,6 +164,8 @@ export const serviceUpdateSchema = z
     prices: pricesSchema.optional(),
     additionalIds: linkedIdsSchema.optional(),
     mainServiceIds: linkedIdsSchema.optional(),
+    // null removes the image; absent keeps it (UC14).
+    imagePath: imagePathSchema.nullable().optional(),
     name: serviceFields.name.optional(),
     avgDurationMinutes: serviceFields.avgDurationMinutes.optional(),
     isActive: z.boolean().optional(),
