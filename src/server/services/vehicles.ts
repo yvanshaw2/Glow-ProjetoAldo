@@ -1,4 +1,5 @@
 import "server-only";
+import { findClientVehicleAccess } from "@/server/rules/vehicle-ownership";
 import { getClient } from "@/server/services/clients";
 import {
   accountsOfVehicles,
@@ -17,8 +18,8 @@ import {
   type VehicleUpdate,
 } from "@/shared/validation/vehicles";
 
-// Module vehicles (docs/clientes/): the vehicles of the clients in the panel
-// (UC18).
+// Module vehicles (docs/clientes/): the vehicles of the clients, in the panel
+// (UC18) and in the client area (UC05).
 
 // UC18 FE02: the panel tells the staff the vehicle is in the client's
 // account, not "yours" as the portal does.
@@ -66,15 +67,18 @@ export async function lookUpVehicle(
 export async function addClientVehicle(
   clientId: string,
   { plate, ...data }: VehicleInput,
+  audience: "panel" | "client" = "panel",
 ): Promise<ClientVehicle> {
   await getClient(clientId);
   const isRegistered = (await findVehicleByPlate(plate)) !== null;
   const newVehicle = isRegistered ? null : readNewVehicle(data);
   const vehicleId = await linkVehicle(clientId, plate, newVehicle);
   if (vehicleId === null) {
-    throw new AppError("VEHICLE_ALREADY_LINKED", {
-      message: PANEL_ALREADY_LINKED_MESSAGE,
-    });
+    // UC05 FE02: the portal keeps the catalog message, "in your account".
+    throw new AppError(
+      "VEHICLE_ALREADY_LINKED",
+      audience === "panel" ? { message: PANEL_ALREADY_LINKED_MESSAGE } : {},
+    );
   }
   return readClientVehicle(vehicleId);
 }
@@ -107,6 +111,25 @@ export async function updateVehicle(
   }
   const accounts = await accountsOfVehicles([id]);
   return toClientVehicle(vehicle, accounts.get(id) ?? []);
+}
+
+// UC05 FA02, RF018, RS009: the client edits only a vehicle that is in the
+// account and in no other. A vehicle of another account is as missing as one
+// that does not exist, and nothing is saved in either case.
+export async function updateMyVehicle(
+  clientId: string,
+  id: string,
+  update: VehicleUpdate,
+): Promise<ClientVehicle> {
+  const accounts = await accountsOfVehicles([id]);
+  const access = findClientVehicleAccess(clientId, accounts.get(id) ?? []);
+  if (access === "missing") {
+    throw new AppError("NOT_FOUND");
+  }
+  if (access === "shared") {
+    throw new AppError("VEHICLE_SHARED");
+  }
+  return updateVehicle(id, update);
 }
 
 async function getVehicle(id: string): Promise<Vehicle> {

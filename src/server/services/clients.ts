@@ -10,7 +10,7 @@ import {
   restoreClient,
   updateClient as saveClient,
 } from "@/server/repositories/clients";
-import type { AdminClient } from "@/shared/api/clients";
+import type { AdminClient, ClientProfile } from "@/shared/api/clients";
 import { AppError } from "@/shared/errors/app-error";
 import type {
   ClientInput,
@@ -40,6 +40,26 @@ export async function getClient(id: string): Promise<AdminClient> {
     throw new AppError("NOT_FOUND");
   }
   return client;
+}
+
+// UC04 steps 2 and 5, RS009: the account of the session, without the id,
+// which the client already has and never sends.
+function toProfile({ id: _id, ...profile }: AdminClient): ClientProfile {
+  return profile;
+}
+
+// RF012: the data of the account of the client.
+export async function getProfile(clientId: string): Promise<ClientProfile> {
+  return toProfile(await getClient(clientId));
+}
+
+// RF013, RNF011: the same change and the same version check as the panel,
+// only on the account of the session.
+export async function updateProfile(
+  clientId: string,
+  update: ClientUpdate,
+): Promise<ClientProfile> {
+  return toProfile(await updateClient(clientId, update));
 }
 
 // UC16, RN023, RS004: the account in Supabase Auth, then the client with the
