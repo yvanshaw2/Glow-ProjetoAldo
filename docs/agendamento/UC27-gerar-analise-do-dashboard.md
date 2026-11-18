@@ -3,9 +3,9 @@ id: UC27
 titulo: Gerar análise do dashboard
 assunto: agendamento
 ator: Funcionário
-origem: issue #66, plano memoria/tarefas/66-analise-por-ia/01_plano.md
-requisitos: [RF089, RF090]
-regras: [RN038, RN039, RN035]
+origem: issue #66, plano memoria/tarefas/66-analise-por-ia/01_plano.md; issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L2, L8)
+requisitos: [RF089, RF090, RF091, RF092, RF093, RF094]
+regras: [RN038, RN039, RN040, RN035]
 ---
 
 # UC27 – Gerar análise do dashboard
@@ -23,11 +23,11 @@ regras: [RN038, RN039, RN035]
 
 ## Fluxo principal
 
-1. O funcionário solicita a análise do período exibido.
-2. O sistema reúne os valores agregados do período e do período anterior (RN038).
+1. O funcionário escolhe a análise resumida ou a detalhada e solicita a análise do período exibido.
+2. O sistema reúne os valores agregados do período e do período anterior (RN038) e, na detalhada, os indicadores de RN040.
 3. O sistema envia os valores ao serviço de inteligência artificial e indica que a análise está em andamento.
 4. O serviço de inteligência artificial devolve o texto da análise.
-5. O sistema confere a resposta (RN039) e exibe a análise junto aos indicadores, identificada como gerada por inteligência artificial, com a data e o horário da geração.
+5. O sistema confere a resposta (RN039) e exibe a análise junto aos indicadores, identificada como gerada por inteligência artificial, com a data e o horário da geração, os valores do sistema a que cada observação se refere e a comparação com o período anterior (RF092).
 
 ## Fluxos alternativos
 
@@ -42,6 +42,14 @@ regras: [RN038, RN039, RN035]
 ### FA03 – Período anterior sem agendamentos (passo 2)
 
 1. O sistema gera a análise sem a comparação e informa que o período anterior não tem dados.
+
+### FA04 – Copiar a análise (passo 5)
+
+1. O funcionário copia a análise; o sistema leva o texto à área de transferência e confirma a cópia.
+
+### FA05 – Imprimir a análise (passo 5)
+
+1. O funcionário pede a impressão; o sistema abre a impressão do navegador com o período, os indicadores, a análise e os gráficos.
 
 ## Fluxos de exceção
 
@@ -59,8 +67,8 @@ regras: [RN038, RN039, RN035]
 
 ## Relacionados
 
-- Requisitos: [RF089](requisitos.md), [RF090](requisitos.md)
-- Regras: [RN038](RN038-dados-da-analise-do-dashboard.md), [RN039](RN039-conteudo-da-analise-do-dashboard.md), [RN035](../plataforma/RN035-formatos-dos-dados.md)
+- Requisitos: [RF089 a RF094](requisitos.md)
+- Regras: [RN038](RN038-dados-da-analise-do-dashboard.md), [RN039](RN039-conteudo-da-analise-do-dashboard.md), [RN040](RN040-indicadores-da-analise-detalhada.md), [RN035](../plataforma/RN035-formatos-dos-dados.md)
 - Não funcionais e segurança: [RNF017 e RNF018](../plataforma/requisitos.md), [RS019 e RS020](../plataforma/seguranca.md)
 - Casos de uso: [UC09](UC09-visualizar-dashboard.md)
 - Telas e API: [rotas.md](rotas.md)

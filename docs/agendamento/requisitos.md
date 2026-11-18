@@ -2,7 +2,7 @@
 titulo: Requisitos funcionais – Agendamento
 assunto: agendamento
 origem: Documentação de Análise do Sistema, seções 6.1.4, 6.1.5, 6.2.2, 6.2.3 (Quadros 9, 10, 12, 13)
-ids: [RF019, RF020, RF021, RF022, RF023, RF024, RF025, RF026, RF027, RF028, RF029, RF030, RF031, RF032, RF040, RF041, RF042, RF043, RF044, RF045, RF046, RF047, RF048, RF049, RF050, RF051, RF052, RF053, RF054, RF055, RF056, RF089, RF090]
+ids: [RF019, RF020, RF021, RF022, RF023, RF024, RF025, RF026, RF027, RF028, RF029, RF030, RF031, RF032, RF040, RF041, RF042, RF043, RF044, RF045, RF046, RF047, RF048, RF049, RF050, RF051, RF052, RF053, RF054, RF055, RF056, RF089, RF090, RF091, RF092, RF093, RF094]
 ---
 
 # Requisitos funcionais: Agendamento
@@ -43,6 +43,10 @@ Prioridade: Essencial (obrigatório no MVP), Importante (sem ele o sistema funci
 | RF043 | O sistema deve exibir a agenda do dia, com os agendamentos previstos para a data corrente. | Importante |
 | RF089 | O sistema deve gerar, quando o funcionário solicitar, uma análise em texto dos indicadores do período exibido no dashboard, produzida por um serviço de inteligência artificial (RN038, RN039). | Desejável |
 | RF090 | O sistema deve exibir a análise identificada como gerada por inteligência artificial, com a data e o horário da geração, junto aos indicadores do período, sem substituí-los. | Desejável |
+| RF091 | O sistema deve permitir ao funcionário escolher, antes de gerar a análise, entre uma análise resumida e uma detalhada, que inclui os indicadores de serviços, clientes, veículos, operação e pagamentos do período (RN040). | Desejável |
+| RF092 | O sistema deve exibir, junto à análise, os valores calculados pelo sistema a que cada observação se refere, a comparação dos indicadores com o período anterior e a receita dos dois períodos em gráfico. | Desejável |
+| RF093 | O sistema deve permitir copiar o texto da análise, com o período, os valores do sistema e a identificação de que foi gerada por inteligência artificial. | Desejável |
+| RF094 | O sistema deve permitir imprimir ou salvar em PDF o dashboard com a análise, sem a navegação, os controles e a agenda do dia. | Desejável |
 
 ## Gestão de agendamentos
 
