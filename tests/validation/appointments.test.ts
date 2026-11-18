@@ -290,7 +290,12 @@ describe("appointmentInputSchema", () => {
 });
 
 describe("myAppointmentInputSchema", () => {
-  const { clientId: _clientId, ...ORDER } = VALID_ORDER;
+  const ORDER = {
+    vehicleId: VALID_ORDER.vehicleId,
+    serviceIds: VALID_ORDER.serviceIds,
+    paymentMethod: VALID_ORDER.paymentMethod,
+    scheduledAt: VALID_ORDER.scheduledAt,
+  };
 
   it("accepts an order without the client", () => {
     expect(myAppointmentInputSchema.parse(ORDER)).toEqual(ORDER);

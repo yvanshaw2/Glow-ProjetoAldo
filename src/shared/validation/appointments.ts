@@ -131,8 +131,14 @@ export const appointmentInputSchema = z.object({
   scheduledAt: scheduledAtSchema,
 });
 
+// UC06: the client is the one of the session, never of the body (RS009).
+export const myAppointmentInputSchema = appointmentInputSchema.omit({
+  clientId: true,
+});
+
 export type AppointmentPreviewInput = z.output<typeof appointmentPreviewSchema>;
 export type AppointmentInput = z.output<typeof appointmentInputSchema>;
+export type MyAppointmentInput = z.output<typeof myAppointmentInputSchema>;
 
 // The form of the panel (UC11, RNF003): the choice of each step, with the
 // message of the step. The objects are the options the steps show, of which
@@ -146,6 +152,9 @@ export const bookingFormSchema = z.looseObject({
   time: z.string({ error: TIME_MESSAGE }).min(1, { error: TIME_MESSAGE }),
   paymentMethod: paymentMethodSchema,
 });
+
+// The form of the portal (UC06, RNF003): the same choices, without the client.
+export const portalBookingFormSchema = bookingFormSchema.omit({ client: true });
 
 // UC12 FA01: the completion confirms or changes the payment method; the total
 // and the dates are worked out by the server (RS013).

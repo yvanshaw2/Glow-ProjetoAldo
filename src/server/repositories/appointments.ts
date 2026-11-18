@@ -185,7 +185,8 @@ export async function listAdminAppointments(
 export type NewAppointment = {
   clientId: string;
   vehicleId: string;
-  staffId: string;
+  // Null when the client booked.
+  staffId: string | null;
   scheduledAt: string;
   paymentMethod: PaymentMethod;
   feePercent: number;
