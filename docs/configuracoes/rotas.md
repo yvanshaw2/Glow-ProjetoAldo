@@ -54,14 +54,14 @@ Grava os dados da empresa.
 Disponibilidade (UC23).
 
 - Entrada: Nenhuma.
-- Resposta: **200** os sete dias da semana, com situação, horários e pausa.
+- Resposta: **200** `days` (os sete dias da semana, com situação, horários e pausa) e `simultaneousSlots` (atendimentos simultâneos, RN044).
 
 #### `PUT /api/admin/settings/business-hours`
 
 Grava a disponibilidade.
 
-- Entrada: Lista com `weekday*, isOpen*, opensAt, closesAt, breakStartsAt, breakEndsAt`.
-- Resposta: **200** disponibilidade atualizada; 400 horário fora de hora cheia ou meia hora, encerramento anterior ou igual à abertura, ou pausa fora do expediente; o campo com problema vai em `fields` com o índice do item da lista (`1.closesAt`), e a lista sem os sete dias, uma só vez cada, é erro do corpo, sem campo.
+- Entrada: `days*` (lista com `weekday*, isOpen*, opensAt, closesAt, breakStartsAt, breakEndsAt`) e `simultaneousSlots*` (inteiro de 1 a 20, RN044).
+- Resposta: **200** disponibilidade atualizada; 400 horário fora de hora cheia ou meia hora, encerramento anterior ou igual à abertura, ou pausa fora do expediente; o campo com problema vai em `fields` com o índice do item da lista (`days.1.closesAt`), e a lista sem os sete dias, uma só vez cada, é erro do corpo, sem campo; `simultaneousSlots` fora de 1 a 20 vai em `fields.simultaneousSlots`.
 
 #### `GET /api/admin/settings/payment-fees`
 

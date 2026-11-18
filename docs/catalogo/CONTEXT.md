@@ -6,7 +6,7 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 
 | Arquivo | Conteúdo |
 |---|---|
-| requisitos.md | Requisitos funcionais RF001–RF006, RF057–RF068 (18) |
+| requisitos.md | Requisitos funcionais RF001–RF006, RF057–RF068, RF096 (19) |
 | UC01-consultar-portal-publico.md | Consultar portal público (Visitante) |
 | UC13-cadastrar-servico.md | Cadastrar serviço (Funcionário) |
 | UC14-manter-servicos.md | Manter serviços (Funcionário) |
@@ -16,6 +16,7 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 | RN008-servico-inativo.md | Serviço inativo |
 | RN009-precificacao.md | Precificação |
 | RN031-categoria-inativa.md | Categoria inativa |
+| RN042-custo-dos-insumos.md | Custo dos insumos |
 | dados.md | Tabelas `categories`, `services`, `service_prices`, `service_additionals` |
 | rotas.md | Telas e rotas da API |
 | paginas-publicas.md | Seções e textos da página inicial e do catálogo público |

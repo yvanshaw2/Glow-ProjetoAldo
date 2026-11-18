@@ -5,9 +5,11 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PR 1 de 13, só de documentação da análise (`Refs #1`). Os PRs 2 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12) e 2 (#13), incorporados, e 3, de 13, com `Refs #1`. Os PRs 4 a 13 completam este relatório.
 
 ## O que foi feito
+
+### PR 1 (#12, documentação da análise)
 
 - **Requisitos novos**, com os textos aprovados no plano (L2, L7, L8):
   - RF091 (escolha entre análise resumida e detalhada), RF092 (valores do sistema e comparação com o período anterior junto à análise), RF093 (copiar) e RF094 (imprimir ou salvar em PDF);
@@ -21,6 +23,13 @@ Relatório parcial: PR 1 de 13, só de documentação da análise (`Refs #1`). O
 - **Testes:** os casos novos em `docs/padroes/testes.md` e o roteiro "Avaliação da análise por IA" em `workflows/procedimentos/testes.md` (L9).
 - **Decisão 0057** (exportação pela impressão do navegador, sem biblioteca de PDF), gravada.
 - **Issue #1:** corpo atualizado com a seção "Ampliação aprovada em 18/11/2026" (ponto 6 do plano).
+
+### PR 2 (#13, documentação dos dados novos)
+
+- RF095 (motivo do cancelamento), RF096 (custo dos insumos), RF097 (avaliação do atendimento) e RF098 (atendimentos simultâneos).
+- RN041 (motivo do cancelamento), RN042 (custo dos insumos e margem), RN043 (avaliação), RN044 (ocupação da agenda) e UC28 (avaliar atendimento), novos; RN019, RN037 (cópia do custo e da categoria) e RN040 (itens 13 a 17 e a categoria copiada), alterados; UC07, UC12, UC13, UC14 e UC23 com a captura dos dados novos.
+- RS021 (o custo é dado interno) e o código 409 `REVIEW_NOT_ALLOWED`.
+- `dados.md`, `rotas.md` e as telas dos três assuntos; `calculos.md` (o custo do item e os itens novos da seção 7); `infraestrutura.md` (o que o `seed-demo.sql` preenche); `visao-geral.md` (o custo dentro do escopo); as mensagens de validação e os casos de teste.
 
 ### PR 3 (rota da análise resumida)
 

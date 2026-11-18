@@ -2,7 +2,7 @@
 titulo: Requisitos funcionais – Configurações
 assunto: configuracoes
 origem: Documentação de Análise do Sistema, seção 6.2.7 (Quadro 17)
-ids: [RF085, RF086, RF087, RF088]
+ids: [RF085, RF086, RF087, RF088, RF098]
 ---
 
 # Requisitos funcionais: Configurações
@@ -17,3 +17,4 @@ Prioridade: Essencial (obrigatório no MVP), Importante (sem ele o sistema funci
 | RF086 | O sistema deve permitir manter os dados da empresa: nome, CNPJ, e-mail, telefone, redes sociais e endereço. | Essencial |
 | RF087 | O sistema deve permitir definir a disponibilidade da empresa, com a seleção dos dias e dos horários de funcionamento e, opcionalmente, de uma pausa em cada dia, como o horário de almoço (RN013). | Essencial |
 | RF088 | O sistema deve permitir definir, para cada forma de pagamento (crédito, débito, Pix e dinheiro), o percentual de acréscimo ou de desconto a ser aplicado no cálculo do valor do agendamento (RN012). | Essencial |
+| RF098 | O sistema deve permitir definir o número de atendimentos simultâneos da empresa, de 1 a 20, usado só para medir a ocupação da agenda (RN044). | Desejável |

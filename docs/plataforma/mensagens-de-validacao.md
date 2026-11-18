@@ -24,11 +24,15 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Data final anterior à inicial | A data final não pode ser anterior à inicial. |
 | Período do dashboard de mais de 12 meses | O período não pode passar de 12 meses. |
 | Tipo de análise do dashboard desconhecido | Escolha um tipo de análise válido. |
+| Motivo do cancelamento ausente ou fora da lista | Escolha um motivo da lista. |
+| Nota da avaliação | Escolha uma nota de 1 a 5. |
+| Atendimentos simultâneos | Informe de 1 a 20 atendimentos simultâneos. |
 | Tipo do veículo ausente ou fora da lista | Escolha o tipo do veículo. |
 | Marca e modelo | Use de 1 a 40 caracteres. |
 | Cor | Use de 3 a 30 letras. |
 | Ano | Informe um ano de 1886 a <ano seguinte ao corrente>. |
 | Valor em reais | Informe um valor maior que zero e de até R$ 99.999,99. |
+| Custo dos insumos | Informe um custo de R$ 0,00 a R$ 99.999,99. |
 | Percentual (a rota das formas de pagamento o recebe com sinal, de −100 a 100; a mesma mensagem vale) | Informe um percentual de 0 a 100, com até duas casas decimais. |
 | Duração | Informe a duração em minutos, de 5 a 2.400. |
 | CNPJ | Informe um CNPJ válido. |

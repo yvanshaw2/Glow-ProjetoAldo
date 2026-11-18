@@ -2,7 +2,7 @@
 titulo: Requisitos funcionais – Agendamento
 assunto: agendamento
 origem: Documentação de Análise do Sistema, seções 6.1.4, 6.1.5, 6.2.2, 6.2.3 (Quadros 9, 10, 12, 13)
-ids: [RF019, RF020, RF021, RF022, RF023, RF024, RF025, RF026, RF027, RF028, RF029, RF030, RF031, RF032, RF040, RF041, RF042, RF043, RF044, RF045, RF046, RF047, RF048, RF049, RF050, RF051, RF052, RF053, RF054, RF055, RF056, RF089, RF090, RF091, RF092, RF093, RF094]
+ids: [RF019, RF020, RF021, RF022, RF023, RF024, RF025, RF026, RF027, RF028, RF029, RF030, RF031, RF032, RF040, RF041, RF042, RF043, RF044, RF045, RF046, RF047, RF048, RF049, RF050, RF051, RF052, RF053, RF054, RF055, RF056, RF089, RF090, RF091, RF092, RF093, RF094, RF095, RF097]
 ---
 
 # Requisitos funcionais: Agendamento
@@ -32,6 +32,7 @@ Prioridade: Essencial (obrigatório no MVP), Importante (sem ele o sistema funci
 | RF030 | O sistema deve permitir que o cliente cancele um agendamento que esteja com o status “Agendado” (RN019). | Importante |
 | RF031 | O sistema deve permitir que o cliente edite um agendamento com o status “Agendado”, alterando o veículo, os serviços e a forma de pagamento e postergando a data e o horário, com o recálculo dos valores, da duração estimada e da previsão de conclusão (RN032, RN033). | Importante |
 | RF032 | O sistema deve permitir que o cliente reagende, a partir do histórico, um agendamento com o status “Concluído”, gerando um novo agendamento com os valores e a duração estimada calculados pelo catálogo atual (RN020). | Importante |
+| RF097 | O sistema deve permitir ao cliente avaliar, com uma nota de 1 a 5, um atendimento concluído, e exibir a nota no detalhe do agendamento, no portal e no painel (RN043). | Desejável |
 
 ## Dashboard
 
@@ -65,3 +66,4 @@ Prioridade: Essencial (obrigatório no MVP), Importante (sem ele o sistema funci
 | RF054 | O sistema deve permitir que o funcionário cancele um agendamento que ainda não esteja em execução (RN019). | Importante |
 | RF055 | O sistema deve permitir que o funcionário edite um agendamento em qualquer status, alterando o veículo, os serviços e a forma de pagamento e adiantando ou postergando a data e o horário, sem que a data, o horário e os valores fiquem incoerentes (RN032, RN033). | Essencial |
 | RF056 | O sistema deve permitir que o funcionário reagende, a partir do histórico, um agendamento com o status “Concluído”, gerando um novo agendamento com os valores e a duração estimada calculados pelo catálogo atual (RN020). | Importante |
+| RF095 | O sistema deve exigir, no cancelamento de um agendamento, a escolha do motivo, e exibi-lo no detalhe do agendamento cancelado (RN041). | Desejável |

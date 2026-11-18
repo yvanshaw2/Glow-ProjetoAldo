@@ -37,6 +37,7 @@ Catálogo de serviços principais e complementares ativos (UC01).
 
 - Entrada: `categoryId` (opcional, UUID; outro valor: 400 em `categoryId`). Categoria inexistente, inativa ou sem serviço ativo: 200 com a lista vazia.
 - Resposta: **200** lista paginada, em ordem alfabética do nome (o `id` desempata), de `id`, `name`, `description`, `imageUrl` (endereço público da imagem, ou `null`), `category` (`id` e `name`) e `avgDurationMinutes`.
+- O custo dos insumos nunca vem nesta rota nem nas outras públicas (RS021).
 
 ### Rotas do painel: serviços e categorias
 
@@ -54,13 +55,13 @@ Lista os serviços (UC14).
 Detalha um serviço, com valores e vínculos.
 
 - Entrada: Nenhuma.
-- Resposta: **200** os campos da lista e `imageUrl` (ou `null`), `prices` (um valor por porte, com as chaves `small`, `medium`, `large` e `extra_large`, ou `null`), `additionalIds` (principal) e `mainServiceIds` (adicional), vazios no tipo que não os tem.
+- Resposta: **200** os campos da lista e `imageUrl` (ou `null`), `prices` (um valor por porte, com as chaves `small`, `medium`, `large` e `extra_large`, ou `null`), `fixedCost` (o custo dos insumos do valor fixo, ou `null`), `costs` (um custo por porte, com as mesmas chaves, cada um ou `null`; `null` fora da precificação por porte), `additionalIds` (principal) e `mainServiceIds` (adicional), vazios no tipo que não os tem (RN042).
 
 #### `POST /api/admin/services`
 
 Cadastra um serviço (UC13).
 
-- Entrada: `type*, name*, avgDurationMinutes*`; Principal e complementar: `categoryId*, description*, pricingMode*`, `fixedPrice*` ou os quatro `prices*`, conforme a precificação; Principal: `additionalIds`; Adicional: `fixedPrice*, mainServiceIds`. Os campos de outro tipo são descartados. Principal e complementar: `imagePath` (opcional), o caminho devolvido pela rota de envio; outro valor: 400 em `imagePath`.
+- Entrada: `type*, name*, avgDurationMinutes*`; Principal e complementar: `categoryId*, description*, pricingMode*`, `fixedPrice*` ou os quatro `prices*`, conforme a precificação; Principal: `additionalIds`; Adicional: `fixedPrice*, mainServiceIds`. Os campos de outro tipo são descartados. Opcionais, na forma do preço: `fixedCost` ou `costs` (as quatro chaves, cada uma com o custo ou `null`), de 0 a 99.999,99 (RN042); fora disso, 400 no campo. Principal e complementar: `imagePath` (opcional), o caminho devolvido pela rota de envio; outro valor: 400 em `imagePath`.
 - `categoryId` precisa ser de uma categoria ativa; na edição, manter a categoria atual vale mesmo que ela esteja inativa (RN031). Categoria inexistente ou inativa: 400 em `categoryId`.
 - `additionalIds` (principal) e `mainServiceIds` (adicional) só aceitam serviços existentes, não excluídos e do tipo certo; o inativo pode ser vinculado. Id fora disso: 400 no campo.
 - Resposta: **201** serviço criado e ativo; 400; 409 `NAME_IN_USE`.

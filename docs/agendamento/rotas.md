@@ -58,7 +58,7 @@ Lista os agendamentos (UC07).
 Detalha um agendamento do cliente.
 
 - Entrada: Nenhuma.
-- Resposta: **200** `id`, `status`, `scheduledAt`, `estimatedEndAt`, `estimatedDurationMinutes`, `paymentMethod`, `subtotal`, `feePercent`, `total`, `vehicle` (`id`, `plate`, `type`, `size`, `brand`, `model`, `color` e `year`), `services` (`id`, `name`, `type`, `price` e `durationMinutes`) e `updatedAt`, com os dados copiados no agendamento (RN037); 404 se o agendamento não existe ou não é do cliente (RS009).
+- Resposta: **200** `id`, `status`, `scheduledAt`, `estimatedEndAt`, `estimatedDurationMinutes`, `paymentMethod`, `subtotal`, `feePercent`, `total`, `vehicle` (`id`, `plate`, `type`, `size`, `brand`, `model`, `color` e `year`), `services` (`id`, `name`, `type`, `price` e `durationMinutes`, sem o custo, RS021), `cancellationReason` (o motivo, RN041, ou `null`), `rating` (a nota, RN043, ou `null`), `canReview` (se o cliente ainda pode avaliar) e `updatedAt`, com os dados copiados no agendamento (RN037); 404 se o agendamento não existe ou não é do cliente (RS009).
 
 #### `PATCH /api/me/appointments/:id`
 
@@ -71,8 +71,15 @@ Edita um agendamento com o status `scheduled` (UC26).
 
 Cancela um agendamento.
 
-- Entrada: Nenhuma.
-- Resposta: **200** agendamento cancelado, no formato de `GET /api/me/appointments/:id`; 404 se o agendamento não existe ou não é do cliente (RS009), sem alterar nada; 409 `INVALID_STATUS` se não estiver agendado, com o status atual na mensagem (UC07 FE02).
+- Entrada: `reason*`: `client_gave_up`, `client_unavailable`, `weather` ou `other` (RN041).
+- Resposta: **200** agendamento cancelado, no formato de `GET /api/me/appointments/:id`; 400 com `fields.reason` se o motivo falta ou não é um dos do cliente; 404 se o agendamento não existe ou não é do cliente (RS009), sem alterar nada; 409 `INVALID_STATUS` se não estiver agendado, com o status atual na mensagem (UC07 FE02).
+
+#### `POST /api/me/appointments/:id/review`
+
+Avalia um atendimento concluído (UC28).
+
+- Entrada: `rating*` (inteiro de 1 a 5).
+- Resposta: **201** agendamento no formato de `GET /api/me/appointments/:id`, com a nota; 400 com `fields.rating`; 404 se o agendamento não existe ou não é do cliente (RS009); 409 `REVIEW_NOT_ALLOWED` se não estiver Concluído ou Reagendado, já tiver nota ou tiver sido concluído há mais de 30 dias (RN043).
 
 #### `POST /api/me/appointments/:id/reschedule`
 
@@ -115,7 +122,7 @@ Lista os agendamentos (UC10).
 Detalha um agendamento.
 
 - Entrada: Nenhuma.
-- Resposta: **200** `id`, `status`, `scheduledAt`, `estimatedEndAt`, `estimatedDurationMinutes`, `clientId`, `clientName`, `paymentMethod`, `subtotal`, `feePercent`, `total`, `vehicle` (`id`, `plate`, `type`, `size`, `brand`, `model`, `color` e `year`), `services` (`id`, `name`, `type`, `price` e `durationMinutes`, na ordem do cartão da listagem) e `updatedAt`, com os dados copiados no agendamento (RN037); no status `awaiting_payment`, também `paymentOptions`: `paymentMethod`, `feePercent` e `total` de cada uma das quatro formas, na ordem de RN011, usado no resumo de conclusão (para a forma de pagamento do agendamento, `feePercent` e `total` são os gravados nele; para as outras, o percentual vigente aplicado ao subtotal, RN012); nos outros status, `paymentOptions` é `null`. As quatro rotas de gravação abaixo respondem com este formato.
+- Resposta: **200** `id`, `status`, `scheduledAt`, `estimatedEndAt`, `estimatedDurationMinutes`, `clientId`, `clientName`, `paymentMethod`, `subtotal`, `feePercent`, `total`, `vehicle` (`id`, `plate`, `type`, `size`, `brand`, `model`, `color` e `year`), `cancellationReason` (o motivo, RN041, ou `null`), `rating` (a nota do cliente, RN043, ou `null`), `services` (`id`, `name`, `type`, `price` e `durationMinutes`, na ordem do cartão da listagem) e `updatedAt`, com os dados copiados no agendamento (RN037); no status `awaiting_payment`, também `paymentOptions`: `paymentMethod`, `feePercent` e `total` de cada uma das quatro formas, na ordem de RN011, usado no resumo de conclusão (para a forma de pagamento do agendamento, `feePercent` e `total` são os gravados nele; para as outras, o percentual vigente aplicado ao subtotal, RN012); nos outros status, `paymentOptions` é `null`. As quatro rotas de gravação abaixo respondem com este formato.
 
 #### `POST /api/admin/appointments/preview`
 
@@ -156,8 +163,8 @@ Conclui o atendimento e registra a forma de pagamento utilizada (UC12).
 
 Cancela um agendamento agendado ou em espera.
 
-- Entrada: Nenhuma.
-- Resposta: **200** agendamento cancelado, no formato do detalhe; 409 `INVALID_STATUS`, com o status atual na mensagem.
+- Entrada: `reason*`: `client_gave_up`, `client_unavailable`, `weather`, `no_show`, `business_unavailable` ou `other` (RN041).
+- Resposta: **200** agendamento cancelado, no formato do detalhe; 400 com `fields.reason` se o motivo falta ou não é da lista; 409 `INVALID_STATUS`, com o status atual na mensagem.
 
 #### `POST /api/admin/appointments/:id/reschedule`
 

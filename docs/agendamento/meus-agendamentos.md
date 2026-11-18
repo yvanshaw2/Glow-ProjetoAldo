@@ -1,8 +1,8 @@
 ---
 titulo: Conteúdo da página de agendamentos do cliente
 assunto: agendamento
-origem: issue #58, plano memoria/tarefas/58-telas-do-cliente/01_plano.md (L3, L4)
-relacionados: [UC07, UC25, UC26, RF028, RF029, RF030, RF031, RF032, RN017, RN019, RN020, RN032]
+origem: issue #58, plano memoria/tarefas/58-telas-do-cliente/01_plano.md (L3, L4); issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L11, L14)
+relacionados: [UC07, UC25, UC26, RF028, RF029, RF030, RF031, RF032, RN017, RN019, RN020, RN032, UC28, RF095, RF097, RN041, RN043]
 ---
 
 # Conteúdo da página de agendamentos do cliente
@@ -28,6 +28,8 @@ A etiqueta de status ([RN017](RN017-sequencia-de-status.md)), "<marca> <modelo>"
 ## Detalhe
 
 - Janela "Detalhes do agendamento", que lê o agendamento ao abrir: a etiqueta; "Data e horário", "Previsão de conclusão" e "Duração estimada"; "Veículo" (marca e modelo, placa, cor, ano, tipo e porte); "Serviços", com o valor de cada um; "Forma de pagamento"; "Subtotal" e "Acréscimo de <percentual>" ou "Desconto de <percentual>", só quando a forma de pagamento tem percentual; "Total".
+- No "Cancelado", "Motivo: <motivo>" ([RN041](RN041-motivo-do-cancelamento.md)), ou "Motivo: Não informado" nos cancelamentos anteriores à regra.
+- No "Concluído" e no "Reagendado", a avaliação ([UC28](UC28-avaliar-atendimento.md), [RN043](RN043-avaliacao-do-atendimento.md)): com nota, "Sua avaliação: <nota> de 5"; sem nota e no prazo, "Como foi o atendimento?", cinco botões de 1 a 5 em grupo de opção única (as estrelas são decorativas, e o número está sempre escrito: "1 de 5"…) e "Enviar avaliação" ("Enviando…"); fora do prazo e sem nota, nada. Enviada, a nota aparece no lugar das opções, e a região de status anuncia "Avaliação enviada."; a falha, como o 409 `REVIEW_NOT_ALLOWED`, aparece junto ao grupo.
 - Enquanto carrega, o lugar fica reservado; na falha, o aviso com "Tentar novamente".
 
 ## Ações por status
@@ -43,9 +45,9 @@ Só no detalhe. A tela só orienta; quem decide é a API (RS008).
 
 ## Cancelamento (UC07 FA01)
 
-- Confirmação: título "Cancelar este agendamento?", texto "O agendamento passa a Cancelado e vai para o histórico. Esta ação não pode ser desfeita.", botões "Voltar" e "Cancelar agendamento" ("Cancelando…"), na cor de erro.
+- Confirmação: título "Cancelar este agendamento?", texto "O agendamento passa a Cancelado e vai para o histórico. Esta ação não pode ser desfeita.", o campo "Motivo do cancelamento" (lista, obrigatório, [RN041](RN041-motivo-do-cancelamento.md)), com "Escolha o motivo" até a escolha e as opções Desistência, Imprevisto, Condições do tempo e Outro, e os botões "Voltar" e "Cancelar agendamento" ("Cancelando…"), na cor de erro. Sem motivo, o envio mostra "Escolha um motivo da lista." junto ao campo.
 - Confirmado, as duas janelas fecham e a lista é lida de novo. A falha, como o 409 `INVALID_STATUS` de um agendamento que já mudou de status (FE02), aparece dentro da confirmação.
 
 ## Fora da tela
 
-Sem requisito: os grupos "Em andamento" e "Próximos", o "Cancelar" no próprio cartão, o motivo do cancelamento, o "Agendar" no topo (o cabeçalho já tem) e o "Box".
+Sem requisito: os grupos "Em andamento" e "Próximos", o "Cancelar" no próprio cartão, o "Agendar" no topo (o cabeçalho já tem) e o "Box".

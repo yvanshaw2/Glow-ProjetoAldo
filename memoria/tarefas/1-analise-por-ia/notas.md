@@ -88,6 +88,15 @@ O Yvan gravou `status: aprovado` e marcou a opção 1 de L10 a L18 e do ponto 1.
 
 Com a L18, um período em andamento é analisado só até o dia corrente. O botão "Gerar análise" continua disponível pelo período exibido (que pode ter só agendamentos futuros, como "Este mês" no dia 1); nesse caso, a rota responde 409 `INSUFFICIENT_DATA`, e o cartão mostra a mensagem dela. RN038 e `rotas.md` passaram a dizer "período analisado".
 
+## 2026-11-18 – decisão: PR 2, documentação dos dados novos
+
+Ramificação `docs/1-business-data`, de `origin/main` (ebf1009, com o PR #12 incorporado). Os textos de L10 a L15 entraram nos arquivos da lista do plano, sem arquivo fora dela. Detalhes que o plano não fixava, escritos para a construção seguir:
+
+- `GET /api/me/appointments/:id` ganha `canReview` (se o cliente ainda pode avaliar, calculado pelo servidor por RN043), para a tela não repetir a regra; e `cancellationReason` e `rating` nos dois detalhes.
+- Com o corpo `{ days, simultaneousSlots }`, o campo com erro de `business-hours` passa de `1.closesAt` a `days.1.closesAt`; o formulário muda junto, no PR 13.
+- Textos de tela propostos: "Motivo: <motivo>" e "Motivo: Não informado"; "Sua avaliação: <nota> de 5", "Como foi o atendimento?", "Enviar avaliação", "Avaliação enviada."; no painel, "Avaliação do cliente: <nota> de 5" ou "ainda não avaliado"; "Custo dos insumos (opcional)" e "Atendimentos simultâneos", com as ajudas da L12 e da L15.
+- L16 (decisão 0058) fica para o PR 5, junto da remoção; L17 não tem texto de `docs/`.
+
 ## 2026-11-18 – decisão: PR 3, rota da análise resumida
 
 Ramificação `feat/1-ai-analysis`, de `origin/main` (ebf1009). Testes em vermelho num commit próprio; um commit só de refatoração (a conferência do tamanho do período passou a uma função, usada pelos dois esquemas); depois regras, esquema, tipos, catálogo, adaptador, serviço, rota, OpenAPI e documentação.

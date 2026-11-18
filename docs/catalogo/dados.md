@@ -38,6 +38,7 @@ Serviços.
 | `avg_duration_minutes` | `integer` | De 5 a 2.400 | Duração média, em minutos. |
 | `pricing_mode` | `pricing_mode` | Conforme o tipo | Forma de precificação. |
 | `fixed_price` | `numeric(10,2)` | Maior que zero; conforme a precificação | Valor fixo do serviço (RN009). |
+| `fixed_cost` | `numeric(10,2)` | Opcional; maior ou igual a zero; só com valor fixo | Custo dos insumos do serviço de valor fixo (RN042); dado interno (RS021). |
 | `is_active` | `boolean` | Padrão: verdadeiro | Serviço inativo não aparece para o cliente (RN008). |
 | `deleted_at` | `timestamptz` | Opcional | Data da exclusão lógica do serviço (RN030). |
 | `updated_at` | `timestamptz` |  | Data da última alteração. |
@@ -51,6 +52,7 @@ Valores por porte.
 | `service_id` | `uuid` | PK; FK para `services` | Serviço com precificação por porte. |
 | `size` | `vehicle_size` | PK | Porte do veículo. |
 | `price` | `numeric(10,2)` | Maior que zero | Valor do serviço para o porte; um serviço por porte tem exatamente os quatro valores (RN009). |
+| `cost` | `numeric(10,2)` | Opcional; maior ou igual a zero | Custo dos insumos do serviço para o porte (RN042); dado interno (RS021). |
 
 ### `service_additionals`
 
@@ -80,7 +82,7 @@ Vínculo entre serviço principal e adicional.
 
 Feitas por função SQL, em uma única transação, chamada pelo repositório (RNF010):
 
-- `save_service`: serviço, valores por porte e vínculos de adicionais;
+- `save_service`: serviço, valores e custos dos insumos (RN042) por porte e vínculos de adicionais; a versão com os custos convive com a anterior até a publicação do código que a usa, e a anterior sai numa migration posterior (`workflows/procedimentos/migration.md`);
 
 ## Relacionamentos
 

@@ -2,7 +2,7 @@
 titulo: Requisitos de segurança e implementação
 assunto: plataforma
 origem: Documentação de Análise do Sistema, seção 8 (Quadro 19); Documentação de Arquitetura de Software, seção 7 (Quadro 35)
-ids: [RS001, RS002, RS003, RS004, RS005, RS006, RS007, RS008, RS009, RS010, RS011, RS012, RS013, RS014, RS015, RS016, RS017, RS018, RS019, RS020]
+ids: [RS001, RS002, RS003, RS004, RS005, RS006, RS007, RS008, RS009, RS010, RS011, RS012, RS013, RS014, RS015, RS016, RS017, RS018, RS019, RS020, RS021]
 ---
 
 # Segurança: requisitos e implementação
@@ -31,6 +31,7 @@ Todos os RS são obrigatórios no MVP. A coluna Implementação diz como cada um
 | RS018 | Registros | Senhas, tokens e cookies de sessão não devem ser registrados em logs nem incluídos em mensagens de erro. | O registro do servidor guarda o `requestId`, a rota, o status e o usuário, e nunca senhas, tokens, cookies, o cabeçalho de autorização ou o corpo das rotas de autenticação. |
 | RS019 | Integrações | A comunicação com serviços externos de inteligência artificial deve partir somente do servidor, depois da verificação da sessão e da permissão, com a credencial fornecida pela configuração do ambiente e nunca exposta ao navegador nem registrada. | A rota `POST /api/admin/dashboard/analysis` chama `requirePermission("dashboard")`. O adaptador de `src/server/ai/` (`import 'server-only'`) lê `AI_BASE_URL`, `AI_MODEL` e `AI_API_KEY` durante a requisição e envia a chave só no cabeçalho de autorização, por HTTPS; sem as variáveis, a rota responde 503 `AI_UNAVAILABLE`. A chave não aparece no código do navegador nem no registro. |
 | RS020 | Integrações | Os dados enviados a serviços externos de inteligência artificial devem se limitar aos necessários, sem dados pessoais, e a resposta desses serviços deve ser tratada como não confiável, validada quanto ao formato e ao tamanho antes de ser exibida. | A entrada é montada por uma função pura que só recebe valores agregados (RN038), sem texto digitado pelo usuário. A resposta é pedida em esquema JSON e conferida por `src/server/rules/dashboard-analysis.ts` (RN039); o texto aparece como texto, nunca como HTML (RS014). Entradas e respostas não são gravadas nem registradas. |
+| RS021 | Dados internos | O custo dos insumos dos serviços é dado interno da empresa e não deve ser enviado ao catálogo público nem à área do cliente. | As rotas públicas e as do cliente não selecionam as colunas de custo, e os tipos das respostas delas não têm o campo; o custo aparece só no cadastro do serviço no painel e na análise do dashboard (RN042). |
 
 ## Complementos
 

@@ -15,7 +15,7 @@ Aplicação web de uma única empresa de estética automotiva, usada pelo navega
 
 ## Fora do escopo do MVP
 
-Pagamento online (o pagamento é presencial; o sistema só registra a forma e calcula o valor); envio de e-mails (convites, notificações, recuperação de senha); aplicativo nativo; documentos fiscais; estoque; gestão financeira além do valor e da forma de pagamento de cada agendamento; controle de capacidade e de conflito de horários; fidelidade, cupons e promoções; várias empresas ou unidades.
+Pagamento online (o pagamento é presencial; o sistema só registra a forma e calcula o valor); envio de e-mails (convites, notificações, recuperação de senha); aplicativo nativo; documentos fiscais; estoque; gestão financeira além do valor, da forma de pagamento e do custo dos insumos de cada agendamento; controle de capacidade e de conflito de horários; fidelidade, cupons e promoções; várias empresas ou unidades.
 
 ## Evolução prevista
 

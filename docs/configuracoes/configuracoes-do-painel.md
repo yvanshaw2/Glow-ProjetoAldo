@@ -1,8 +1,8 @@
 ---
 titulo: Conteúdo das abas Disponibilidade e Formas de pagamento do painel
 assunto: configuracoes
-origem: issue #65, plano memoria/tarefas/65-equipe-e-configuracoes/01_plano.md (L4, L5)
-relacionados: [UC23, UC24, RF085, RF087, RF088, RN012, RN013, RN035, RNF004]
+origem: issue #65, plano memoria/tarefas/65-equipe-e-configuracoes/01_plano.md (L4, L5); issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L15)
+relacionados: [UC23, UC24, RF085, RF087, RF088, RN012, RN013, RN035, RNF004, RF098, RN044]
 ---
 
 # Conteúdo das abas Disponibilidade e Formas de pagamento do painel
@@ -18,6 +18,7 @@ Textos, controles e estados das abas "Disponibilidade" ([UC23](UC23-configurar-d
 - Texto de apoio: "Defina os dias e os horários em que a empresa atende."
 - Sete linhas, de domingo a sábado, cada uma com o interruptor "<dia> aberto" (descrição visível "Aberto" ou "Fechado"), "Abre às", "Fecha às" e o interruptor "Pausa" com "Início da pausa" e "Fim da pausa".
 - Os horários são listas de meia em meia hora ([RN035](../plataforma/RN035-formatos-dos-dados.md)), das 00:00 às 23:30. Dia fechado esconde os horários e a pausa e guarda o que havia, se for reaberto; dia aberto novo vem com 08:00 e 18:00, sem pausa.
+- Depois dos dias, o campo "Atendimentos simultâneos" ([RN044](RN044-ocupacao-da-agenda.md)), número de 1 a 20, com a ajuda "Quantos veículos a equipe atende ao mesmo tempo. Serve só para medir a ocupação da agenda; não limita os agendamentos."; fora do intervalo, "Informe de 1 a 20 atendimentos simultâneos." junto ao campo.
 - Botão "Salvar disponibilidade" ("Salvando…"), no fim; falha no topo; sucesso "Disponibilidade salva." como status. Carregamento com o lugar reservado; falha com "Tentar novamente".
 - A consistência dos horários (UC23 FE01 e FE02) é conferida pela rota, e a mensagem aparece junto ao campo do dia ("Fecha às", "Início da pausa" ou "Fim da pausa"); `PUT` não tem `updatedAt`, então a aba não tem `VERSION_CONFLICT`.
 

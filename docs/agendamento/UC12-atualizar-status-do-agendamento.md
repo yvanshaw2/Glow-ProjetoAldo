@@ -4,8 +4,8 @@ titulo: Atualizar status do agendamento
 assunto: agendamento
 ator: Funcionário
 origem: Documentação de Análise do Sistema, seção 10.2 (Quadro 37)
-requisitos: [RF052, RF053, RF054]
-regras: [RN010, RN012, RN017, RN018, RN019]
+requisitos: [RF052, RF053, RF054, RF095]
+regras: [RN010, RN012, RN017, RN018, RN019, RN041]
 ---
 
 # UC12 – Atualizar status do agendamento
@@ -41,8 +41,8 @@ regras: [RN010, RN012, RN017, RN018, RN019]
 ### FA02 – Cancelamento do agendamento (passo 2)
 
 1. O funcionário aciona o cancelamento de um agendamento com o status “Agendado” ou “Em espera” (RN019).
-2. O sistema solicita a confirmação.
-3. O funcionário confirma e o sistema altera o status para “Cancelado”.
+2. O sistema solicita a confirmação e o motivo do cancelamento (RN041).
+3. O funcionário escolhe o motivo e confirma, e o sistema altera o status para “Cancelado”.
 
 ## Fluxos de exceção
 
@@ -52,7 +52,7 @@ regras: [RN010, RN012, RN017, RN018, RN019]
 
 ## Relacionados
 
-- Requisitos: [RF052](requisitos.md), [RF053](requisitos.md), [RF054](requisitos.md)
-- Regras: [RN010](RN010-valor-total.md), [RN012](../configuracoes/RN012-percentual-da-forma-de-pagamento.md), [RN017](RN017-sequencia-de-status.md), [RN018](RN018-conclusao-com-pagamento.md), [RN019](RN019-cancelamento.md)
+- Requisitos: [RF052](requisitos.md), [RF053](requisitos.md), [RF054](requisitos.md), [RF095](requisitos.md)
+- Regras: [RN010](RN010-valor-total.md), [RN012](../configuracoes/RN012-percentual-da-forma-de-pagamento.md), [RN017](RN017-sequencia-de-status.md), [RN018](RN018-conclusao-com-pagamento.md), [RN019](RN019-cancelamento.md), [RN041](RN041-motivo-do-cancelamento.md)
 - Outros casos de uso: [UC10](UC10-consultar-agendamentos.md)
 - Telas e API: [rotas.md](rotas.md)
