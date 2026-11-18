@@ -44,8 +44,9 @@ export async function getClient(id: string): Promise<AdminClient> {
 
 // UC04 steps 2 and 5, RS009: the account of the session, without the id,
 // which the client already has and never sends.
-function toProfile({ id: _id, ...profile }: AdminClient): ClientProfile {
-  return profile;
+function toProfile(client: AdminClient): ClientProfile {
+  const { firstName, lastName, email, phone, updatedAt } = client;
+  return { firstName, lastName, email, phone, updatedAt };
 }
 
 // RF012: the data of the account of the client.
