@@ -19,9 +19,11 @@ Não há responsável fixo por área (decisão 0039). Cada integrante leva uma t
 | Kayke | `Kaykebr144` | colaborador |
 | Laura | pendente | sem acesso até informar o usuário |
 | Lucas | `LFaustin0` | colaborador |
-| Yvan | `yvanshaw1` | dono do repositório |
+| Yvan | `yvanshaw2` | dono do repositório |
 
-Integrante que aplica as migrations (`supabase db push`, `workflows/procedimentos/migration.md`): Yvan (`yvanshaw1`).
+Integrante que aplica as migrations (`supabase db push`, `workflows/procedimentos/migration.md`): Yvan (`yvanshaw2`).
+
+A conta `yvanshaw1` foi bloqueada pelo GitHub em novembro de 2026, e o projeto passou para o repositório `yvanshaw2/Glow-ProjetoAldo` e para um projeto novo do Supabase. Os colaboradores precisam ser convidados de novo no repositório novo.
 
 ## 3. Comandos
 
@@ -43,7 +45,7 @@ Criados nas tarefas #1 (`package.json`) e #6 (`compose.yaml`):
 
 ## 5. GitHub
 
-- [x] Repositório criado, com a pasta `App/` como raiz. Endereço: `https://github.com/yvanshaw1/Glow-ProjetoAldo`. Visibilidade: público, porque no plano gratuito a proteção da `main` e a varredura de segredos com proteção de envio só existem em repositório público, e a Vercel Hobby não publica commits de colaboradores em repositório privado.
+- [x] Repositório criado, com a pasta `App/` como raiz. Endereço: `https://github.com/yvanshaw2/Glow-ProjetoAldo`. Visibilidade: privado, a partir da migração de novembro de 2026; antes era público, porque no plano gratuito a proteção da `main` e a varredura de segredos com proteção de envio só existem em repositório público, e a Vercel Hobby não publica commits de colaboradores em repositório privado.
 - [x] Commit inicial. É feito uma vez, fora do ciclo de tarefas e sem issue, porque o ciclo parte da `main`. Na pasta `App/`:
   - `git init -b main`;
   - `.gitattributes` com `* text=auto eol=lf`, porque o Git do Windows converte as quebras de linha para CRLF e o `prettier --check` falharia;
@@ -52,10 +54,10 @@ Criados nas tarefas #1 (`package.json`) e #6 (`compose.yaml`):
   - remote `origin`.
   
   O envio (`git push -u origin main`) é feito pelo desenvolvedor.
-- [x] Varredura de segredos com proteção de envio ativada (Settings → Security).
+- [ ] Varredura de segredos com proteção de envio: não disponível em repositório privado no plano gratuito.
 - [x] Etiquetas: `area:frontend`, `area:backend`, `area:banco`, `area:testes`, `area:cicd`, `tipo:funcionalidade`, `tipo:defeito`, `tipo:investigacao`, `tipo:documentacao`, `tipo:configuracao`. Cada issue leva uma etiqueta de tipo e uma `area:*` para cada área que a tarefa toca.
 - [x] Quadro no GitHub Projects com as colunas e as automações de `workflows/CONTEXT.md` (Quadro de tarefas).
-- [x] Proteção da `main`, no ruleset `main`, ativo e sem exceções: só por PR, sem exclusão nem envio forçado; CI (`check`) e build da Vercel (`Vercel`) obrigatórios, com a ramificação atualizada; 1 aprovação, descartada com commits novos; conversas resolvidas; só squash; remoção automática da ramificação incorporada.
+- [ ] Proteção da `main`: o repositório novo está sem ruleset, que não é aplicado em repositório privado no plano gratuito; a convenção de PR, CI e squash segue valendo, sem a exigência de aprovação de outro integrante. Configuração anterior, no ruleset `main`, ativo e sem exceções: só por PR, sem exclusão nem envio forçado; CI (`check`) e build da Vercel (`Vercel`) obrigatórios, com a ramificação atualizada; 1 aprovação, descartada com commits novos; conversas resolvidas; só squash; remoção automática da ramificação incorporada.
 - [x] Alertas de dependências (Dependabot) ativados.
 
 ## 6. Serviços (**pendente**)
