@@ -65,3 +65,9 @@ Orientação do Yvan: as instruções enviadas ao modelo (a mensagem de sistema,
 ## 2026-11-18 – descoberta: correção sobre a data de criação do agendamento
 
 A entrada "dados disponíveis para a análise detalhada" disse que `appointments` não tem coluna de criação. Errado: a tabela tem `created_at` (migration inicial), não listada em `docs/agendamento/dados.md` porque o arquivo diz que "toda tabela tem `created_at`". O `seed-demo.sql` já a preenche de 1 a 6 dias antes da data marcada. A antecedência do agendamento é calculável; o plano a lista em "Fora do escopo" por esse engano, e incluí-la em RN040 pede a aprovação do Yvan.
+
+## 2026-11-18 – decisão: segunda ampliação, dados novos do negócio ("Tudo na #1")
+
+O Yvan pediu que a análise tenha de fato os dados que faltam, simulados no `seed-demo.sql` como os de hoje, e escolheu "Tudo na #1" em vez de issues separadas. Princípio combinado: nenhum dado existe só no seed; cada um tem banco, captura no fluxo real, exibição, simulação e indicador.
+
+O plano ganhou a entrega 6, as lacunas L10 (antecedência), L11 (motivo do cancelamento), L12 (custo dos insumos e margem), L13 (categoria copiada), L14 (avaliação do atendimento), L15 (ocupação da agenda), L16 (decisão 0058 no lugar da seção "Encerramento" da 0055) e L17 (lugar da função do texto copiado), e passou a treze PRs, com um ponto 1 novo sobre o prazo. Voltou a `aguardando_aprovacao`; as caixas de L1 a L9 continuam marcadas, e as novas estão vazias. O PR 1 continua só com commits locais.
