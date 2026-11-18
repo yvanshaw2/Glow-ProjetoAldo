@@ -143,21 +143,21 @@ Edita um agendamento em qualquer status (UC26).
 Avança para o próximo status, até `awaiting_payment` (UC12).
 
 - Entrada: Nenhuma.
-- Resposta: **200** agendamento com o novo status, no formato do detalhe; 409 `INVALID_STATUS`.
+- Resposta: **200** agendamento com o novo status, no formato do detalhe; 409 `INVALID_STATUS`, com o status atual na mensagem (UC12 FE01).
 
 #### `POST /api/admin/appointments/:id/complete`
 
 Conclui o atendimento e registra a forma de pagamento utilizada (UC12).
 
 - Entrada: `paymentMethod*`
-- Resposta: **200** agendamento `completed`, no formato do detalhe, com o total recalculado se a forma de pagamento mudou; 409 `INVALID_STATUS` se não estiver em `awaiting_payment`.
+- Resposta: **200** agendamento `completed`, no formato do detalhe, com o total recalculado se a forma de pagamento mudou (a forma do agendamento mantém o percentual e o total gravados; outra usa o percentual vigente); 409 `INVALID_STATUS` se não estiver em `awaiting_payment`, com o status atual na mensagem.
 
 #### `POST /api/admin/appointments/:id/cancel`
 
 Cancela um agendamento agendado ou em espera.
 
 - Entrada: Nenhuma.
-- Resposta: **200** agendamento cancelado, no formato do detalhe; 409 `INVALID_STATUS`.
+- Resposta: **200** agendamento cancelado, no formato do detalhe; 409 `INVALID_STATUS`, com o status atual na mensagem.
 
 #### `POST /api/admin/appointments/:id/reschedule`
 

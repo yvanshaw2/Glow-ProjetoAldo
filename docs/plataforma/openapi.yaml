@@ -1800,6 +1800,123 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/{id}/advance:
+    post:
+      tags:
+        - appointments
+      operationId: advanceAdminAppointment
+      summary: Avança o status do agendamento
+      description: >-
+        Agendado, Em espera, Em execução e Finalizado, nesta ordem, sem
+        confirmação (UC12, RN017). O status atual vai na mensagem da recusa.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Agendamento com o novo status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvalidStatus"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/{id}/complete:
+    post:
+      tags:
+        - appointments
+      operationId: completeAdminAppointment
+      summary: Conclui o atendimento
+      description: >-
+        Do Finalizado ao Concluído, com a forma de pagamento usada (UC12 FA01,
+        RN018). A forma do agendamento mantém o percentual e o total gravados;
+        outra forma usa o percentual vigente sobre o subtotal (RN012).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentCompleteInput"
+      responses:
+        "200":
+          description: Agendamento concluído.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvalidStatus"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/{id}/cancel:
+    post:
+      tags:
+        - appointments
+      operationId: cancelAdminAppointment
+      summary: Cancela o agendamento
+      description: >-
+        Só do Agendado e do Em espera (UC12 FA02, RN019).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Agendamento cancelado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvalidStatus"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/admin/appointments/lookup/clients:
     get:
       tags:
@@ -3947,6 +4064,16 @@ components:
             - "null"
           format: date-time
           description: Nulo sem scheduledAt (RN034).
+    AppointmentCompleteInput:
+      type: object
+      description: >-
+        O total, o status e as datas são calculados pelo sistema e, se vierem,
+        são descartados.
+      required:
+        - paymentMethod
+      properties:
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
     AppointmentInput:
       type: object
       description: >-
@@ -4044,6 +4171,14 @@ components:
       description: >-
         VERSION_CONFLICT: o registro mudou depois da leitura, e nada foi
         gravado (RNF011).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    InvalidStatus:
+      description: >-
+        INVALID_STATUS: a ação não é permitida no status atual do agendamento,
+        que vai na mensagem, e nada foi gravado (RN017).
       content:
         application/problem+json:
           schema:

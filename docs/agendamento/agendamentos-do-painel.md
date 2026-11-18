@@ -9,7 +9,7 @@ relacionados: [UC10, UC11, UC12, UC25, UC26, RF044, RF045, RF046, RF047, RF048, 
 
 Visões, filtros, cartão, detalhe, ações de status e estados de `/admin/appointments`, do [UC10](UC10-consultar-agendamentos.md), do [UC12](UC12-atualizar-status-do-agendamento.md) e do [UC25](UC25-reagendar-servico-concluido.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, etiqueta de status e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato da rota: [rotas.md](rotas.md).
 
-A listagem, o detalhe, o "Novo agendamento" (as buscas, a prévia de valores e o registro) são reais. Enquanto a edição e as ações de status gravarem com dados de demonstração (decisão 0055), o aviso de demonstração fica no alto das janelas "Editar", "Reagendar" e "Concluir" e acima dos botões do detalhe.
+A listagem, o detalhe, o "Novo agendamento" (as buscas, a prévia de valores e o registro) são reais. O avanço, a conclusão e o cancelamento também são reais. Enquanto a edição e o reagendamento gravarem com dados de demonstração (decisão 0055), o aviso de demonstração fica no alto das janelas "Editar" e "Reagendar" e acima dos botões do detalhe.
 
 ## Página
 
@@ -64,7 +64,7 @@ Só no detalhe. A tela só orienta; quem decide é a API (RS008).
 
 - **Avançar** ([UC12](UC12-atualizar-status-do-agendamento.md) passos 2 a 5, [RN017](RN017-sequencia-de-status.md)): sem confirmação. O botão passa a "Avançando…", fica indisponível sem perder o foco (`aria-disabled`), e, concluído, a janela fecha e a listagem é lida de novo.
 - **Cancelamento** (FA02): confirmação com o título "Cancelar este agendamento?", o texto "O agendamento passa a Cancelado e vai para o histórico. Esta ação não pode ser desfeita.", e os botões "Voltar" e "Cancelar agendamento" ("Cancelando…"), na cor de erro; a falha aparece dentro da confirmação, e, concluído, as duas janelas fecham.
-- **Falha** (FE01): o aviso com a mensagem da API fica no topo da janela, com o foco. No 409 `INVALID_STATUS`, o detalhe lê o agendamento de novo, então a etiqueta e as ações passam a ser as do status atual.
+- **Falha** (FE01): o aviso com a mensagem da API fica no topo da janela, com o foco. No 409 `INVALID_STATUS`, a mensagem traz o status atual ("Este agendamento está Em execução. Esta ação não está disponível para esse status."), e o detalhe lê o agendamento de novo, então a etiqueta e as ações passam a ser as do status atual.
 
 ## Reagendar (UC25 FA01, RF056)
 

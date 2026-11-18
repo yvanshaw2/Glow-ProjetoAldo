@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
   adminAppointmentListQuerySchema,
+  appointmentCompleteSchema,
   appointmentInputSchema,
   appointmentPreviewSchema,
   bookingFormSchema,
@@ -347,5 +348,33 @@ describe("bookingFormSchema", () => {
       time: "Escolha o horário.",
       paymentMethod: "Escolha a forma de pagamento.",
     });
+  });
+});
+
+describe("appointmentCompleteSchema", () => {
+  it("accepts a payment method", () => {
+    expect(appointmentCompleteSchema.parse({ paymentMethod: "pix" })).toEqual({
+      paymentMethod: "pix",
+    });
+  });
+
+  it("requires the payment method, with its message", () => {
+    expect(issues(appointmentCompleteSchema, {})).toEqual({
+      paymentMethod: PAYMENT_CHOICE,
+    });
+    expect(
+      issues(appointmentCompleteSchema, { paymentMethod: "boleto" }),
+    ).toEqual({ paymentMethod: PAYMENT_CHOICE });
+  });
+
+  it("discards the total, the status and the completion date", () => {
+    expect(
+      appointmentCompleteSchema.parse({
+        paymentMethod: "cash",
+        total: 1,
+        status: "completed",
+        completedAt: "2026-11-03T12:00:00.000Z",
+      }),
+    ).toEqual({ paymentMethod: "cash" });
   });
 });

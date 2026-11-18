@@ -258,3 +258,43 @@ export async function listAppointmentsBetween(
   }
   return data.map(toAdminAppointmentSummary);
 }
+
+// What a status change writes besides the status; the completion also writes
+// the payment method used, with its percent and total (RN018), and each end
+// status its moment (completed_at and cancelled_at, docs/agendamento/dados.md).
+export type StatusChange = {
+  status: AppointmentStatus;
+  payment?: { method: PaymentMethod; feePercent: number; total: number };
+  completedAt?: string;
+  cancelledAt?: string;
+};
+
+// One statement, so a change made by someone else in the meantime is not
+// overwritten: false, with nothing written, when the appointment no longer has
+// the status the caller read. updated_at is written by
+// trg_appointments_updated_at.
+export async function changeAppointmentStatus(
+  id: string,
+  fromStatus: AppointmentStatus,
+  change: StatusChange,
+): Promise<boolean> {
+  const { data, error } = await getServiceClient()
+    .from("appointments")
+    .update({
+      status: change.status,
+      ...(change.payment && {
+        payment_method: change.payment.method,
+        fee_percent: change.payment.feePercent,
+        total: change.payment.total,
+      }),
+      ...(change.completedAt && { completed_at: change.completedAt }),
+      ...(change.cancelledAt && { cancelled_at: change.cancelledAt }),
+    })
+    .eq("id", id)
+    .eq("status", fromStatus)
+    .select("id");
+  if (error) {
+    throw error;
+  }
+  return data.length > 0;
+}

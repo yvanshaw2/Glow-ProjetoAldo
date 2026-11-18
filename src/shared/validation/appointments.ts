@@ -146,3 +146,13 @@ export const bookingFormSchema = z.looseObject({
   time: z.string({ error: TIME_MESSAGE }).min(1, { error: TIME_MESSAGE }),
   paymentMethod: paymentMethodSchema,
 });
+
+// UC12 FA01: the completion confirms or changes the payment method; the total
+// and the dates are worked out by the server (RS013).
+export const appointmentCompleteSchema = z.object({
+  paymentMethod: paymentMethodSchema,
+});
+
+export type AppointmentCompleteInput = z.output<
+  typeof appointmentCompleteSchema
+>;

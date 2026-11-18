@@ -1,9 +1,11 @@
 import "server-only";
 import {
+  changeAppointmentStatus,
   findAdminAppointment,
   insertAppointment,
   listAdminAppointments,
   type AppointmentFilters,
+  type StatusChange,
 } from "@/server/repositories/appointments";
 import {
   findBookableOrderServices,
@@ -15,11 +17,16 @@ import { listClientOptions } from "@/server/repositories/clients";
 import { listPaymentFees } from "@/server/repositories/payment-fees";
 import { findVehicle, isVehicleOfClient } from "@/server/repositories/vehicles";
 import { findBookingErrors } from "@/server/rules/appointment-booking";
+import { describeInvalidStatus } from "@/server/rules/appointment-editing";
 import { listPaymentOptions, priceServices } from "@/server/rules/pricing";
 import {
   calculateEstimatedDuration,
   calculateEstimatedEnd,
 } from "@/server/rules/scheduling";
+import {
+  findNextStatus,
+  type AppointmentAction,
+} from "@/server/rules/status-transitions";
 import { getClient } from "@/server/services/clients";
 import { listClientVehicles } from "@/server/services/vehicles";
 import type {
@@ -31,6 +38,7 @@ import type {
 } from "@/shared/api/appointments";
 import type { ClientVehicle } from "@/shared/api/vehicles";
 import { APPOINTMENT_VIEW_STATUSES } from "@/shared/constants/appointment-views";
+import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import type { PaymentMethod } from "@/shared/constants/payment-methods";
 import { COMPANY_TIME_ZONE } from "@/shared/constants/time-zone";
 import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
@@ -281,4 +289,86 @@ export async function createAppointment(
     throw new AppError("NOT_FOUND");
   }
   return getAppointment(id);
+}
+
+// UC12 FE01: the transition is refused with the current status.
+function refuseStatus(status: AppointmentStatus): never {
+  throw new AppError("INVALID_STATUS", {
+    message: describeInvalidStatus(status),
+  });
+}
+
+// RN017 to RN019: the staff moves the appointment along the table of
+// status-transitions.ts. The write holds only if the status is still the one
+// read (changeAppointmentStatus); otherwise the new status is read for the
+// message.
+async function changeStatus(
+  id: string,
+  action: AppointmentAction,
+  buildChange: (
+    appointment: AdminAppointment,
+    status: AppointmentStatus,
+  ) => StatusChange,
+): Promise<AdminAppointment> {
+  const appointment = await getAppointment(id);
+  const nextStatus = findNextStatus({
+    action,
+    status: appointment.status,
+    actor: "staff",
+  });
+  if (nextStatus === null) {
+    refuseStatus(appointment.status);
+  }
+  const isChanged = await changeAppointmentStatus(
+    id,
+    appointment.status,
+    buildChange(appointment, nextStatus),
+  );
+  if (!isChanged) {
+    refuseStatus((await getAppointment(id)).status);
+  }
+  return getAppointment(id);
+}
+
+// UC12 steps 2 to 5.
+export function advanceAppointment(id: string): Promise<AdminAppointment> {
+  return changeStatus(id, "advance", (_, status) => ({ status }));
+}
+
+// UC12 FA02, RN019.
+export function cancelAppointment(
+  id: string,
+  now: Date,
+): Promise<AdminAppointment> {
+  return changeStatus(id, "cancel", (_, status) => ({
+    status,
+    cancelledAt: now.toISOString(),
+  }));
+}
+
+// UC12 FA01, RN018: the method of the appointment keeps the percent and the
+// total recorded in it; another one takes the percent of today over the
+// subtotal (listPaymentOptions, the totals the dialog showed).
+export function completeAppointment(
+  id: string,
+  paymentMethod: PaymentMethod,
+  now: Date,
+): Promise<AdminAppointment> {
+  return changeStatus(id, "complete", (appointment, status) => {
+    const option = appointment.paymentOptions?.find(
+      (item) => item.paymentMethod === paymentMethod,
+    );
+    if (!option) {
+      throw new Error("The appointment has no payment options.");
+    }
+    return {
+      status,
+      payment: {
+        method: paymentMethod,
+        feePercent: option.feePercent,
+        total: option.total,
+      },
+      completedAt: now.toISOString(),
+    };
+  });
 }
