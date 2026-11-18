@@ -1,9 +1,15 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheckIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useWatch,
+  type Resolver,
+} from "react-hook-form";
 import { BookingAddVehicle } from "@/components/portal/appointments/booking-add-vehicle";
 import { BookingPaymentStep } from "@/components/shared/booking-payment-step";
 import { BookingScheduleStep } from "@/components/shared/booking-schedule-step";
@@ -30,12 +36,12 @@ import {
   formatTime,
   toCompanyInstant,
 } from "@/shared/format/date";
+import { portalBookingFormSchema } from "@/shared/validation/appointments";
 
 // UC06 (docs/agendamento/agendar-servico.md): the booking in four steps, one
 // form for all of them (RNF002), with the summary of the order beside it. The
 // values come from the preview of the API, never from a sum of the screen.
-// With the demo data the form has no validation schema yet (decision 0055):
-// "Próximo" only checks that the choice of the step was made.
+// The schema checks the choice of each step ("Próximo") and gives its message.
 
 const APPOINTMENTS_PATH = "/api/me/appointments";
 const PREVIEW_PATH = "/api/me/appointments/preview";
@@ -59,6 +65,17 @@ const STEPS: FormStep<BookingFormValues>[] = [
   { title: "Data e horário", fields: ["date", "time"] },
   { title: "Pagamento e resumo", fields: ["paymentMethod"] },
 ];
+
+// The fields of the body of the API in the fields of the form: the instant is
+// the date and the time, which the message of the date step covers.
+const FORM_FIELDS: Record<string, string> = {
+  vehicleId: "vehicle",
+  scheduledAt: "date",
+};
+
+function toFormField(field: string): string {
+  return FORM_FIELDS[field] ?? field;
+}
 
 // The body of POST /api/me/appointments/preview; the fields not chosen yet
 // are left out.
@@ -136,10 +153,16 @@ export function BookingWizard(props: BookingWizardProps = {}) {
   // The choice of a step checks it again, so its message leaves as soon as
   // it is made (RNF003).
   const form = useForm<BookingFormValues>({
+    resolver: zodResolver(
+      portalBookingFormSchema,
+    ) as unknown as Resolver<BookingFormValues>,
     defaultValues: initialValues(record, mode === "edit"),
     mode: "onChange",
   });
-  const { failure, showFailure, clearFailure } = useFormFailure(form.setError);
+  const { failure, showFailure, clearFailure } = useFormFailure(
+    form.setError,
+    toFormField,
+  );
   const [confirmedAppointment, setConfirmedAppointment] =
     useState<ClientAppointment | null>(null);
   const [vehicle, serviceIds, additionalIds, date, time, paymentMethod] =

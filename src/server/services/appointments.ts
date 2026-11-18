@@ -46,6 +46,7 @@ import type {
   AdminClientOption,
   AppointmentPreview,
   BookableService,
+  ClientAppointment,
 } from "@/shared/api/appointments";
 import type { ClientVehicle } from "@/shared/api/vehicles";
 import { APPOINTMENT_VIEW_STATUSES } from "@/shared/constants/appointment-views";
@@ -61,6 +62,7 @@ import type {
   AppointmentInput,
   AppointmentPreviewInput,
   AppointmentRescheduleInput,
+  MyAppointmentInput,
 } from "@/shared/validation/appointments";
 
 // Module appointments (docs/agendamento/): the appointments in the panel
@@ -236,25 +238,16 @@ export async function previewAppointment({
   };
 }
 
-// UC11 steps 7 and 8: the staff registers the appointment of a client. The
-// client and the vehicle are checked first (RN003, RN030), then the services
-// and the date (RN005, RN006, RN013, RN015), and the values are worked out
-// here, never read from the request (RS013). The status is scheduled.
-export async function createAppointment(
+// The order of a vehicle already checked as the client's (RN003): the
+// services and the date are checked (RN005, RN006, RN013, RN015), the values
+// are worked out here, never read from the request (RS013), and the
+// appointment is written scheduled. staffId is null when the client booked.
+async function registerOrder(
   input: AppointmentInput,
-  staffId: string,
+  vehicleSize: VehicleSize,
+  staffId: string | null,
   now: Date,
-): Promise<AdminAppointment> {
-  await getClient(input.clientId);
-  const vehicle = await findVehicle(input.vehicleId);
-  if (
-    vehicle === null ||
-    !(await isVehicleOfClient(input.clientId, input.vehicleId))
-  ) {
-    throw new AppError("VALIDATION_ERROR", {
-      fields: { vehicleId: NOT_YOUR_VEHICLE_MESSAGE },
-    });
-  }
+): Promise<string> {
   const services = await findOrderServices(input.serviceIds);
   const businessHours = await listBusinessHours();
   const startsAt = new Date(input.scheduledAt);
@@ -270,7 +263,7 @@ export async function createAppointment(
     throw new AppError("VALIDATION_ERROR", { fields });
   }
   const feePercent = await findFeePercent(input.paymentMethod);
-  const order = workOutOrder(services, vehicle.size, feePercent);
+  const order = workOutOrder(services, vehicleSize, feePercent);
   const estimatedEnd = calculateEstimatedEnd({
     startsAt,
     durationMinutes: order.durationMinutes,
@@ -297,11 +290,94 @@ export async function createAppointment(
       durationMinutes,
     })),
   });
-  // The client or the link was removed since the checks above.
+  // The client or the link was removed since the checks.
   if (id === null) {
     throw new AppError("NOT_FOUND");
   }
-  return getAppointment(id);
+  return id;
+}
+
+// UC11 steps 7 and 8: the staff registers the appointment of a client. The
+// client and the vehicle are checked first (RN003, RN030).
+export async function createAppointment(
+  input: AppointmentInput,
+  staffId: string,
+  now: Date,
+): Promise<AdminAppointment> {
+  await getClient(input.clientId);
+  const vehicle = await findVehicle(input.vehicleId);
+  if (
+    vehicle === null ||
+    !(await isVehicleOfClient(input.clientId, input.vehicleId))
+  ) {
+    throw new AppError("VALIDATION_ERROR", {
+      fields: { vehicleId: NOT_YOUR_VEHICLE_MESSAGE },
+    });
+  }
+  return getAppointment(await registerOrder(input, vehicle.size, staffId, now));
+}
+
+// RS009: a vehicle that is not in the account of the client is answered as
+// one that does not exist, so nothing is told about the vehicles of others.
+async function findMyVehicle(clientId: string, vehicleId: string) {
+  const vehicle = await findVehicle(vehicleId);
+  if (vehicle === null || !(await isVehicleOfClient(clientId, vehicleId))) {
+    throw new AppError("NOT_FOUND");
+  }
+  return vehicle;
+}
+
+// UC06 step 4, RN009: the services with the prices of the size of the
+// client's vehicle.
+export async function lookUpMyServices(
+  clientId: string,
+  vehicleId: string,
+  page: number,
+  pageSize: number,
+): Promise<{ services: BookableService[]; total: number }> {
+  const vehicle = await findMyVehicle(clientId, vehicleId);
+  return listBookableServices(vehicle.size, page, pageSize);
+}
+
+// UC06 steps 6, 8 and 11: only works out, for the client's vehicle.
+export async function previewMyAppointment(
+  clientId: string,
+  input: AppointmentPreviewInput,
+): Promise<AppointmentPreview> {
+  await findMyVehicle(clientId, input.vehicleId);
+  return previewAppointment(input);
+}
+
+// UC06 steps 12 and 13: the client of the session books for a vehicle of the
+// account (RN003, RS009); no staff member is recorded. The answer has the
+// shape of the detail of the client, without the panel's fields.
+export async function createMyAppointment(
+  clientId: string,
+  input: MyAppointmentInput,
+  now: Date,
+): Promise<ClientAppointment> {
+  const vehicle = await findMyVehicle(clientId, input.vehicleId);
+  const id = await registerOrder(
+    { ...input, clientId },
+    vehicle.size,
+    null,
+    now,
+  );
+  const created = await getAppointment(id);
+  return {
+    id: created.id,
+    status: created.status,
+    scheduledAt: created.scheduledAt,
+    estimatedEndAt: created.estimatedEndAt,
+    estimatedDurationMinutes: created.estimatedDurationMinutes,
+    paymentMethod: created.paymentMethod,
+    subtotal: created.subtotal,
+    feePercent: created.feePercent,
+    total: created.total,
+    vehicle: created.vehicle,
+    services: created.services,
+    updatedAt: created.updatedAt,
+  };
 }
 
 // UC12 FE01: the transition is refused with the current status.

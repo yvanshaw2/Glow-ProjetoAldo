@@ -40,8 +40,8 @@ tags:
       Clientes do painel, com a permissão clients (docs/clientes/rotas.md).
   - name: client-area
     description: >-
-      Conta e veículos do cliente, só sobre os dados do cliente da sessão
-      (docs/clientes/rotas.md).
+      Conta, veículos e agendamento do cliente, só sobre os dados do cliente da
+      sessão (docs/clientes/rotas.md, docs/agendamento/rotas.md).
   - name: appointments
     description: >-
       Agendamentos do painel, com a permissão appointments
@@ -1494,6 +1494,139 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/bookable-services:
+    get:
+      tags:
+        - client-area
+      operationId: listMyBookableServices
+      summary: Lista os serviços para agendar, com o preço do porte do veículo
+      description: >-
+        Serviços principais e complementares ativos e de categoria ativa, por
+        nome, 12 por página, com o preço do porte do veículo ou o fixo e, no
+        principal, os adicionais ativos vinculados (UC06 passo 4, RN006, RN008,
+        RN009, RN031). O veículo que não está na conta do cliente responde o
+        mesmo 404 do que não existe (RS009).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 12
+      responses:
+        "200":
+          description: Página de serviços.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookableServicePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/appointments/preview:
+    post:
+      tags:
+        - client-area
+      operationId: previewMyAppointment
+      summary: Calcula os valores de um agendamento do cliente, sem gravar
+      description: >-
+        Pelo catálogo vigente: os serviços que podem ser agendados ficam, os
+        outros saem. A data, o horário e a composição só são conferidos no
+        registro. appointmentId identifica a edição e não muda o cálculo (UC06
+        passos 6, 8 e 11, RN010, RN012, RN014, RN034). O veículo que não está
+        na conta do cliente responde 404 (RS009).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentPreviewInput"
+      responses:
+        "200":
+          description: Valores calculados.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentPreview"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/appointments:
+    post:
+      tags:
+        - client-area
+      operationId: createMyAppointment
+      summary: Agenda um serviço para o cliente da sessão
+      description: >-
+        O cliente é o da sessão, e o veículo precisa ser da conta dele (UC06,
+        RN003, RS009). O servidor calcula os valores pelo catálogo vigente,
+        confere a composição e a data (RN005, RN006, RN013, RN015) e grava o
+        agendamento scheduled, a cópia dos dados e os serviços numa transação
+        (RN037, RNF010). Não há controle de capacidade (RN016).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MyAppointmentInput"
+      responses:
+        "201":
+          description: Agendamento registrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "413":
           $ref: "#/components/responses/PayloadTooLarge"
         "415":
@@ -4242,6 +4375,117 @@ components:
             - type: array
               items:
                 $ref: "#/components/schemas/PaymentOption"
+    ClientAppointment:
+      type: object
+      description: O agendamento do cliente, com os dados copiados nele (RN037).
+      required:
+        - id
+        - status
+        - scheduledAt
+        - estimatedEndAt
+        - estimatedDurationMinutes
+        - paymentMethod
+        - subtotal
+        - feePercent
+        - total
+        - vehicle
+        - services
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AppointmentStatus"
+        scheduledAt:
+          type: string
+          format: date-time
+        estimatedEndAt:
+          type: string
+          format: date-time
+        estimatedDurationMinutes:
+          type: integer
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        subtotal:
+          type: number
+        feePercent:
+          type: number
+          description: Positivo para acréscimo, negativo para desconto.
+        total:
+          type: number
+        vehicle:
+          type: object
+          description: O veículo como era no agendamento (RN037).
+          required:
+            - id
+            - plate
+            - type
+            - size
+            - brand
+            - model
+            - color
+            - year
+          properties:
+            id:
+              type: string
+              format: uuid
+            plate:
+              type: string
+            type:
+              $ref: "#/components/schemas/VehicleType"
+            size:
+              type: string
+              enum:
+                - small
+                - medium
+                - large
+                - extra_large
+            brand:
+              type: string
+            model:
+              type: string
+            color:
+              type: string
+            year:
+              type: integer
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppointmentService"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão do agendamento (RNF011).
+    MyAppointmentInput:
+      type: object
+      description: >-
+        O cliente é o da sessão; clientId e os valores calculados pelo sistema
+        (preços, total, status, previsão e cópias) não são aceitos e são
+        descartados.
+      required:
+        - vehicleId
+        - serviceIds
+        - paymentMethod
+        - scheduledAt
+      properties:
+        vehicleId:
+          type: string
+          format: uuid
+        serviceIds:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        scheduledAt:
+          type: string
+          format: date-time
+          description: Instante com fuso, como 2026-11-03T09:00:00-03:00.
     ProblemDetails:
       type: object
       required:

@@ -9,6 +9,8 @@ import {
   appointmentPreviewSchema,
   bookingFormSchema,
   clientLookupQuerySchema,
+  myAppointmentInputSchema,
+  portalBookingFormSchema,
   serviceLookupQuerySchema,
   vehicleLookupQuerySchema,
 } from "@/shared/validation/appointments";
@@ -287,6 +289,50 @@ describe("appointmentInputSchema", () => {
   });
 });
 
+describe("myAppointmentInputSchema", () => {
+  const ORDER = {
+    vehicleId: VALID_ORDER.vehicleId,
+    serviceIds: VALID_ORDER.serviceIds,
+    paymentMethod: VALID_ORDER.paymentMethod,
+    scheduledAt: VALID_ORDER.scheduledAt,
+  };
+
+  it("accepts an order without the client", () => {
+    expect(myAppointmentInputSchema.parse(ORDER)).toEqual(ORDER);
+  });
+
+  it("discards the client, the staff, the total and the status (RS009, RS013)", () => {
+    expect(
+      myAppointmentInputSchema.parse({
+        ...ORDER,
+        clientId: CLIENT_ID,
+        staffId: CLIENT_ID,
+        total: 1,
+        status: "completed",
+      }),
+    ).toEqual(ORDER);
+  });
+
+  it("requires every field, each with its message", () => {
+    expect(issues(myAppointmentInputSchema, {})).toEqual({
+      vehicleId: VEHICLE_CHOICE,
+      serviceIds: SERVICES_COUNT,
+      paymentMethod: PAYMENT_CHOICE,
+      scheduledAt: DATE_CHOICE,
+    });
+  });
+
+  it("rejects a repeated service and an instant without an offset", () => {
+    expect(
+      issues(myAppointmentInputSchema, {
+        ...ORDER,
+        serviceIds: [SERVICE_A, SERVICE_A],
+        scheduledAt: "2026-11-03T09:00:00",
+      }),
+    ).toEqual({ serviceIds: SERVICES_COUNT, scheduledAt: DATE_CHOICE });
+  });
+});
+
 describe("appointmentPreviewSchema", () => {
   it("accepts a preview without the payment method and the date", () => {
     expect(
@@ -349,6 +395,52 @@ describe("bookingFormSchema", () => {
       date: "Escolha a data.",
       time: "Escolha o horário.",
       paymentMethod: "Escolha a forma de pagamento.",
+    });
+  });
+});
+
+describe("portalBookingFormSchema", () => {
+  const values = {
+    vehicle: { id: VEHICLE_ID },
+    serviceIds: [SERVICE_A],
+    additionalIds: [],
+    date: "2026-11-03",
+    time: "09:00",
+    paymentMethod: "pix",
+  };
+
+  it("accepts the form of the portal, which has no client", () => {
+    expect(portalBookingFormSchema.parse(values)).toEqual(values);
+  });
+
+  it("asks for each choice with the message of its step", () => {
+    expect(
+      issues(portalBookingFormSchema, {
+        vehicle: null,
+        serviceIds: [],
+        additionalIds: [],
+        date: null,
+        time: null,
+        paymentMethod: null,
+      }),
+    ).toEqual({
+      vehicle: "Escolha o veículo.",
+      serviceIds: "Escolha ao menos um serviço principal ou complementar.",
+      date: "Escolha a data.",
+      time: "Escolha o horário.",
+      paymentMethod: "Escolha a forma de pagamento.",
+    });
+  });
+
+  it("does not take an additional alone as a service (RN005)", () => {
+    expect(
+      issues(portalBookingFormSchema, {
+        ...values,
+        serviceIds: [],
+        additionalIds: [SERVICE_A],
+      }),
+    ).toEqual({
+      serviceIds: "Escolha ao menos um serviço principal ou complementar.",
     });
   });
 });

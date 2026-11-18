@@ -9,7 +9,7 @@ relacionados: [UC05, UC06, UC25, UC26, RF019, RF020, RF021, RF022, RF023, RF024,
 
 Etapas, campos e textos de `/booking`, do [UC06](UC06-agendar-servico.md), e do assistente de edição e reagendamento em `/appointments` (UC26, UC25). Cabeçalho: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); formulário em etapas, listagem e aviso de demonstração: [../padroes/componentes.md](../padroes/componentes.md).
 
-Enquanto as rotas `/api/me/bookable-services` e `/api/me/appointments` usarem os dados de demonstração, o aviso fica logo abaixo do título da página. Os valores, a duração e a previsão vêm sempre da prévia (`POST /api/me/appointments/preview`, [rotas.md](rotas.md)); a tela não soma nem calcula.
+As rotas do assistente são reais; o aviso de demonstração fica só em `/appointments`, enquanto a listagem, o detalhe, a edição, o cancelamento e o reagendamento forem de demonstração. Os valores, a duração e a previsão vêm sempre da prévia (`POST /api/me/appointments/preview`, [rotas.md](rotas.md)); a tela não soma nem calcula.
 
 ## Página
 
@@ -55,7 +55,7 @@ A data é escolhida num calendário do mês, com os dias como botões de opção
 - Legenda "Forma de pagamento", com "Crédito", "Débito", "Pix" e "Dinheiro", e a descrição "O pagamento é feito na empresa, no dia do atendimento." ([RN011](RN011-formas-de-pagamento.md)).
 - "Total", logo acima dos botões, para quem está no celular não confirmar sem vê-lo.
 - Sem escolha: "Escolha a forma de pagamento.".
-- Botão "Confirmar agendamento" ("Agendando…"). A falha, como o `NOT_IMPLEMENTED` da demonstração ou a data recusada (FE03), aparece no topo do formulário.
+- Botão "Confirmar agendamento" ("Agendando…"). A falha, como a data recusada (FE03), aparece no topo do formulário.
 
 ## Resumo do pedido
 
@@ -70,7 +70,7 @@ Título "Agendamento confirmado", texto "O seu agendamento para <data> às <hora
 
 ## Edição e reagendamento
 
-As ações do [detalhe de `/appointments`](meus-agendamentos.md) abrem o mesmo assistente numa janela sobre ele: "Editar agendamento" ou "Reagendar serviço". "Cancelar" na primeira etapa ou Esc voltam ao detalhe; a janela não fecha durante o envio. No celular, fica ancorada embaixo, com rolagem interna até 90% da altura. O aviso de demonstração continua sendo o da página.
+As ações do [detalhe de `/appointments`](meus-agendamentos.md) abrem o mesmo assistente numa janela sobre ele: "Editar agendamento" ou "Reagendar serviço". "Cancelar" na primeira etapa ou Esc voltam ao detalhe; a janela não fecha durante o envio. No celular, fica ancorada embaixo, com rolagem interna até 90% da altura. O aviso de demonstração continua sendo o da página. Enquanto `/appointments` usar os dados de demonstração, a prévia real recusa o veículo da demonstração (404) e a janela mostra a falha com "Tentar novamente".
 
 - **Edição (UC26):** as quatro etapas vêm preenchidas com veículo, serviços e adicionais, data, horário e pagamento do registro. O cadastro de veículo não é oferecido, para não abrir uma terceira janela. O calendário abre no mês do agendamento; manter o instante original é permitido mesmo se já passou ou a disponibilidade mudou (RN033). Ele continua selecionável ao navegar entre meses. As outras opções respeitam o funcionamento atual e precisam ser futuras e posteriores ao original. A prévia recebe `appointmentId`; o envio leva `updatedAt` sem conversão. Botão "Salvar alterações" ("Salvando…").
 - **Reagendamento (UC25):** só "Data e horário" e "Pagamento e resumo", com essas escolhas vazias. Veículo e serviços do original ficam fixos; valores e duração vêm da prévia pelo catálogo atual (RN020). Botão "Confirmar reagendamento" ("Reagendando…"). O envio leva somente pagamento e instante. Enquanto a prévia não responde, ou se ela falha, "Confirmar reagendamento" fica indisponível; as escolhas continuam habilitadas, e o resumo mostra o carregamento ou a falha com "Tentar novamente".
