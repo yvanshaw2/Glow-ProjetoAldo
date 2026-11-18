@@ -38,6 +38,10 @@ tags:
   - name: clients
     description: >-
       Clientes do painel, com a permissão clients (docs/clientes/rotas.md).
+  - name: client-area
+    description: >-
+      Conta e veículos do cliente, só sobre os dados do cliente da sessão
+      (docs/clientes/rotas.md).
   - name: appointments
     description: >-
       Agendamentos do painel, com a permissão appointments
@@ -1238,6 +1242,258 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/VersionConflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/profile:
+    get:
+      tags:
+        - client-area
+      operationId: getProfile
+      summary: Dados da conta do cliente
+      description: >-
+        Os dados da conta do cliente da sessão (UC04, RF012). O identificador
+        vem sempre da sessão, nunca da requisição (RS009).
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: A conta do cliente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientProfile"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    patch:
+      tags:
+        - client-area
+      operationId: updateProfile
+      summary: Altera os dados da conta do cliente
+      description: >-
+        Altera só os campos enviados, ao menos um (UC04, RF013); o e-mail não
+        muda. A gravação só acontece se a conta ainda tiver o updatedAt
+        enviado (RNF011, decisão 0009).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateInput"
+      responses:
+        "200":
+          description: Conta atualizada, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientProfile"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/vehicles:
+    get:
+      tags:
+        - client-area
+      operationId: listMyVehicles
+      summary: Lista os veículos da conta do cliente
+      description: >-
+        Veículos vinculados à conta do cliente da sessão, 10 por página, na
+        ordem dos vínculos e, no empate, pelo identificador do veículo (UC05,
+        RF017). isShared indica o veículo também vinculado a outra conta, que
+        o cliente não edita (RN036).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        "200":
+          description: Página de veículos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehiclePage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - client-area
+      operationId: addMyVehicle
+      summary: Cadastra ou vincula um veículo à conta do cliente
+      description: >-
+        Com a placa já cadastrada, vincula o veículo existente sem alterá-lo e
+        sem criar outro; os demais campos são ignorados (UC05 FA01, RN036).
+        Com a placa nova, os cinco dados são obrigatórios; o veículo e o
+        vínculo são gravados numa só transação, e o porte vem do tipo (RF016,
+        RN002).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleInput"
+      responses:
+        "201":
+          description: Veículo cadastrado ou vinculado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehicle"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            VEHICLE_ALREADY_LINKED: o veículo já está na conta do cliente
+            (RN036, UC05 FE02).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/vehicles/lookup:
+    get:
+      tags:
+        - client-area
+      operationId: lookUpMyVehicle
+      summary: Consulta uma placa
+      description: >-
+        Devolve o tipo, a marca, o modelo, a cor e o ano do veículo, se a placa
+        já estiver cadastrada, ou null; nunca devolve dados de clientes (UC05,
+        RN036). A placa vale com ou sem hífen, em qualquer caixa (RN035).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: plate
+          in: query
+          required: true
+          schema:
+            type: string
+            examples:
+              - ABC-1234
+      responses:
+        "200":
+          description: O veículo da placa, ou null.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/VehicleLookup"
+                  - type: "null"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/vehicles/{id}:
+    patch:
+      tags:
+        - client-area
+      operationId: updateMyVehicle
+      summary: Edita um veículo da conta do cliente
+      description: >-
+        Altera só os campos enviados, ao menos um (UC05 FA02, RF018). O porte
+        é redefinido pelo tipo (RN002), e os agendamentos já registrados não
+        mudam (RN037). O veículo que não está na conta do cliente responde o
+        mesmo 404 do que não existe (RS009), e o vinculado também a outra
+        conta não é editado pelo cliente (RN036). A gravação só acontece se o
+        veículo ainda tiver o updatedAt enviado (RNF011, decisão 0009).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleUpdateInput"
+      responses:
+        "200":
+          description: Veículo atualizado, com o novo updatedAt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientVehicle"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            VEHICLE_SHARED: o veículo também está vinculado a outra conta, e só
+            a empresa altera os dados (RN036, UC05 FE03); PLATE_IN_USE: a placa
+            pertence a outro veículo (RN036, UC05 FE04); ou VERSION_CONFLICT:
+            o veículo foi alterado depois da leitura (RNF011).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "413":
           $ref: "#/components/responses/PayloadTooLarge"
         "415":
@@ -3406,6 +3662,40 @@ components:
           type: string
           format: date-time
           description: O updatedAt lido com o funcionário.
+    ClientProfile:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - phone
+        - updatedAt
+      description: >-
+        A conta do cliente da sessão: os campos de AdminClient, sem o id, que
+        vem sempre da sessão (RS009).
+      properties:
+        firstName:
+          type: string
+          examples:
+            - Maria
+        lastName:
+          type: string
+          examples:
+            - Souza
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          description: Os 11 algarismos do celular, sem máscara.
+          examples:
+            - "82999998888"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Versão da conta (RNF011); volta no PATCH como veio.
+          examples:
+            - "2026-10-25T13:45:12.345678+00:00"
     AdminClient:
       type: object
       required:
@@ -4298,6 +4588,15 @@ components:
       description: >-
         UNAUTHENTICATED: sem sessão, sessão expirada ou encerrada, ou conta
         excluída ou sem perfil.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    ClientForbidden:
+      description: >-
+        FORBIDDEN: a sessão não é de cliente (RS009) ou, nas gravações, origem
+        recusada (RS014). PASSWORD_CHANGE_REQUIRED: senha inicial pendente de
+        troca (RS004).
       content:
         application/problem+json:
           schema:
