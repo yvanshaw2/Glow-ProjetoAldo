@@ -61,3 +61,7 @@ Além do texto da L2, o passo 5 do UC27 passou a citar "os valores do sistema a 
 ## 2026-11-18 – decisão: instruções ao modelo sem menção a demonstração
 
 Orientação do Yvan: as instruções enviadas ao modelo (a mensagem de sistema, constante no código, no PR 2 e no PR 6) não mencionam dados fictícios, demonstração, teste nem projeto acadêmico, e também não ganham uma regra do tipo "os dados são reais": só não tocam no assunto. Nada muda em `docs/`; o modelo nunca lê os arquivos `.md`, só a mensagem de sistema e a entrada em JSON. Conferir no PR 2 e no PR 6.
+
+## 2026-11-18 – descoberta: correção sobre a data de criação do agendamento
+
+A entrada "dados disponíveis para a análise detalhada" disse que `appointments` não tem coluna de criação. Errado: a tabela tem `created_at` (migration inicial), não listada em `docs/agendamento/dados.md` porque o arquivo diz que "toda tabela tem `created_at`". O `seed-demo.sql` já a preenche de 1 a 6 dias antes da data marcada. A antecedência do agendamento é calculável; o plano a lista em "Fora do escopo" por esse engano, e incluí-la em RN040 pede a aprovação do Yvan.
