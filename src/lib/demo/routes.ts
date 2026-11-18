@@ -25,26 +25,6 @@ export type DemoRoute = {
 };
 
 export const DEMO_ROUTES: readonly DemoRoute[] = [
-  // docs/agendamento/rotas.md, built in phase 3.
-  {
-    method: "GET",
-    path: "/api/me/appointments",
-    load: () =>
-      import("@/lib/demo/appointments").then(
-        (appointments) => appointments.answerAppointments,
-      ),
-  },
-  {
-    method: "GET",
-    path: "/api/me/appointments/:id",
-    load: () =>
-      import("@/lib/demo/appointments").then(
-        (appointments) => appointments.answerAppointment,
-      ),
-  },
-  { method: "POST", path: "/api/me/appointments/:id/cancel" },
-  { method: "PATCH", path: "/api/me/appointments/:id" },
-  { method: "POST", path: "/api/me/appointments/:id/reschedule" },
   // docs/agendamento/rotas.md, built by #66; the analysis is a POST that
   // writes nothing.
   {
