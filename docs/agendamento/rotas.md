@@ -50,36 +50,36 @@ Registra o agendamento (UC06).
 
 Lista os agendamentos (UC07).
 
-- Entrada: `scope*`: `current` (Agendado, Em espera, Em execução e Finalizado, da data mais próxima à mais distante) ou `history` (Concluído, Cancelado e Reagendado, da data mais recente à mais antiga).
-- Resposta: **200** lista paginada de `id`, `status`, `scheduledAt`, `estimatedEndAt`, `vehicle` (`plate`, `brand`, `model` e `color`), `services` (`id` e `name`) e `total`, com os dados copiados no agendamento (RN037).
+- Entrada: `scope*`: `current` (Agendado, Em espera, Em execução e Finalizado, da data mais próxima à mais distante) ou `history` (Concluído, Cancelado e Reagendado, da data mais recente à mais antiga); `page`, `pageSize` (10 por página).
+- Resposta: **200** lista paginada de `id`, `status`, `scheduledAt`, `estimatedEndAt`, `vehicle` (`plate`, `brand`, `model` e `color`), `services` (`id` e `name`) e `total`, com os dados copiados no agendamento (RN037); 400 com `scope` em `fields` quando falta ou não é um dos dois. Dois agendamentos no mesmo instante saem pelo identificador, e a ordem se mantém de uma página à outra. Só os agendamentos do cliente da sessão vêm (RS009).
 
 #### `GET /api/me/appointments/:id`
 
 Detalha um agendamento do cliente.
 
 - Entrada: Nenhuma.
-- Resposta: **200** `id`, `status`, `scheduledAt`, `estimatedEndAt`, `estimatedDurationMinutes`, `paymentMethod`, `subtotal`, `feePercent`, `total`, `vehicle` (`id`, `plate`, `type`, `size`, `brand`, `model`, `color` e `year`), `services` (`id`, `name`, `type`, `price` e `durationMinutes`) e `updatedAt`, com os dados copiados no agendamento (RN037).
+- Resposta: **200** `id`, `status`, `scheduledAt`, `estimatedEndAt`, `estimatedDurationMinutes`, `paymentMethod`, `subtotal`, `feePercent`, `total`, `vehicle` (`id`, `plate`, `type`, `size`, `brand`, `model`, `color` e `year`), `services` (`id`, `name`, `type`, `price` e `durationMinutes`) e `updatedAt`, com os dados copiados no agendamento (RN037); 404 se o agendamento não existe ou não é do cliente (RS009).
 
 #### `PATCH /api/me/appointments/:id`
 
 Edita um agendamento com o status `scheduled` (UC26).
 
-- Entrada: `vehicleId, serviceIds, paymentMethod, scheduledAt`
-- Resposta: **200** agendamento atualizado, com os valores e a previsão de conclusão recalculados; 400 data, horário ou serviços inválidos, ou nova data anterior à marcada; 409 `INVALID_STATUS` se não estiver agendado.
+- Entrada: `updatedAt*` (a versão lida, devolvida como veio); `vehicleId, serviceIds` (de 1 a 20 ids, sem repetição), `paymentMethod, scheduledAt` (instante com fuso), ao menos um deles; só o que vem é conferido, e o valor igual ao gravado não conta como mudança. Status, valores, cliente e datas de status não são aceitos (RS013).
+- Resposta: **200** agendamento atualizado, no formato de `GET /api/me/appointments/:id` e com o mesmo status, com os valores e a previsão de conclusão recalculados: a troca de veículo ou de serviços recalcula todos os itens pelo catálogo atual e refaz a cópia do veículo, a troca da forma aplica o percentual vigente, e o que não mudou fica como gravado (RN037); 400 com o campo em `fields`: data ou horário fora do funcionamento, no passado ou anterior ao marcado (`scheduledAt`), serviços sem principal ou complementar, adicional sem o seu principal ou serviço que não pode ser agendado (`serviceIds`); corpo sem nenhum campo além de `updatedAt`, 400; 404 se o agendamento não existe ou não é do cliente, ou se o veículo informado não existe ou não está na conta do cliente (RS009), sem alterar nada; 409 `INVALID_STATUS` se não estiver agendado, com o status atual na mensagem (UC26 FE01), conferido antes da data e da composição; 409 `VERSION_CONFLICT` quando o agendamento mudou depois da leitura.
 
 #### `POST /api/me/appointments/:id/cancel`
 
 Cancela um agendamento.
 
 - Entrada: Nenhuma.
-- Resposta: **200** agendamento cancelado; 409 `INVALID_STATUS` se não estiver agendado.
+- Resposta: **200** agendamento cancelado, no formato de `GET /api/me/appointments/:id`; 404 se o agendamento não existe ou não é do cliente (RS009), sem alterar nada; 409 `INVALID_STATUS` se não estiver agendado, com o status atual na mensagem (UC07 FE02).
 
 #### `POST /api/me/appointments/:id/reschedule`
 
 Reagenda um serviço concluído (UC25).
 
-- Entrada: `paymentMethod*, scheduledAt*`
-- Resposta: **201** novo agendamento, com valores e duração calculados pelo catálogo atual; o original passa a `rescheduled`; 409 `INVALID_STATUS` se não estiver concluído.
+- Entrada: `paymentMethod*, scheduledAt*`. Os serviços são os do agendamento original que ainda podem ser agendados (RN008, RN031); os demais ficam de fora.
+- Resposta: **201** novo agendamento, no formato de `GET /api/me/appointments/:id`, com valores e duração calculados pelo catálogo atual; o original passa a `rescheduled`; 400 com o campo em `fields`: data ou horário fora do funcionamento ou no passado (`scheduledAt`), serviços restantes sem principal ou complementar ou adicional sem o seu principal (`serviceIds`); 404 se o agendamento não existe ou não é do cliente (RS009), ou se o veículo saiu da conta do cliente, sem alterar nada; 409 `INVALID_STATUS` se não estiver concluído, com o status atual na mensagem.
 
 ### Rotas do painel: dashboard
 

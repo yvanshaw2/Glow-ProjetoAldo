@@ -5,13 +5,13 @@ Guard: `requireClient` (o id do cliente vem sempre da sessão). Serviço: `src/s
 | Método | Finalidade |
 |---|---|
 | `POST` | Registra o agendamento (UC06). |
-| `GET` | Lista os agendamentos (UC07), na #108; segue em demonstração. |
+| `GET` | Lista os agendamentos do cliente, atuais ou histórico (UC07). |
 
 Entrada, resposta e erros de cada método: `docs/agendamento/rotas.md`.
 
 ## Vai aqui
 
-- `route.ts`, exportando `POST` (o `GET` entra com a #108)
+- `route.ts`, exportando `GET` e `POST`
 - em cada método: guard, validação com o esquema de `src/shared/validation/`, chamada ao serviço e resposta pelo `src/server/http/`
 
 ## Não vai aqui

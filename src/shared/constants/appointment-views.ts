@@ -1,3 +1,4 @@
+import type { AppointmentScope } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 
 // RF044: the three views of the listing of the panel.
@@ -38,3 +39,11 @@ export const APPOINTMENT_SORT_LABELS = {
   time: "Horário",
   status: "Status",
 } as const satisfies Record<AppointmentSort, string>;
+
+// RF028, RF029: the two lists of the client; each appointment is in one only.
+export const APPOINTMENT_SCOPES = ["current", "history"] as const;
+
+export const APPOINTMENT_SCOPE_STATUSES = {
+  current: OPEN_STATUSES,
+  history: ["completed", "cancelled", "rescheduled"],
+} as const satisfies Record<AppointmentScope, readonly AppointmentStatus[]>;

@@ -5,6 +5,7 @@ import { getServiceClient } from "@/server/supabase/clients";
 import type {
   AdminAppointment,
   AdminAppointmentSummary,
+  ClientAppointmentSummary,
 } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import type { AppointmentSort } from "@/shared/constants/appointment-views";
@@ -95,6 +96,21 @@ export function toAdminAppointmentSummary(
   };
 }
 
+function toClientAppointmentSummary(
+  row: AppointmentRow,
+): ClientAppointmentSummary {
+  const summary = toAdminAppointmentSummary(row);
+  return {
+    id: summary.id,
+    status: summary.status,
+    scheduledAt: summary.scheduledAt,
+    estimatedEndAt: summary.estimatedEndAt,
+    vehicle: { ...summary.vehicle, color: row.vehicle_color },
+    services: summary.services,
+    total: summary.total,
+  };
+}
+
 // The payment options are filled by the service, only for a Finalizado.
 function toAdminAppointment(row: AppointmentRow): AdminAppointment {
   return {
@@ -176,6 +192,35 @@ export async function listAdminAppointments(
   }
   return {
     appointments: data.map(toAdminAppointmentSummary),
+    total: count ?? 0,
+  };
+}
+
+// UC07, RF028, RF029, RS009: the appointments of one client in the statuses
+// of a scope, by time (the history from the latest to the oldest); the id
+// breaks a tie so the pages never repeat or skip an item.
+export async function listClientAppointments(
+  clientId: string,
+  statuses: readonly AppointmentStatus[],
+  latestFirst: boolean,
+  page: number,
+  pageSize: number,
+): Promise<{ appointments: ClientAppointmentSummary[]; total: number }> {
+  const from = (page - 1) * pageSize;
+  const { data, error, count } = await getServiceClient()
+    .from("appointments")
+    .select(APPOINTMENT_COLUMNS, { count: "exact" })
+    .eq("client_id", clientId)
+    .in("status", [...statuses])
+    .order("scheduled_at", { ascending: !latestFirst })
+    .order("id")
+    .range(from, from + pageSize - 1)
+    .returns<AppointmentRow[]>();
+  if (error) {
+    throw error;
+  }
+  return {
+    appointments: data.map(toClientAppointmentSummary),
     total: count ?? 0,
   };
 }

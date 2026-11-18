@@ -13,6 +13,7 @@ import {
   type CompositionService,
 } from "@/server/rules/pricing";
 import type { BusinessDay } from "@/server/rules/scheduling";
+import type { AppointmentActor } from "@/server/rules/status-transitions";
 import {
   APPOINTMENT_STATUS_LABELS,
   type AppointmentStatus,
@@ -26,6 +27,21 @@ import type { PaymentMethod } from "@/shared/constants/payment-methods";
 // UC12 FE01: a refused transition names the current status.
 export function describeInvalidStatus(status: AppointmentStatus): string {
   return `Este agendamento está ${APPOINTMENT_STATUS_LABELS[status]}. Esta ação não está disponível para esse status.`;
+}
+
+// UC07 FE02, UC26 FE01: the refusal for the client names the status and sends
+// it to the company.
+export function describeClientInvalidStatus(
+  action: "cancel" | "edit" | "reschedule",
+  status: AppointmentStatus,
+): string {
+  const name = APPOINTMENT_STATUS_LABELS[status];
+  const messages = {
+    cancel: `Este agendamento está ${name} e não pode ser cancelado pelo portal. Para mudar algo, fale com a empresa.`,
+    edit: `Este agendamento está ${name} e não pode mais ser alterado por aqui. Para mudar algo, fale com a empresa.`,
+    reschedule: `Este agendamento está ${name}. Só um serviço concluído pode ser reagendado.`,
+  };
+  return messages[action];
 }
 
 // UC26 FA01, RN033: what an edit asks to change, compared with what the
@@ -85,13 +101,14 @@ const SCHEDULE_MESSAGES: Record<ScheduleChangeError, string> = {
     "Escolha uma data e um horário que não sejam posteriores ao momento da alteração.",
 };
 
-// RN033: the refusals of an edit by the staff, as the field of the body and
+// RN033: the refusals of an edit by the client or the staff, as the field of the body and
 // its message. A change of the vehicle or of the services prices every service
 // again by the current catalog, so they all must be bookable and make a valid
 // order (RN005, RN006, RN008); otherwise the services are kept as they are,
 // even if the catalog no longer offers them. The date and the time are checked
 // only when they change (findScheduleChangeError).
 export function findEditErrors({
+  actor,
   status,
   current,
   request,
@@ -100,6 +117,7 @@ export function findEditErrors({
   businessHours,
   timeZone,
 }: {
+  actor: AppointmentActor;
   status: AppointmentStatus;
   current: EditCurrent;
   request: EditRequest;
@@ -127,7 +145,7 @@ export function findEditErrors({
   }
   if (changes.schedule && request.scheduledAt) {
     const scheduleError = findScheduleChangeError({
-      actor: "staff",
+      actor,
       status,
       scheduledAt: current.scheduledAt,
       newScheduledAt: request.scheduledAt,

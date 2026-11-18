@@ -1593,6 +1593,56 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
   /api/me/appointments:
+    get:
+      tags:
+        - client-area
+      operationId: listMyAppointments
+      summary: Lista os agendamentos do cliente da sessão
+      description: >-
+        Só os agendamentos do cliente (UC07, RF028, RF029, RS009), com os
+        dados copiados neles (RN037), 10 por página. O escopo current traz
+        Agendado, Em espera, Em execução e Finalizado, da data mais próxima à
+        mais distante; o history traz Concluído, Cancelado e Reagendado, da
+        data mais recente à mais antiga. O identificador desempata.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - current
+              - history
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Até 50; acima disso vale 50.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        "200":
+          description: Página de agendamentos do cliente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointmentPage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
     post:
       tags:
         - client-area
@@ -1627,6 +1677,174 @@ paths:
           $ref: "#/components/responses/ClientForbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/appointments/{id}:
+    get:
+      tags:
+        - client-area
+      operationId: getMyAppointment
+      summary: Detalha um agendamento do cliente
+      description: >-
+        O agendamento com os dados copiados nele (UC07, RN037). O de outro
+        cliente responde 404, como o que não existe (RS009).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Agendamento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointment"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    patch:
+      tags:
+        - client-area
+      operationId: editMyAppointment
+      summary: Edita um agendamento Agendado do cliente
+      description: >-
+        Só no status Agendado, sem mudar o status (UC26, RN032). Só o que vem
+        é conferido, e o valor igual ao gravado não conta como mudança. A
+        troca de veículo ou de serviços recalcula todos os itens pelo
+        catálogo atual; a troca da forma aplica o percentual vigente; a nova
+        data não pode ser anterior à marcada (RN033, RN037). O veículo que
+        não está na conta responde 404 (RS009). updatedAt é a versão lida
+        (RNF011).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentEditInput"
+      responses:
+        "200":
+          description: Agendamento atualizado, com o mesmo status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/appointments/{id}/cancel:
+    post:
+      tags:
+        - client-area
+      operationId: cancelMyAppointment
+      summary: Cancela um agendamento Agendado do cliente
+      description: >-
+        Só do Agendado (UC07 FA01, RN019). Em outro status, 409
+        INVALID_STATUS com o status na mensagem.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Agendamento cancelado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointment"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvalidStatus"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/me/appointments/{id}/reschedule:
+    post:
+      tags:
+        - client-area
+      operationId: rescheduleMyAppointment
+      summary: Reagenda um serviço concluído do cliente
+      description: >-
+        Cria um novo agendamento Agendado para o mesmo veículo e os mesmos
+        serviços, pelo catálogo atual, e passa o original a Reagendado (UC25,
+        RN020). Os serviços que o catálogo não oferece mais ficam de fora
+        (RN008).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentRescheduleInput"
+      responses:
+        "201":
+          description: Novo agendamento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvalidStatus"
         "413":
           $ref: "#/components/responses/PayloadTooLarge"
         "415":
@@ -4375,6 +4593,70 @@ components:
             - type: array
               items:
                 $ref: "#/components/schemas/PaymentOption"
+    ClientAppointmentPage:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientAppointmentSummary"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    ClientAppointmentSummary:
+      type: object
+      required:
+        - id
+        - status
+        - scheduledAt
+        - estimatedEndAt
+        - vehicle
+        - services
+        - total
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AppointmentStatus"
+        scheduledAt:
+          type: string
+          format: date-time
+        estimatedEndAt:
+          type: string
+          format: date-time
+          description: Previsão de conclusão (RN034).
+        vehicle:
+          type: object
+          description: Dados do veículo copiados no agendamento (RN037).
+          required:
+            - plate
+            - brand
+            - model
+            - color
+          properties:
+            plate:
+              type: string
+            brand:
+              type: string
+            model:
+              type: string
+            color:
+              type: string
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppointmentServiceSummary"
+        total:
+          type: number
     ClientAppointment:
       type: object
       description: O agendamento do cliente, com os dados copiados nele (RN037).

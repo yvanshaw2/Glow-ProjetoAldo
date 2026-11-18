@@ -5,6 +5,7 @@ import {
   insertAppointment,
   insertRescheduledAppointment,
   listAdminAppointments,
+  listClientAppointments,
   type AppointmentFilters,
   type NewAppointment,
   type StatusChange,
@@ -21,6 +22,7 @@ import { listPaymentFees } from "@/server/repositories/payment-fees";
 import { findVehicle, isVehicleOfClient } from "@/server/repositories/vehicles";
 import { findBookingErrors } from "@/server/rules/appointment-booking";
 import {
+  describeClientInvalidStatus,
   describeInvalidStatus,
   findEditChanges,
   findEditErrors,
@@ -34,6 +36,7 @@ import {
   calculateEstimatedDuration,
   calculateEstimatedEnd,
 } from "@/server/rules/scheduling";
+import { canEditAppointment } from "@/server/rules/editing";
 import {
   findNextStatus,
   type AppointmentAction,
@@ -47,9 +50,13 @@ import type {
   AppointmentPreview,
   BookableService,
   ClientAppointment,
+  ClientAppointmentSummary,
 } from "@/shared/api/appointments";
 import type { ClientVehicle } from "@/shared/api/vehicles";
-import { APPOINTMENT_VIEW_STATUSES } from "@/shared/constants/appointment-views";
+import {
+  APPOINTMENT_SCOPE_STATUSES,
+  APPOINTMENT_VIEW_STATUSES,
+} from "@/shared/constants/appointment-views";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import type { PaymentMethod } from "@/shared/constants/payment-methods";
 import { COMPANY_TIME_ZONE } from "@/shared/constants/time-zone";
@@ -63,6 +70,7 @@ import type {
   AppointmentPreviewInput,
   AppointmentRescheduleInput,
   MyAppointmentInput,
+  MyAppointmentListQuery,
 } from "@/shared/validation/appointments";
 
 // Module appointments (docs/agendamento/): the appointments in the panel
@@ -363,7 +371,12 @@ export async function createMyAppointment(
     null,
     now,
   );
-  const created = await getAppointment(id);
+  return toClientAppointment(await getAppointment(id));
+}
+
+// The detail of the client: the one of the panel without the client and the
+// payment options.
+function toClientAppointment(created: AdminAppointment): ClientAppointment {
   return {
     id: created.id,
     status: created.status,
@@ -380,10 +393,61 @@ export async function createMyAppointment(
   };
 }
 
-// UC12 FE01: the transition is refused with the current status.
-function refuseStatus(status: AppointmentStatus): never {
+// Who asks: the staff of the panel, with the permission checked by the route,
+// or the client of the session, who only reaches what is theirs (RS009).
+type Caller = { actor: "staff" } | { actor: "client"; clientId: string };
+
+const STAFF: Caller = { actor: "staff" };
+
+// RS009: the appointment of another client is answered as one that does not
+// exist.
+async function getAppointmentOf(
+  id: string,
+  caller: Caller,
+): Promise<AdminAppointment> {
+  const appointment = await getAppointment(id);
+  if (caller.actor === "client" && appointment.clientId !== caller.clientId) {
+    throw new AppError("NOT_FOUND");
+  }
+  return appointment;
+}
+
+// UC07 steps 2 to 4, RF028, RF029: the appointments of the client by scope.
+export async function listMyAppointments(
+  clientId: string,
+  { scope, page, pageSize }: MyAppointmentListQuery,
+): Promise<{ appointments: ClientAppointmentSummary[]; total: number }> {
+  return listClientAppointments(
+    clientId,
+    APPOINTMENT_SCOPE_STATUSES[scope],
+    scope === "history",
+    page,
+    pageSize,
+  );
+}
+
+// UC07: the detail of an appointment of the client, with the copies (RN037).
+export async function getMyAppointment(
+  clientId: string,
+  id: string,
+): Promise<ClientAppointment> {
+  return toClientAppointment(
+    await getAppointmentOf(id, { actor: "client", clientId }),
+  );
+}
+
+// UC12 FE01, UC07 FE02, UC26 FE01: the transition is refused with the current
+// status; the client reads what the portal does not do.
+function refuseStatus(
+  status: AppointmentStatus,
+  caller: Caller,
+  action: "cancel" | "edit" | "reschedule" | "other" = "other",
+): never {
   throw new AppError("INVALID_STATUS", {
-    message: describeInvalidStatus(status),
+    message:
+      caller.actor === "client" && action !== "other"
+        ? describeClientInvalidStatus(action, status)
+        : describeInvalidStatus(status),
   });
 }
 
@@ -394,19 +458,20 @@ function refuseStatus(status: AppointmentStatus): never {
 async function changeStatus(
   id: string,
   action: AppointmentAction,
+  caller: Caller,
   buildChange: (
     appointment: AdminAppointment,
     status: AppointmentStatus,
   ) => StatusChange,
 ): Promise<AdminAppointment> {
-  const appointment = await getAppointment(id);
+  const appointment = await getAppointmentOf(id, caller);
   const nextStatus = findNextStatus({
     action,
     status: appointment.status,
-    actor: "staff",
+    actor: caller.actor,
   });
   if (nextStatus === null) {
-    refuseStatus(appointment.status);
+    refuseStatus(appointment.status, caller, refusalOf(action));
   }
   const isChanged = await changeAppointmentStatus(
     id,
@@ -414,14 +479,18 @@ async function changeStatus(
     buildChange(appointment, nextStatus),
   );
   if (!isChanged) {
-    refuseStatus((await getAppointment(id)).status);
+    refuseStatus((await getAppointment(id)).status, caller, refusalOf(action));
   }
   return getAppointment(id);
 }
 
+function refusalOf(action: AppointmentAction) {
+  return action === "cancel" || action === "reschedule" ? action : "other";
+}
+
 // UC12 steps 2 to 5.
 export function advanceAppointment(id: string): Promise<AdminAppointment> {
-  return changeStatus(id, "advance", (_, status) => ({ status }));
+  return changeStatus(id, "advance", STAFF, (_, status) => ({ status }));
 }
 
 // UC12 FA02, RN019.
@@ -429,10 +498,26 @@ export function cancelAppointment(
   id: string,
   now: Date,
 ): Promise<AdminAppointment> {
-  return changeStatus(id, "cancel", (_, status) => ({
+  return changeStatus(id, "cancel", STAFF, (_, status) => ({
     status,
     cancelledAt: now.toISOString(),
   }));
+}
+
+// UC07 FA01, RN019: the client cancels only a scheduled appointment of theirs.
+export async function cancelMyAppointment(
+  clientId: string,
+  id: string,
+  now: Date,
+): Promise<ClientAppointment> {
+  return toClientAppointment(
+    await changeStatus(
+      id,
+      "cancel",
+      { actor: "client", clientId },
+      (_, status) => ({ status, cancelledAt: now.toISOString() }),
+    ),
+  );
 }
 
 // UC12 FA01, RN018: the method of the appointment keeps the percent and the
@@ -443,7 +528,7 @@ export function completeAppointment(
   paymentMethod: PaymentMethod,
   now: Date,
 ): Promise<AdminAppointment> {
-  return changeStatus(id, "complete", (appointment, status) => {
+  return changeStatus(id, "complete", STAFF, (appointment, status) => {
     const option = appointment.paymentOptions?.find(
       (item) => item.paymentMethod === paymentMethod,
     );
@@ -469,12 +554,40 @@ export function completeAppointment(
 // change. A change of the vehicle or of the services prices every service
 // again by the current catalog. The subtotal, the total, the duration and the
 // end are always worked out here, never read from the request (RS013).
-export async function editAppointment(
+export function editAppointment(
   id: string,
   input: AppointmentEditInput,
   now: Date,
 ): Promise<AdminAppointment> {
-  const appointment = await getAppointment(id);
+  return applyEdit(id, input, now, STAFF);
+}
+
+// UC26, RN032, RN033: the client edits only a scheduled appointment of theirs
+// and only postpones the date; a vehicle that is not in the account is
+// answered as one that does not exist (RS009).
+export async function editMyAppointment(
+  clientId: string,
+  id: string,
+  input: AppointmentEditInput,
+  now: Date,
+): Promise<ClientAppointment> {
+  return toClientAppointment(
+    await applyEdit(id, input, now, { actor: "client", clientId }),
+  );
+}
+
+async function applyEdit(
+  id: string,
+  input: AppointmentEditInput,
+  now: Date,
+  caller: Caller,
+): Promise<AdminAppointment> {
+  const appointment = await getAppointmentOf(id, caller);
+  if (
+    !canEditAppointment({ actor: caller.actor, status: appointment.status })
+  ) {
+    refuseStatus(appointment.status, caller, "edit");
+  }
   const current = {
     vehicleId: appointment.vehicle.id,
     serviceIds: appointment.services.map((service) => service.id),
@@ -493,6 +606,9 @@ export async function editAppointment(
     input.vehicleId &&
     !(await isVehicleOfClient(appointment.clientId, input.vehicleId))
   ) {
+    if (caller.actor === "client") {
+      throw new AppError("NOT_FOUND");
+    }
     throw new AppError("VALIDATION_ERROR", {
       fields: { vehicleId: NOT_YOUR_VEHICLE_MESSAGE },
     });
@@ -503,6 +619,7 @@ export async function editAppointment(
     : [];
   const businessHours = await listBusinessHours();
   const fields = findEditErrors({
+    actor: caller.actor,
     status: appointment.status,
     current,
     request,
@@ -573,21 +690,44 @@ export async function editAppointment(
 // services of a completed one, priced by the current catalog; the services the
 // catalog no longer offers are left out (RN008, FE02), and what is left must
 // still make a valid order. The original becomes rescheduled.
-export async function rescheduleAppointment(
+export function rescheduleAppointment(
   id: string,
   input: AppointmentRescheduleInput,
   staffId: string,
   now: Date,
 ): Promise<AdminAppointment> {
-  const original = await getAppointment(id);
+  return applyReschedule(id, input, STAFF, staffId, now);
+}
+
+// UC25: the client reschedules a completed appointment of theirs; no staff
+// member is recorded.
+export async function rescheduleMyAppointment(
+  clientId: string,
+  id: string,
+  input: AppointmentRescheduleInput,
+  now: Date,
+): Promise<ClientAppointment> {
+  return toClientAppointment(
+    await applyReschedule(id, input, { actor: "client", clientId }, null, now),
+  );
+}
+
+async function applyReschedule(
+  id: string,
+  input: AppointmentRescheduleInput,
+  caller: Caller,
+  staffId: string | null,
+  now: Date,
+): Promise<AdminAppointment> {
+  const original = await getAppointmentOf(id, caller);
   if (
     findNextStatus({
       action: "reschedule",
       status: original.status,
-      actor: "staff",
+      actor: caller.actor,
     }) === null
   ) {
-    refuseStatus(original.status);
+    refuseStatus(original.status, caller, "reschedule");
   }
   const vehicle = await findVehicle(original.vehicle.id);
   if (vehicle === null) {
@@ -639,7 +779,7 @@ export async function rescheduleAppointment(
   if (newId === null) {
     // Not completed any more, or the client was deleted.
     const { status } = await getAppointment(id);
-    if (status !== "completed") refuseStatus(status);
+    if (status !== "completed") refuseStatus(status, caller, "reschedule");
     throw new AppError("NOT_FOUND");
   }
   return getAppointment(newId);

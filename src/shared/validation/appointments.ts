@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import {
+  APPOINTMENT_SCOPES,
   APPOINTMENT_SORTS,
   APPOINTMENT_VIEW_STATUSES,
   APPOINTMENT_VIEWS,
@@ -46,6 +47,20 @@ export const adminAppointmentListQuerySchema = paginationSchema(
     ...query,
     status: (status || undefined) as AppointmentStatus | undefined,
   }));
+
+const SCOPE_MESSAGE = "Escolha uma lista válida.";
+
+// UC07 steps 2 and 3: the list of the client is current or history; unknown
+// parameters, as the client, are discarded (RS009, RS013).
+export const myAppointmentListQuerySchema = paginationSchema(
+  SHORT_LIST_PAGE_SIZE,
+).extend({
+  scope: z.enum(APPOINTMENT_SCOPES, { error: SCOPE_MESSAGE }),
+});
+
+export type MyAppointmentListQuery = z.output<
+  typeof myAppointmentListQuerySchema
+>;
 
 export type AdminAppointmentListQuery = z.output<
   typeof adminAppointmentListQuerySchema

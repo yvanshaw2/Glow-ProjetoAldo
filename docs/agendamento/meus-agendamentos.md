@@ -9,8 +9,6 @@ relacionados: [UC07, UC25, UC26, RF028, RF029, RF030, RF031, RF032, RN017, RN019
 
 Abas, cartão, detalhe, ações e textos de `/appointments`, do [UC07](UC07-acompanhar-agendamentos.md). Cabeçalho: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, janelas e etiqueta de status: [../padroes/componentes.md](../padroes/componentes.md).
 
-Enquanto as rotas `/api/me/appointments` usarem os dados de demonstração, o aviso fica logo abaixo do título da página.
-
 ## Página
 
 - Título: "Meus agendamentos".
@@ -41,7 +39,7 @@ Só no detalhe. A tela só orienta; quem decide é a API (RS008).
 - "Em espera", "Em execução" e "Finalizado": nenhuma ação, e a frase "Este agendamento não pode mais ser alterado por aqui. Para mudar algo, fale com a empresa." (UC26 FE01).
 - "Cancelado" e "Reagendado": nenhuma.
 
-"Editar" e "Reagendar" abrem, sobre o detalhe, a janela do [assistente de agendamento](agendar-servico.md). Esc ou "Cancelar" fecham só o assistente e devolvem o foco ao detalhe. Concluída a edição ou o reagendamento, as duas janelas fecham e a lista é lida de novo. Na demonstração, o envio mostra `NOT_IMPLEMENTED` e as janelas permanecem abertas, sem gravar.
+"Editar" e "Reagendar" abrem, sobre o detalhe, a janela do [assistente de agendamento](agendar-servico.md). Esc ou "Cancelar" fecham só o assistente e devolvem o foco ao detalhe. Concluída a edição ou o reagendamento, as duas janelas fecham e a lista é lida de novo. Na falha, as janelas permanecem abertas e a mensagem aparece no formulário.
 
 ## Cancelamento (UC07 FA01)
 

@@ -55,6 +55,7 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Visão de agendamentos ausente ou desconhecida | Escolha uma visão válida. |
 | Status fora da visão de agendamentos | Escolha um status desta visão. |
 | Ordenação de agendamentos desconhecida | Escolha uma ordenação válida. |
+| Lista de agendamentos do cliente ausente ou desconhecida | Escolha uma lista válida. |
 | Busca de cliente no novo agendamento ausente ou vazia | Digite o nome ou o e-mail para buscar o cliente. |
 | Cliente do agendamento ausente ou fora do formato | Escolha o cliente. |
 | Veículo do agendamento ausente ou fora do formato | Escolha o veículo. |
