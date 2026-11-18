@@ -12,7 +12,7 @@ import {
 } from "@/shared/constants/pagination";
 import { PAYMENT_METHODS } from "@/shared/constants/payment-methods";
 import { searchTermSchema } from "@/shared/validation/formats";
-import { paginationSchema } from "@/shared/validation/params";
+import { paginationSchema, updatedAtSchema } from "@/shared/validation/params";
 
 // Query of the appointment routes of the panel (docs/agendamento/rotas.md).
 // Unknown parameters are discarded (RS013).
@@ -155,4 +155,38 @@ export const appointmentCompleteSchema = z.object({
 
 export type AppointmentCompleteInput = z.output<
   typeof appointmentCompleteSchema
+>;
+
+const NO_FIELD_MESSAGE = "Informe ao menos um campo para alterar.";
+
+// PATCH (UC26 FA01): only what came is changed, and at least one field must
+// come. The status, the totals, the client and the dates are not accepted
+// (RS013, RN032); updatedAt is the version read (RNF011).
+export const appointmentEditSchema = z
+  .object({
+    vehicleId: vehicleIdSchema.optional(),
+    serviceIds: serviceIdsSchema.optional(),
+    paymentMethod: paymentMethodSchema.optional(),
+    scheduledAt: scheduledAtSchema.optional(),
+    updatedAt: updatedAtSchema,
+  })
+  .refine(
+    ({ vehicleId, serviceIds, paymentMethod, scheduledAt }) =>
+      vehicleId !== undefined ||
+      serviceIds !== undefined ||
+      paymentMethod !== undefined ||
+      scheduledAt !== undefined,
+    { error: NO_FIELD_MESSAGE },
+  );
+
+// UC25 FA01: the vehicle and the services are those of the original
+// appointment (RN020).
+export const appointmentRescheduleSchema = z.object({
+  paymentMethod: paymentMethodSchema,
+  scheduledAt: scheduledAtSchema,
+});
+
+export type AppointmentEditInput = z.output<typeof appointmentEditSchema>;
+export type AppointmentRescheduleInput = z.output<
+  typeof appointmentRescheduleSchema
 >;

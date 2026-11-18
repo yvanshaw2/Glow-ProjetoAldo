@@ -19,17 +19,17 @@ export type BookingFields = Partial<
   Record<"serviceIds" | "scheduledAt", string>
 >;
 
-const UNAVAILABLE_SERVICE_MESSAGE =
+export const UNAVAILABLE_SERVICE_MESSAGE =
   "Escolha serviços disponíveis para agendamento.";
 
-const COMPOSITION_MESSAGES: Record<CompositionError, string> = {
+export const COMPOSITION_MESSAGES: Record<CompositionError, string> = {
   NO_MAIN_OR_COMPLEMENTARY:
     "Escolha ao menos um serviço principal ou complementar.",
   ADDITIONAL_WITHOUT_MAIN:
     "Escolha o serviço principal a que o adicional está ligado.",
 };
 
-const START_MESSAGES: Record<StartError, string> = {
+export const START_MESSAGES: Record<StartError, string> = {
   CLOSED_DAY: "A empresa não atende neste dia.",
   OUTSIDE_BUSINESS_HOURS:
     "Escolha um horário dentro do funcionamento da empresa.",

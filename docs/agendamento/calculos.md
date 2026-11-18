@@ -54,7 +54,7 @@ Os indicadores (seção 5) não ficam em `rules/`: são agregações por períod
 - Funcionário: qualquer status; em `scheduled`, nunca no passado; em `checked_in`, `in_progress`, `awaiting_payment`, `completed` e `rescheduled`, nunca depois do momento da alteração; em `cancelled`, só a disponibilidade.
 - As conferências de data só valem quando a data ou o horário mudam. A previsão é recalculada a partir da data marcada; se ela ficou fora do funcionamento, a contagem começa no próximo período.
 - A edição nunca muda o status.
-- Troca de veículo ou serviços recalcula todos os itens pelo catálogo atual; troca da forma aplica o percentual vigente; subtotal, total, duração e previsão são sempre recalculados, e a cópia dos dados é refeita (RN037).
+- Troca de veículo ou serviços recalcula todos os itens pelo catálogo atual e refaz a cópia do veículo; troca da forma aplica o percentual vigente; sem troca de veículo nem de serviços, os itens e as cópias gravados ficam, e sem troca da forma o percentual gravado fica. Subtotal, total, duração e previsão saem sempre da soma dos itens resultantes e da data resultante (RN037).
 
 ## 5. Indicadores do dashboard (RN021)
 

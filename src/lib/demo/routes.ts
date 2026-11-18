@@ -86,9 +86,6 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
   { method: "POST", path: "/api/me/appointments" },
   { method: "PATCH", path: "/api/me/appointments/:id" },
   { method: "POST", path: "/api/me/appointments/:id/reschedule" },
-  // docs/agendamento/rotas.md, built by #50 (the edition and the rescheduling).
-  { method: "PATCH", path: "/api/admin/appointments/:id" },
-  { method: "POST", path: "/api/admin/appointments/:id/reschedule" },
   // docs/agendamento/rotas.md, built by #66; the analysis is a POST that
   // writes nothing.
   {

@@ -4,8 +4,7 @@ import { PERMISSION_LABELS } from "@/shared/constants/permissions";
 
 export const metadata: Metadata = { title: "Agendamentos – Glow" };
 
-// UC10: the appointments of the panel; the writes are still the demo data of
-// src/lib/demo/ (decision 0055).
+// UC10 to UC12, UC25 and UC26: the appointments of the panel.
 export default function AppointmentsPage() {
   return (
     <>

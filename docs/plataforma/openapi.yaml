@@ -1800,6 +1800,56 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+    patch:
+      tags:
+        - appointments
+      operationId: editAdminAppointment
+      summary: Edita um agendamento
+      description: >-
+        Em qualquer status, sem mudar o status (UC26 FA01, RN032). Só o que
+        vem é conferido, e o valor igual ao gravado não conta como mudança. A
+        troca de veículo ou de serviços recalcula todos os itens pelo
+        catálogo atual; a troca da forma aplica o percentual vigente; o que
+        não mudou fica como gravado (RN033, RN037). A data e o horário só são
+        conferidos quando mudam (RN033). updatedAt é a versão lida (RNF011).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentEditInput"
+      responses:
+        "200":
+          description: Agendamento atualizado, com o mesmo status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/admin/appointments/{id}/advance:
     post:
       tags:
@@ -1915,6 +1965,55 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/InvalidStatus"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/admin/appointments/{id}/reschedule:
+    post:
+      tags:
+        - appointments
+      operationId: rescheduleAdminAppointment
+      summary: Reagenda um serviço concluído
+      description: >-
+        Cria um novo agendamento Agendado para o mesmo veículo e os mesmos
+        serviços, pelo catálogo atual, e passa o original a Reagendado (UC25
+        FA01, RN020). Os serviços que o catálogo não oferece mais ficam de
+        fora (RN008).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentRescheduleInput"
+      responses:
+        "201":
+          description: Novo agendamento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvalidStatus"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
         "500":
           $ref: "#/components/responses/InternalError"
   /api/admin/appointments/lookup/clients:
@@ -2072,7 +2171,8 @@ paths:
       description: >-
         Pelo catálogo vigente: os serviços que podem ser agendados ficam, os
         outros saem. A data, o horário e a composição só são conferidos no
-        registro. appointmentId identifica a edição e não muda o cálculo (UC11
+        registro e, na edição, no PATCH. appointmentId identifica a edição e não
+        muda o cálculo (UC11
         passo 6, RN010, RN012, RN014, RN034).
       security:
         - sessionCookie: []
@@ -4074,6 +4174,51 @@ components:
       properties:
         paymentMethod:
           $ref: "#/components/schemas/PaymentMethod"
+    AppointmentEditInput:
+      type: object
+      description: >-
+        Ao menos um entre vehicleId, serviceIds, paymentMethod e scheduledAt.
+        O status, os valores, o cliente e as datas de status não são aceitos
+        e são descartados.
+      required:
+        - updatedAt
+      properties:
+        vehicleId:
+          type: string
+          format: uuid
+        serviceIds:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        scheduledAt:
+          type: string
+          format: date-time
+          description: Instante com fuso, como 2026-11-03T09:00:00-03:00.
+        updatedAt:
+          type: string
+          format: date-time
+          description: A versão lida com o agendamento, devolvida como veio.
+    AppointmentRescheduleInput:
+      type: object
+      description: >-
+        O veículo e os serviços são os do agendamento original; os valores são
+        calculados pelo sistema.
+      required:
+        - paymentMethod
+        - scheduledAt
+      properties:
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        scheduledAt:
+          type: string
+          format: date-time
+          description: Instante com fuso, como 2026-11-03T09:00:00-03:00.
     AppointmentInput:
       type: object
       description: >-

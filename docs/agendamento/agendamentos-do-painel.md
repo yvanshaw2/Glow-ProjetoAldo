@@ -9,7 +9,7 @@ relacionados: [UC10, UC11, UC12, UC25, UC26, RF044, RF045, RF046, RF047, RF048, 
 
 Visões, filtros, cartão, detalhe, ações de status e estados de `/admin/appointments`, do [UC10](UC10-consultar-agendamentos.md), do [UC12](UC12-atualizar-status-do-agendamento.md) e do [UC25](UC25-reagendar-servico-concluido.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, etiqueta de status e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato da rota: [rotas.md](rotas.md).
 
-A listagem, o detalhe, o "Novo agendamento" (as buscas, a prévia de valores e o registro) são reais. O avanço, a conclusão e o cancelamento também são reais. Enquanto a edição e o reagendamento gravarem com dados de demonstração (decisão 0055), o aviso de demonstração fica no alto das janelas "Editar" e "Reagendar" e acima dos botões do detalhe.
+A listagem, o detalhe, o "Novo agendamento" (as buscas, a prévia de valores e o registro) são reais. O avanço, a conclusão, o cancelamento, a edição e o reagendamento também são reais: a página não mostra aviso de demonstração.
 
 ## Página
 
@@ -72,7 +72,7 @@ Janela "Reagendar serviço" sobre o detalhe de um agendamento "Concluído", que 
 
 - Duas etapas, "Data e horário" e "Pagamento e resumo", com as escolhas vazias; o veículo e os serviços são os do agendamento original, e os valores, a duração e a previsão vêm da prévia pelo catálogo atual (`POST /api/admin/appointments/preview`, [RN020](RN020-reagendamento.md)), ao lado das etapas, no "Resumo do pedido".
 - Os serviços que o catálogo atual não oferece ficam de fora, e o resumo diz "Não estão mais disponíveis e ficaram de fora: <nomes>."; sem nenhum principal ou complementar, "Nenhum serviço principal ou complementar deste agendamento está disponível. Para escolher outros serviços, faça um novo agendamento.", sem o botão de confirmar (UC25 FE02).
-- Botão "Confirmar reagendamento" ("Reagendando…"), indisponível sem perder o foco enquanto a prévia não responde; o foco começa em "Cancelar", e Esc ou "Cancelar" voltam ao detalhe. A janela não fecha durante o envio. A falha, como o `NOT_IMPLEMENTED` da demonstração, aparece no topo, com a janela aberta; concluído, as duas janelas fecham e a listagem é lida de novo.
+- Botão "Confirmar reagendamento" ("Reagendando…"), indisponível sem perder o foco enquanto a prévia não responde; o foco começa em "Cancelar", e Esc ou "Cancelar" voltam ao detalhe. A janela não fecha durante o envio. A falha aparece no topo, com a janela aberta; concluído, as duas janelas fecham e a listagem é lida de novo.
 
 ## Concluir (UC12 FA01, RF053)
 
@@ -102,7 +102,7 @@ Botão "Editar" no rodapé do detalhe, em qualquer status. Abre sobre o detalhe 
 
 - **Data e horário** (RN033): a tela só orienta, e quem confere é a API. Em "Agendado", os horários de funcionamento a partir de agora, adiantando ou postergando. Em "Em espera", "Em execução", "Finalizado", "Concluído" e "Reagendado", os de funcionamento até o momento da edição, em dias de hoje ou anteriores, e o calendário permite voltar a meses passados. Em "Cancelado", todo horário de funcionamento. O instante marcado continua sempre selecionável.
 - **Conflito** (`VERSION_CONFLICT`, RNF011): o aviso fica no topo, com o foco, e o agendamento é lido de novo, trocando os campos e a versão; o detalhe também é lido de novo. Se a releitura falhar, "Tentar novamente", e o envio com a versão antiga fica bloqueado.
-- **Resultado:** sucesso fecha as duas janelas e a listagem é lida de novo. Falhas, como o `NOT_IMPLEMENTED` da demonstração, aparecem no topo do formulário, com a janela aberta; a gravação não é repetida sozinha.
+- **Resultado:** sucesso fecha as duas janelas e a listagem é lida de novo. Falhas aparecem no topo do formulário, com a janela aberta; a gravação não é repetida sozinha.
 
 ## Estados (RNF004)
 

@@ -122,7 +122,7 @@ Detalha um agendamento.
 Calcula os valores de um novo agendamento ou da edição de um agendamento, sem gravar.
 
 - Entrada: `vehicleId*, serviceIds*` (de 1 a 20 ids, sem repetição), `paymentMethod, scheduledAt`; `appointmentId`, na edição.
-- Resposta: **200** `AppointmentPreview`, como a prévia do cliente: os serviços que podem ser agendados, `subtotal`, `feePercent`, `total`, `estimatedDurationMinutes` e, com `scheduledAt`, `estimatedEndAt`; 404 veículo inexistente. A prévia só calcula, pelo catálogo vigente: o serviço que não pode ser agendado fica de fora, e a data, o horário e a composição são conferidos só no registro. `appointmentId` identifica a edição (UC26) e, nesta rota, não muda o cálculo.
+- Resposta: **200** `AppointmentPreview`, como a prévia do cliente: os serviços que podem ser agendados, `subtotal`, `feePercent`, `total`, `estimatedDurationMinutes` e, com `scheduledAt`, `estimatedEndAt`; 404 veículo inexistente. A prévia só calcula, pelo catálogo vigente: o serviço que não pode ser agendado fica de fora, e a data, o horário e a composição são conferidos só no registro. `appointmentId` identifica a edição (UC26) e, nesta rota, não muda o cálculo nem as conferências: quem confere a data e a composição na edição é o `PATCH`.
 
 #### `POST /api/admin/appointments`
 
@@ -135,8 +135,8 @@ Registra um agendamento para um cliente (UC11).
 
 Edita um agendamento em qualquer status (UC26).
 
-- Entrada: `vehicleId, serviceIds, paymentMethod, scheduledAt`
-- Resposta: **200** agendamento atualizado, com os valores e a previsão de conclusão recalculados; 400 data, horário ou serviços incompatíveis com a disponibilidade ou com o status.
+- Entrada: `updatedAt*` (a versão lida, devolvida como veio); `vehicleId, serviceIds` (de 1 a 20 ids, sem repetição), `paymentMethod, scheduledAt` (instante com fuso), ao menos um deles; só o que vem é conferido, e o valor igual ao gravado não conta como mudança. Status, valores, cliente e datas de status não são aceitos (RS013).
+- Resposta: **200** agendamento atualizado, no formato do detalhe e com o mesmo status, com os valores e a previsão de conclusão recalculados: a troca de veículo ou de serviços recalcula todos os itens pelo catálogo atual e refaz a cópia do veículo, a troca da forma aplica o percentual vigente, e o que não mudou fica como gravado (RN037); 400 com o campo em `fields`: data ou horário fora do funcionamento, no passado em um Agendado ou posterior ao momento da alteração depois da chegada do veículo (`scheduledAt`), serviços sem principal ou complementar, adicional sem o seu principal ou serviço que não pode ser agendado (`serviceIds`) ou veículo que não é do cliente (`vehicleId`); corpo sem nenhum campo além de `updatedAt`, 400; 404 agendamento inexistente; 409 `VERSION_CONFLICT` quando o agendamento mudou depois da leitura.
 
 #### `POST /api/admin/appointments/:id/advance`
 
@@ -163,8 +163,8 @@ Cancela um agendamento agendado ou em espera.
 
 Reagenda um serviço concluído (UC25).
 
-- Entrada: `paymentMethod*, scheduledAt*`
-- Resposta: **201** novo agendamento, no formato do detalhe, com valores e duração calculados pelo catálogo atual; 409 `INVALID_STATUS`.
+- Entrada: `paymentMethod*, scheduledAt*`. Os serviços são os do agendamento original que ainda podem ser agendados (RN008, RN031); os demais ficam de fora.
+- Resposta: **201** novo agendamento, no formato do detalhe, com valores e duração calculados pelo catálogo atual; o original passa a `rescheduled`; 400 com o campo em `fields`: data ou horário fora do funcionamento ou no passado (`scheduledAt`), serviços restantes sem principal ou complementar ou adicional sem o seu principal (`serviceIds`); 404 cliente excluído; 409 `INVALID_STATUS`, com o status atual na mensagem.
 
 #### `GET /api/admin/appointments/lookup/clients`
 

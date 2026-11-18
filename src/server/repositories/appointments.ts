@@ -213,11 +213,7 @@ export async function insertAppointment(
     p_total: appointment.total,
     p_estimated_duration_minutes: appointment.estimatedDurationMinutes,
     p_estimated_end_at: appointment.estimatedEndAt,
-    p_items: appointment.items.map((item) => ({
-      service_id: item.serviceId,
-      price: item.price,
-      duration_minutes: item.durationMinutes,
-    })),
+    p_items: toItems(appointment.items),
   });
   if (error) {
     throw error;
@@ -297,4 +293,89 @@ export async function changeAppointmentStatus(
     throw error;
   }
   return data.length > 0;
+}
+
+// What update_appointment saves, worked out by the service. The items are null
+// when the services and their copies stay as they are (RN033).
+export type AppointmentEdit = {
+  id: string;
+  // The version the caller read (RNF011), as text.
+  updatedAt: string;
+  vehicleId: string;
+  scheduledAt: string;
+  paymentMethod: PaymentMethod;
+  feePercent: number;
+  subtotal: number;
+  total: number;
+  estimatedDurationMinutes: number;
+  estimatedEndAt: string;
+  items: NewAppointment["items"] | null;
+};
+
+function toItems(items: NewAppointment["items"]) {
+  return items.map((item) => ({
+    service_id: item.serviceId,
+    price: item.price,
+    duration_minutes: item.durationMinutes,
+  }));
+}
+
+// RNF010, RNF011: update_appointment changes the appointment, the copy of the
+// vehicle and the services in one transaction, only if the appointment still
+// has the version the caller read. Null, with nothing written, when it does
+// not, or when the vehicle is not in the account of the client.
+export async function updateAppointment(
+  edit: AppointmentEdit,
+): Promise<string | null> {
+  const { data, error } = await getServiceClient().rpc("update_appointment", {
+    p_id: edit.id,
+    p_updated_at: edit.updatedAt,
+    p_vehicle_id: edit.vehicleId,
+    p_scheduled_at: edit.scheduledAt,
+    p_payment_method: edit.paymentMethod,
+    p_fee_percent: edit.feePercent,
+    p_subtotal: edit.subtotal,
+    p_total: edit.total,
+    p_estimated_duration_minutes: edit.estimatedDurationMinutes,
+    p_estimated_end_at: edit.estimatedEndAt,
+    p_items: edit.items === null ? null : toItems(edit.items),
+  });
+  if (error) {
+    throw error;
+  }
+  return (data as string | null) ?? null;
+}
+
+// What reschedule_appointment saves: the new appointment of the client and of
+// the vehicle of the original.
+export type RescheduledAppointment = Omit<
+  NewAppointment,
+  "clientId" | "vehicleId"
+> & { originalId: string };
+
+// RN020: the new appointment is created and the original becomes rescheduled
+// in one transaction. Null, with nothing written, when the original is not
+// completed any more, its client was deleted or its vehicle was unlinked.
+export async function insertRescheduledAppointment(
+  appointment: RescheduledAppointment,
+): Promise<string | null> {
+  const { data, error } = await getServiceClient().rpc(
+    "reschedule_appointment",
+    {
+      p_original_id: appointment.originalId,
+      p_staff_id: appointment.staffId,
+      p_scheduled_at: appointment.scheduledAt,
+      p_payment_method: appointment.paymentMethod,
+      p_fee_percent: appointment.feePercent,
+      p_subtotal: appointment.subtotal,
+      p_total: appointment.total,
+      p_estimated_duration_minutes: appointment.estimatedDurationMinutes,
+      p_estimated_end_at: appointment.estimatedEndAt,
+      p_items: toItems(appointment.items),
+    },
+  );
+  if (error) {
+    throw error;
+  }
+  return (data as string | null) ?? null;
 }

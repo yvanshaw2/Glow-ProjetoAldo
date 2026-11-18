@@ -16,7 +16,6 @@ import { BookingScheduleStep } from "@/components/shared/booking-schedule-step";
 import { BookingServicesStep } from "@/components/shared/booking-services-step";
 import { BookingSummary } from "@/components/shared/booking-summary";
 import { BookingVehicleStep } from "@/components/shared/booking-vehicle-step";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { FormAlert } from "@/components/shared/form-alert";
 import { StepForm, type FormStep } from "@/components/shared/step-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -43,8 +42,7 @@ import { bookingFormSchema } from "@/shared/validation/appointments";
 // form for all the steps (RNF002), with the summary of the order below. The
 // values come from the preview of the API, never from a sum of the screen.
 // "Próximo" checks the choice of the step with the schema of the form. The new
-// appointment is real (#49); the edition still writes with the demo data, so
-// it keeps the notice (decision 0055).
+// appointment (#49) and the edition (#50) are real.
 
 const APPOINTMENTS_PATH = "/api/admin/appointments";
 const PREVIEW_PATH = "/api/admin/appointments/preview";
@@ -305,7 +303,6 @@ export function AppointmentWizard({
           {/* The heading between the title of the dialog and the h3 of each
               step. */}
           <h2 className="sr-only">Etapas do agendamento</h2>
-          {isEditing && <DemoNotice />}
           {failure && (
             <FormAlert key={failure.key}>{failure.error.message}</FormAlert>
           )}

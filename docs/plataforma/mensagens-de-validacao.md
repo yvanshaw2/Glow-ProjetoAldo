@@ -70,6 +70,7 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Horário fora do funcionamento | Escolha um horário dentro do funcionamento da empresa. |
 | Horário na pausa | Escolha um horário fora da pausa. |
 | Data e horário que já passaram | Escolha uma data e um horário que ainda não passaram. |
+| Data e horário posteriores ao momento da alteração, depois da chegada do veículo | Escolha uma data e um horário que não sejam posteriores ao momento da alteração. |
 | Identificador do agendamento (`appointmentId`) fora do formato | Informe um agendamento válido. |
 | Filtro de verdadeiro ou falso (`includeInactive`) | Informe true ou false. |
 

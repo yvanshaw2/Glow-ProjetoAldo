@@ -3,9 +3,12 @@ import {
   changeAppointmentStatus,
   findAdminAppointment,
   insertAppointment,
+  insertRescheduledAppointment,
   listAdminAppointments,
   type AppointmentFilters,
+  type NewAppointment,
   type StatusChange,
+  updateAppointment,
 } from "@/server/repositories/appointments";
 import {
   findBookableOrderServices,
@@ -17,8 +20,16 @@ import { listClientOptions } from "@/server/repositories/clients";
 import { listPaymentFees } from "@/server/repositories/payment-fees";
 import { findVehicle, isVehicleOfClient } from "@/server/repositories/vehicles";
 import { findBookingErrors } from "@/server/rules/appointment-booking";
-import { describeInvalidStatus } from "@/server/rules/appointment-editing";
-import { listPaymentOptions, priceServices } from "@/server/rules/pricing";
+import {
+  describeInvalidStatus,
+  findEditChanges,
+  findEditErrors,
+} from "@/server/rules/appointment-editing";
+import {
+  calculateTotal,
+  listPaymentOptions,
+  priceServices,
+} from "@/server/rules/pricing";
 import {
   calculateEstimatedDuration,
   calculateEstimatedEnd,
@@ -46,8 +57,10 @@ import { AppError } from "@/shared/errors/app-error";
 import { startOfNextCompanyDay } from "@/shared/format/date";
 import type {
   AdminAppointmentListQuery,
+  AppointmentEditInput,
   AppointmentInput,
   AppointmentPreviewInput,
+  AppointmentRescheduleInput,
 } from "@/shared/validation/appointments";
 
 // Module appointments (docs/agendamento/): the appointments in the panel
@@ -371,4 +384,187 @@ export function completeAppointment(
       completedAt: now.toISOString(),
     };
   });
+}
+
+// UC26 FA01, RN032, RN033, RN037: the staff edits an appointment of any status;
+// the status never changes. What did not change stays as recorded: the
+// services, their prices and the copy of the vehicle when neither the vehicle
+// nor the services change, and the percent when the payment method does not
+// change. A change of the vehicle or of the services prices every service
+// again by the current catalog. The subtotal, the total, the duration and the
+// end are always worked out here, never read from the request (RS013).
+export async function editAppointment(
+  id: string,
+  input: AppointmentEditInput,
+  now: Date,
+): Promise<AdminAppointment> {
+  const appointment = await getAppointment(id);
+  const current = {
+    vehicleId: appointment.vehicle.id,
+    serviceIds: appointment.services.map((service) => service.id),
+    paymentMethod: appointment.paymentMethod,
+    scheduledAt: new Date(appointment.scheduledAt),
+  };
+  const request = {
+    vehicleId: input.vehicleId,
+    serviceIds: input.serviceIds,
+    paymentMethod: input.paymentMethod,
+    scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
+  };
+  const changes = findEditChanges(current, request);
+  if (
+    changes.vehicle &&
+    input.vehicleId &&
+    !(await isVehicleOfClient(appointment.clientId, input.vehicleId))
+  ) {
+    throw new AppError("VALIDATION_ERROR", {
+      fields: { vehicleId: NOT_YOUR_VEHICLE_MESSAGE },
+    });
+  }
+  const isRepriced = changes.vehicle || changes.services;
+  const services = isRepriced
+    ? await findOrderServices(input.serviceIds ?? current.serviceIds)
+    : [];
+  const businessHours = await listBusinessHours();
+  const fields = findEditErrors({
+    status: appointment.status,
+    current,
+    request,
+    bookableServices: services,
+    now,
+    businessHours,
+    timeZone: COMPANY_TIME_ZONE,
+  });
+  if (Object.keys(fields).length > 0) {
+    throw new AppError("VALIDATION_ERROR", { fields });
+  }
+
+  const feePercent = changes.payment
+    ? await findFeePercent(input.paymentMethod ?? current.paymentMethod)
+    : appointment.feePercent;
+  let items: NewAppointment["items"] | null = null;
+  let subtotal = appointment.subtotal;
+  let durationMinutes = appointment.estimatedDurationMinutes;
+  if (isRepriced) {
+    const vehicle = changes.vehicle
+      ? await findVehicle(input.vehicleId ?? current.vehicleId)
+      : { size: appointment.vehicle.size };
+    if (vehicle === null) {
+      throw new AppError("NOT_FOUND");
+    }
+    const order = workOutOrder(services, vehicle.size, feePercent);
+    items = services.map(({ id: serviceId, durationMinutes: minutes }) => ({
+      serviceId,
+      price: order.priceOf(serviceId),
+      durationMinutes: minutes,
+    }));
+    subtotal = order.subtotal;
+    durationMinutes = order.durationMinutes;
+  }
+  const scheduledAt = changes.schedule
+    ? (request.scheduledAt as Date).toISOString()
+    : appointment.scheduledAt;
+  const estimatedEnd = calculateEstimatedEnd({
+    startsAt: new Date(scheduledAt),
+    durationMinutes,
+    businessHours,
+    timeZone: COMPANY_TIME_ZONE,
+  });
+  if (estimatedEnd === null) {
+    throw new Error("The business hours have no working time.");
+  }
+  const savedId = await updateAppointment({
+    id,
+    updatedAt: input.updatedAt,
+    vehicleId: input.vehicleId ?? current.vehicleId,
+    scheduledAt,
+    paymentMethod: input.paymentMethod ?? current.paymentMethod,
+    feePercent,
+    subtotal,
+    total: calculateTotal({ subtotal, feePercent }),
+    estimatedDurationMinutes: durationMinutes,
+    estimatedEndAt: estimatedEnd.toISOString(),
+    items,
+  });
+  // Someone saved it after the version the caller read (RNF011).
+  if (savedId === null) {
+    throw new AppError("VERSION_CONFLICT");
+  }
+  return getAppointment(id);
+}
+
+// UC25 FA01, RN020: a new scheduled appointment for the vehicle and the
+// services of a completed one, priced by the current catalog; the services the
+// catalog no longer offers are left out (RN008, FE02), and what is left must
+// still make a valid order. The original becomes rescheduled.
+export async function rescheduleAppointment(
+  id: string,
+  input: AppointmentRescheduleInput,
+  staffId: string,
+  now: Date,
+): Promise<AdminAppointment> {
+  const original = await getAppointment(id);
+  if (
+    findNextStatus({
+      action: "reschedule",
+      status: original.status,
+      actor: "staff",
+    }) === null
+  ) {
+    refuseStatus(original.status);
+  }
+  const vehicle = await findVehicle(original.vehicle.id);
+  if (vehicle === null) {
+    throw new AppError("NOT_FOUND");
+  }
+  const services = await findOrderServices(
+    original.services.map((service) => service.id),
+  );
+  const businessHours = await listBusinessHours();
+  const startsAt = new Date(input.scheduledAt);
+  const fields = findBookingErrors({
+    requestedServiceIds: services.map((service) => service.id),
+    bookableServices: services,
+    startsAt,
+    businessHours,
+    timeZone: COMPANY_TIME_ZONE,
+    now,
+  });
+  if (Object.keys(fields).length > 0) {
+    throw new AppError("VALIDATION_ERROR", { fields });
+  }
+  const feePercent = await findFeePercent(input.paymentMethod);
+  const order = workOutOrder(services, vehicle.size, feePercent);
+  const estimatedEnd = calculateEstimatedEnd({
+    startsAt,
+    durationMinutes: order.durationMinutes,
+    businessHours,
+    timeZone: COMPANY_TIME_ZONE,
+  });
+  if (estimatedEnd === null) {
+    throw new Error("The business hours have no working time.");
+  }
+  const newId = await insertRescheduledAppointment({
+    originalId: id,
+    staffId,
+    scheduledAt: startsAt.toISOString(),
+    paymentMethod: input.paymentMethod,
+    feePercent,
+    subtotal: order.subtotal,
+    total: order.total,
+    estimatedDurationMinutes: order.durationMinutes,
+    estimatedEndAt: estimatedEnd.toISOString(),
+    items: services.map(({ id: serviceId, durationMinutes }) => ({
+      serviceId,
+      price: order.priceOf(serviceId),
+      durationMinutes,
+    })),
+  });
+  if (newId === null) {
+    // Not completed any more, or the client was deleted.
+    const { status } = await getAppointment(id);
+    if (status !== "completed") refuseStatus(status);
+    throw new AppError("NOT_FOUND");
+  }
+  return getAppointment(newId);
 }

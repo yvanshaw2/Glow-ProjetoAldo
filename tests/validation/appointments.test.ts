@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   adminAppointmentListQuerySchema,
   appointmentCompleteSchema,
+  appointmentEditSchema,
+  appointmentRescheduleSchema,
   appointmentInputSchema,
   appointmentPreviewSchema,
   bookingFormSchema,
@@ -376,5 +378,106 @@ describe("appointmentCompleteSchema", () => {
         completedAt: "2026-11-03T12:00:00.000Z",
       }),
     ).toEqual({ paymentMethod: "cash" });
+  });
+});
+
+const STALE_VERSION = "Atualize a página e tente novamente.";
+const NO_FIELD = "Informe ao menos um campo para alterar.";
+const UPDATED_AT = "2026-10-25T13:45:12.345678+00:00";
+
+describe("appointmentEditSchema", () => {
+  it("requires updatedAt and keeps it as text", () => {
+    expect(issues(appointmentEditSchema, { paymentMethod: "pix" })).toEqual({
+      updatedAt: STALE_VERSION,
+    });
+    expect(
+      appointmentEditSchema.parse({
+        paymentMethod: "pix",
+        updatedAt: UPDATED_AT,
+      }).updatedAt,
+    ).toBe(UPDATED_AT);
+  });
+
+  it("requires at least one field to change", () => {
+    expect(issues(appointmentEditSchema, { updatedAt: UPDATED_AT })).toEqual({
+      "": NO_FIELD,
+    });
+  });
+
+  it("accepts a single field", () => {
+    expect(
+      appointmentEditSchema.parse({
+        scheduledAt: "2026-11-03T09:00:00-03:00",
+        updatedAt: UPDATED_AT,
+      }),
+    ).toEqual({
+      scheduledAt: "2026-11-03T09:00:00-03:00",
+      updatedAt: UPDATED_AT,
+    });
+  });
+
+  it("checks each field it receives, with its message", () => {
+    expect(
+      issues(appointmentEditSchema, {
+        vehicleId: "x",
+        serviceIds: [],
+        paymentMethod: "boleto",
+        scheduledAt: "amanhã",
+        updatedAt: UPDATED_AT,
+      }),
+    ).toEqual({
+      vehicleId: VEHICLE_CHOICE,
+      serviceIds: SERVICES_COUNT,
+      paymentMethod: PAYMENT_CHOICE,
+      scheduledAt: DATE_CHOICE,
+    });
+  });
+
+  it("rejects a repeated service and more than 20", () => {
+    expect(
+      issues(appointmentEditSchema, {
+        serviceIds: [SERVICE_A, SERVICE_A],
+        updatedAt: UPDATED_AT,
+      }),
+    ).toEqual({ serviceIds: SERVICES_COUNT });
+  });
+
+  it("discards the status, the totals, the client and the dates", () => {
+    expect(
+      appointmentEditSchema.parse({
+        vehicleId: VEHICLE_ID,
+        status: "completed",
+        total: 1,
+        subtotal: 1,
+        feePercent: -100,
+        clientId: CLIENT_ID,
+        completedAt: "2026-11-03T12:00:00.000Z",
+        updatedAt: UPDATED_AT,
+      }),
+    ).toEqual({ vehicleId: VEHICLE_ID, updatedAt: UPDATED_AT });
+  });
+});
+
+describe("appointmentRescheduleSchema", () => {
+  it("requires the payment method and the date", () => {
+    expect(issues(appointmentRescheduleSchema, {})).toEqual({
+      paymentMethod: PAYMENT_CHOICE,
+      scheduledAt: DATE_CHOICE,
+    });
+  });
+
+  it("discards the services, the vehicle and the totals", () => {
+    expect(
+      appointmentRescheduleSchema.parse({
+        paymentMethod: "debit",
+        scheduledAt: "2026-11-03T09:00:00-03:00",
+        serviceIds: [SERVICE_A],
+        vehicleId: VEHICLE_ID,
+        total: 1,
+      }),
+    ).toEqual({
+      paymentMethod: "debit",
+      scheduledAt: "2026-11-03T09:00:00-03:00",
+    });
   });
 });

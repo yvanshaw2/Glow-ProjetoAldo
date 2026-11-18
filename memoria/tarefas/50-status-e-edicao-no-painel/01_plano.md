@@ -4,7 +4,7 @@ titulo: "Status, conclusão, cancelamento, edição e reagendamento no painel"
 areas: [backend, banco, frontend, testes]
 tipo: funcionalidade
 requisitos: [UC12, UC25, UC26, RF052, RF053, RF054, RF055, RF056, RN005, RN006, RN008, RN010, RN012, RN013, RN014, RN015, RN017, RN018, RN019, RN020, RN032, RN033, RN034, RN037, RS008, RNF010, RNF011]
-status: em_execucao
+status: concluido
 aprovado_por: yvan
 aprovado_em: 19:00 - 27/10/2026
 ---

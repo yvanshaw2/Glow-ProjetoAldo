@@ -6,7 +6,6 @@ import { BookingPaymentStep } from "@/components/shared/booking-payment-step";
 import { BookingScheduleStep } from "@/components/shared/booking-schedule-step";
 import { BookingSummary } from "@/components/shared/booking-summary";
 import type { BookingFormValues } from "@/components/shared/booking-form-values";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { FormAlert } from "@/components/shared/form-alert";
 import { StepForm, type FormStep } from "@/components/shared/step-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,8 +30,8 @@ import { toCompanyInstant } from "@/shared/format/date";
 // UC25 FA01 (docs/agendamento/agendamentos-do-painel.md): the staff reschedules
 // a Concluído from the history, as the client does: a new date and time and a
 // payment method, for the same vehicle and services, with the values of the
-// preview by the current catalog (RN020). With the demo data the form has no
-// validation schema yet (decision 0055): "Próximo" only checks the choice.
+// preview by the current catalog (RN020). "Próximo" only checks the
+// choice; the server checks the date and the services.
 
 const APPOINTMENTS_PATH = "/api/admin/appointments";
 const PREVIEW_PATH = "/api/admin/appointments/preview";
@@ -194,7 +193,6 @@ function RescheduleForm({
           {/* The heading between the title of the dialog and the h3 of each
               step. */}
           <h2 className="sr-only">Etapas do reagendamento</h2>
-          <DemoNotice />
           {failure && (
             <FormAlert key={failure.key}>{failure.error.message}</FormAlert>
           )}
