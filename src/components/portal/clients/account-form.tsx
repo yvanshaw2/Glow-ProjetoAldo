@@ -1,9 +1,9 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheckIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { DemoNotice } from "@/components/shared/demo-notice";
+import { useForm, type Resolver } from "react-hook-form";
 import { FormAlert } from "@/components/shared/form-alert";
 import { FormField } from "@/components/shared/form-field";
 import { SubmitButton } from "@/components/shared/submit-button";
@@ -16,10 +16,11 @@ import { useFormFailure } from "@/hooks/use-form-failure";
 import { ApiError, apiRequest } from "@/lib/api-client";
 import type { ClientProfile } from "@/shared/api/clients";
 import { formatPhone } from "@/shared/format/phone";
+import { clientEditSchema } from "@/shared/validation/clients";
 
 // UC04: the account data of the client (docs/clientes/area-do-cliente.md).
-// The e-mail is shown, but the route does not take it. With the demo data,
-// the form has no validation schema yet (decision 0055).
+// The e-mail is shown, but the route does not take it, and the schema of the
+// three fields discards it.
 
 const PROFILE_PATH = "/api/me/profile";
 const FIELD_COUNT = 4;
@@ -42,7 +43,6 @@ export function AccountSection() {
       <h2 id="account-title" className="font-semibold">
         Dados da conta
       </h2>
-      <DemoNotice />
       <AccountData />
     </section>
   );
@@ -82,7 +82,13 @@ type AccountFormProps = {
 
 function AccountForm({ profile, onConflict }: AccountFormProps) {
   const { control, handleSubmit, setError, reset, formState } =
-    useForm<AccountFormValues>({ defaultValues: toFormValues(profile) });
+    useForm<AccountFormValues>({
+      resolver: zodResolver(
+        clientEditSchema,
+      ) as unknown as Resolver<AccountFormValues>,
+      mode: "onTouched",
+      defaultValues: toFormValues(profile),
+    });
   const { failure, showFailure, clearFailure } = useFormFailure(setError);
   const [isSaved, setIsSaved] = useState(false);
 
@@ -97,17 +103,13 @@ function AccountForm({ profile, onConflict }: AccountFormProps) {
     setIsSaved(false);
   }
 
-  async function submit({
-    firstName,
-    lastName,
-    phone,
-    updatedAt,
-  }: AccountFormValues) {
+  // The version is the one read with the profile, not a field of the form.
+  async function submit({ firstName, lastName, phone }: AccountFormValues) {
     clearNotices();
     try {
       const saved = await apiRequest<ClientProfile>(PROFILE_PATH, {
         method: "PATCH",
-        body: { firstName, lastName, phone, updatedAt },
+        body: { firstName, lastName, phone, updatedAt: profile.updatedAt },
       });
       reset(toFormValues(saved));
       setIsSaved(true);
@@ -138,7 +140,7 @@ function AccountForm({ profile, onConflict }: AccountFormProps) {
       )}
       <form
         noValidate
-        onSubmit={handleSubmit(submit)}
+        onSubmit={handleSubmit(submit, clearNotices)}
         onChange={() => setIsSaved(false)}
         className="flex flex-col gap-5"
       >

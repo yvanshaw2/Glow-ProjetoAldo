@@ -9,13 +9,13 @@ relacionados: [UC04, UC05, RF012, RF013, RF014, RF015, RF016, RF017, RF018, RN00
 
 Abas, seções e textos de `/profile`, do [UC04](UC04-atualizar-dados-da-conta.md) e do [UC05](UC05-manter-veiculos.md). Cabeçalho: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, janelas e formulários: [../padroes/componentes.md](../padroes/componentes.md).
 
-A troca de senha grava de verdade (`POST /api/auth/change-password`); enquanto os dados da conta e os veículos usarem os dados de demonstração, o aviso fica só nessas partes ([../padroes/componentes.md](../padroes/componentes.md)).
+A conta, a senha e os veículos gravam de verdade (`/api/me/profile`, `POST /api/auth/change-password` e `/api/me/vehicles`), e a página não tem aviso de demonstração.
 
 ## Página
 
 - Título: "Minha conta".
 - Aba "Dados pessoais", com as seções "Dados da conta" e "Senha".
-- Aba "Meus veículos", com o aviso de demonstração no topo.
+- Aba "Meus veículos".
 
 ## Dados da conta (UC04)
 

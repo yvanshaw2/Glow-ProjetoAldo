@@ -26,7 +26,7 @@ import {
 import { ERROR_CATALOG } from "@/shared/errors/catalog";
 
 // Demo data of the appointments module (decision 0055): seven appointments of
-// Henrique Costa, the client of src/lib/demo/clients.ts, with his two
+// Henrique Costa, the client of supabase/seed-demo.sql, with his two
 // vehicles and the services, prices by size and durations of
 // supabase/seed-demo.sql. The fees of supabase/seed.sql are all zero, so the
 // total is the subtotal. The dates are relative to the Monday of the current

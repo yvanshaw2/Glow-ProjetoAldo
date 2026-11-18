@@ -4,7 +4,6 @@ import type { ComponentType } from "react";
 import { AccountSection } from "@/components/portal/clients/account-form";
 import { PasswordSection } from "@/components/portal/clients/password-section";
 import { VehicleList } from "@/components/portal/vehicles/vehicle-list";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // The tabs of /profile (docs/clientes/area-do-cliente.md). The chosen tab
@@ -24,14 +23,8 @@ function PersonalDataPanel() {
   );
 }
 
-// The whole tab has demo data: the notice is at the top of the panel.
 function VehiclesPanel() {
-  return (
-    <div className="flex flex-col gap-8">
-      <DemoNotice />
-      <VehicleList />
-    </div>
-  );
+  return <VehicleList />;
 }
 
 const PROFILE_TABS: ProfileTab[] = [

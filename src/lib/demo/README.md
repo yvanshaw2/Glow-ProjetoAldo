@@ -5,7 +5,7 @@ Enquanto a rota de uma tela não existe, o `apiRequest` responde no lugar dela c
 ## Vai aqui
 
 - `routes.ts`, `match.ts` e `list.ts`
-- um `<módulo>.ts` de dados por módulo do backend (`clients.ts`, `appointments.ts`), com os tipos de `src/shared/api/` e só os dados fictícios do `supabase/seed-demo.sql`
+- um `<módulo>.ts` de dados por módulo do backend (`appointments.ts`, `dashboard.ts`), com os tipos de `src/shared/api/` e só os dados fictícios do `supabase/seed-demo.sql`
 
 ## Não vai aqui
 
@@ -17,7 +17,7 @@ Enquanto a rota de uma tela não existe, o `apiRequest` responde no lugar dela c
 ## Acrescentar uma rota
 
 - Uma entrada em `DEMO_ROUTES` com o método e o caminho de `rotas.md`, com `:nome` para o parâmetro, como `/api/admin/clients/:id`.
-- A leitura, inclusive o `POST` que não grava, leva `load`, que importa o módulo de dados (`import("./clients")`) e devolve a resposta: uma função que recebe os parâmetros do caminho, a consulta e o corpo. A listagem usa `demoPage`; o filtro que não é igualdade e a ordenação ficam na resposta, antes dele.
+- A leitura, inclusive o `POST` que não grava, leva `load`, que importa o módulo de dados (`import("./appointments")`) e devolve a resposta: uma função que recebe os parâmetros do caminho, a consulta e o corpo. A listagem usa `demoPage`; o filtro que não é igualdade e a ordenação ficam na resposta, antes dele.
 - A gravação que a tela usa entra sem `load` e é recusada com `NOT_IMPLEMENTED`. Outro método no mesmo caminho, fora da lista, vai à rede.
 
 ## Tirar uma rota
