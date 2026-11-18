@@ -87,3 +87,24 @@ O Yvan gravou `status: aprovado` e marcou a opção 1 de L10 a L18 e do ponto 1.
 ## 2026-11-18 – descoberta: período em andamento e o botão da análise
 
 Com a L18, um período em andamento é analisado só até o dia corrente. O botão "Gerar análise" continua disponível pelo período exibido (que pode ter só agendamentos futuros, como "Este mês" no dia 1); nesse caso, a rota responde 409 `INSUFFICIENT_DATA`, e o cartão mostra a mensagem dela. RN038 e `rotas.md` passaram a dizer "período analisado".
+
+## 2026-11-18 – decisão: PR 3, rota da análise resumida
+
+Ramificação `feat/1-ai-analysis`, de `origin/main` (ebf1009). Testes em vermelho num commit próprio; um commit só de refatoração (a conferência do tamanho do período passou a uma função, usada pelos dois esquemas); depois regras, esquema, tipos, catálogo, adaptador, serviço, rota, OpenAPI e documentação.
+
+- **Campos do Groq (risco 3 do plano):** conferidos na documentação em 18/11/2026: `response_format` com `json_schema` estrito (`name`, `strict: true`, `schema`; todo campo obrigatório e `additionalProperties: false`), `max_completion_tokens` (o `max_tokens` está obsoleto), `reasoning_effort: "low"`, o raciocínio do `gpt-oss` em `message.reasoning`, o texto em `choices[0].message.content`, os tokens em `usage.prompt_tokens` e `usage.completion_tokens`, e 429 no limite. A documentação não diz se o raciocínio conta em `max_completion_tokens`; o limite da resumida ficou em 2.048. Registrado em `servico-de-ia.md`.
+- **Nome da função:** o plano citava `findPreviousPeriod`; com a L18 ela devolve o período analisado e o anterior, e virou `findComparisonPeriods`.
+- **Período futuro:** um período que começa depois do dia corrente não tem nada a analisar e responde 409 `INSUFFICIENT_DATA`, sem chamar a IA.
+- **Série com o anterior mais longo** (fevereiro diante de janeiro): os pontos seguem as posições do período analisado, e os dias a mais do anterior ficam fora do gráfico; os totais da comparação os incluem. `calculos.md` só fala do anterior mais curto.
+
+## 2026-11-18 – desvio a confirmar antes do PR 3: arquivos fora da lista do plano
+
+- `src/lib/demo/dashboard.ts`: os campos novos de `DashboardAnalysis` (`analyzedTo`, `detail`, `promptVersion`, `comparison` sem valores, `revenueSeries` vazia e os nulos da detalhada) na resposta de demonstração, para o tipo compilar enquanto o cartão usa a demonstração (até o PR 4).
+- `tests/rules/README.md`: `dashboard-analysis.test.ts` na lista da pasta.
+
+## 2026-11-18 – descoberta: verificação do PR 3
+
+- `npm run check`: aprovado, 822 testes em 38 arquivos.
+- Provedor simulado, conferido à mão (decisão 0052) por um teste do Vitest fora do repositório, com o repositório do dashboard simulado: o pedido no formato Chat Completions, com os campos acima e o `Bearer`; `not_configured` sem chamar nada; 429, 500, resposta sem conteúdo e falha de rede; o corte em 15 s, numa chamada só; outubro comparado com setembro; 409 `INSUFFICIENT_DATA` sem chamada, no período sem agendamentos e no futuro; 503 `AI_UNAVAILABLE` com só o motivo no registro, sem a chave, o texto da resposta, as instruções nem o raciocínio; sem comparação quando o anterior não tem agendamentos. 8 de 8.
+- `next build`: compilou, conferiu os tipos e gerou as páginas, com a rota nova; parou no fim com a mensagem "SecurityFatalError" do Next.js 16.4.1, que recomenda atualizar e pede para repetir o comando. É saída da ferramenta: não foi seguida, e a atualização do Next.js fica para o Yvan decidir.
+- Não verificado: a rota com o banco local e as contas de teste (exige o `.env.local`, que o agente não lê) e a chamada real ao Groq (só na pré-visualização, pelo Yvan, com as variáveis `AI_*` na Vercel e no `.env.example`).

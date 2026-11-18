@@ -22,6 +22,14 @@ Relatório parcial: PR 1 de 13, só de documentação da análise (`Refs #1`). O
 - **Decisão 0057** (exportação pela impressão do navegador, sem biblioteca de PDF), gravada.
 - **Issue #1:** corpo atualizado com a seção "Ampliação aprovada em 18/11/2026" (ponto 6 do plano).
 
+### PR 3 (rota da análise resumida)
+
+- `POST /api/admin/dashboard/analysis`, com `requirePermission("dashboard")`: valida o período e o tipo (`dashboardAnalysisSchema`), compara pelo calendário até o dia corrente (L18), calcula os indicadores dos dois períodos, chama o serviço de IA e confere a resposta (RN039); 409 `INSUFFICIENT_DATA` sem chamar a IA e 503 `AI_UNAVAILABLE` nas falhas.
+- `src/server/rules/dashboard-analysis.ts`: períodos comparados, variação, comparação, série da receita, entrada do modelo (só agregados, RN038), instruções da resumida (`resumida-1`) e conferência da resposta.
+- `src/server/ai/chat-completion.ts`: Chat Completions com `fetch`, esquema JSON estrito, corte em 15 s, sem nova tentativa, com `AI_BASE_URL`, `AI_MODEL` e `AI_API_KEY` lidas a cada chamada.
+- Registro: `dashboard_analysis_failed` com o motivo e `dashboard_analysis_generated` com o modelo, a versão das instruções, os tokens e a duração; nunca a chave, as mensagens nem a resposta.
+- OpenAPI da rota; `servico-de-ia.md` com os campos do pedido ao Groq.
+
 ## Arquivos alterados
 
 - `docs/agendamento/`: `RN040-indicadores-da-analise-detalhada.md` criado; `requisitos.md`, `RN038-dados-da-analise-do-dashboard.md`, `RN039-conteudo-da-analise-do-dashboard.md`, `UC27-gerar-analise-do-dashboard.md`, `calculos.md`, `rotas.md`, `dashboard-do-painel.md` e `CONTEXT.md` alterados.
