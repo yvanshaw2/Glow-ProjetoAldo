@@ -2,7 +2,7 @@
 titulo: Funções puras do agendamento
 assunto: agendamento
 origem: Documentação de Arquitetura de Software, seção 4.2; Documentação de Análise do Sistema, seção 9
-relacionados: [RN005, RN006, RN009, RN010, RN012, RN013, RN015, RN016, RN017, RN018, RN019, RN020, RN021, RN032, RN033, RN034, RN037, RN038, RN039]
+relacionados: [RN005, RN006, RN009, RN010, RN012, RN013, RN015, RN016, RN017, RN018, RN019, RN020, RN021, RN032, RN033, RN034, RN037, RN038, RN039, RN040]
 ---
 
 # Funções puras do agendamento
@@ -16,6 +16,7 @@ Quatro conjuntos de regras do módulo `appointments` e as regras da análise do 
 | 3. Datas e horários | `src/server/rules/scheduling.ts` | `tests/rules/scheduling.test.ts` |
 | 4. Edição | `src/server/rules/editing.ts` | `tests/rules/editing.test.ts` |
 | 6. Análise do dashboard | `src/server/rules/dashboard-analysis.ts` | `tests/rules/dashboard-analysis.test.ts` |
+| 7. Indicadores da análise detalhada | `src/server/rules/dashboard-details.ts` | `tests/rules/dashboard-details.test.ts` |
 
 Os indicadores (seção 5) não ficam em `rules/`: são agregações por período, e onde calculá-las (no banco ou no serviço `dashboard`) é decidido no plano da tarefa do dashboard.
 
@@ -70,13 +71,34 @@ Os números do período são agregados no banco pela função `dashboard_figures
 
 ## 6. Análise do dashboard (RN038, RN039)
 
-- Período anterior: a mesma quantidade de dias, terminando no dia anterior à data inicial. 01/10/2026 a 31/10/2026 dá 31/08/2026 a 30/09/2026; 21/10/2026 dá 20/10/2026; 01/03/2028 a 31/03/2028 dá 30/01/2028 a 29/02/2028.
+- Período anterior: num período de meses inteiros do calendário (do dia 1 ao último dia de um mês), os mesmos meses imediatamente anteriores; nos demais, a mesma quantidade de dias, terminando no dia anterior à data inicial. 01/10/2026 a 31/10/2026 dá 01/09/2026 a 30/09/2026; 01/01/2026 a 31/12/2026 dá 01/01/2025 a 31/12/2025; 01/03/2028 a 31/03/2028 dá 01/02/2028 a 29/02/2028; 21/10/2026 dá 20/10/2026; 15/10/2026 a 21/10/2026 dá 08/10/2026 a 14/10/2026.
+- Período em andamento: o que termina depois do dia corrente é analisado até ele (`analyzedTo`), e o anterior, pelos mesmos dias, com o dia que não existe no mês anterior passando ao último dia dele. Em 18/11/2026, 01/11/2026 a 30/11/2026 é analisado de 01/11 a 18/11, com 01/10 a 18/10; em 30/03/2027, 01/03/2027 a 31/03/2027 é analisado de 01/03 a 30/03, com 01/02 a 28/02. Os agendamentos em aberto (seção 7) contam o período inteiro.
 - Variação: percentual sobre o valor anterior, com uma casa decimal (R$ 10.000,00 para R$ 12.500,00 dá 25,0); na taxa de cancelamento, a diferença em pontos percentuais (10,0% para 15,0% dá 5,0). Sem variação quando o valor anterior é zero.
-- Entrada do modelo: os indicadores do período e do anterior, as variações, a receita por dia e a quantidade de agendamentos por status, com os rótulos de RN017. Nada da agenda do dia nem texto livre. Sem agendamentos no período anterior, a entrada marca a comparação como indisponível.
-- Mensagens: uma de sistema, fixa no código e em português, e uma com a entrada em JSON.
-- Resposta: JSON com `summary`, de 1 a 600 caracteres, e até quatro `highlights`, cada um com um indicador da lista (`revenue`, `appointmentCount`, `averageTicket`, `cancellationRate`, `revenueByDay`, `appointmentsByStatus`) e um `comment` de 1 a 240 caracteres, com os textos normalizados como os de RN035. A resposta fora desse formato é recusada (`INVALID_RESPONSE`), como a que tem algarismo no resumo ou numa observação (`NUMBERS_IN_TEXT`); campos não previstos são descartados.
+- Comparação (RF092): a receita, a quantidade de agendamentos, o ticket médio e a taxa de cancelamento, cada um com o valor do período, o do anterior e a variação; sem agendamentos no período anterior, só o valor do período. A tela a mostra ao lado das observações, na tabela dos dois períodos e no gráfico, e o texto copiado a repete.
+- Série da receita: por dia, em períodos de até 62 dias; nos mais longos, em blocos de sete dias contados a partir da data inicial, o último com os dias que sobram. O período e o anterior se alinham por posição; quando o anterior é mais curto (setembro diante de outubro), as últimas posições dele ficam vazias: 62 dias dão 62 posições; 63 dias, 9 blocos, o último de 7; 366 dias, 53 blocos, o último de 2.
+- Entrada do modelo: os indicadores do período e do anterior, as variações, a série da receita e a quantidade de agendamentos por status, com os rótulos de RN017; na detalhada, também os indicadores de RN040 (seção 7). Nada da agenda do dia nem texto livre. Sem agendamentos no período anterior, a entrada marca a comparação como indisponível.
+- Mensagens: uma de sistema, fixa no código e em português, com uma versão por modo (`resumida-1`, `detalhada-1`), e uma com a entrada em JSON.
+- Resposta da resumida: JSON com `summary`, de 1 a 600 caracteres, e até quatro `highlights`, cada um com um indicador da lista (`revenue`, `appointmentCount`, `averageTicket`, `cancellationRate`, `revenueByDay`, `appointmentsByStatus`) e um `comment` de 1 a 240 caracteres.
+- Resposta da detalhada: o mesmo, mais `sections`, com as cinco seções uma vez cada (`revenue`, `services`, `clients`, `operation`, `payments`), cada uma com `observations`, de uma a três, de 1 a 240 caracteres, e `recommendations`, até quatro, de 1 a 240 caracteres.
+- Conferência: os textos são normalizados como os de RN035. A resposta fora do formato é recusada (`INVALID_RESPONSE`), como a que tem algarismo em qualquer texto (`NUMBERS_IN_TEXT`); campos não previstos são descartados.
 - As funções recebem os indicadores já calculados pelo serviço `dashboard` e devolvem a recusa como valor, sem lançar erro.
+
+## 7. Indicadores da análise detalhada (RN040)
+
+Agregados no banco pela função `dashboard_details` (só leitura), chamada para o período e para o anterior, que devolve as quantidades e as somas de RN040 no fuso da empresa; `rules/dashboard-details.ts` monta com elas as taxas, os cinco maiores e "Demais", os sete dias da semana e as horas, com zero onde não há agendamento.
+
+- Serviços e cancelamentos: os cinco maiores por valor (serviços dos pagos) e por quantidade (serviços dos cancelados); empate pelo nome copiado. O valor de um serviço é o `price` dele no agendamento, antes do acréscimo ou desconto da forma de pagamento.
+- Categorias: pela `category_id` atual do serviço, sem cópia no agendamento (RN037).
+- Complementos: pagos com ao menos um serviço `complementary` ou `additional` sobre os pagos; 1 de 3 dá 33,33.
+- Ticket médio por porte: receita dos pagos de cada porte sobre a quantidade deles; zero sem pagos.
+- Acréscimos e descontos: a soma de `total − subtotal` dos pagos, separada em positivos e negativos.
+- Canal: `created_by_staff_id` vazio é o próprio cliente; preenchido, o painel.
+- Clientes novos: o primeiro agendamento do cliente, em qualquer status, tem a data marcada no período; recorrentes, os demais com agendamento no período.
+- Retornos: agendamentos do período com `rescheduled_from_id` preenchido.
+- Dias da semana e horários: pela data marcada (agendamentos e cancelados) e pela conclusão (receita), no fuso da empresa, de segunda a domingo e das 0 às 23 horas.
+- Em aberto: `scheduled`, `checked_in`, `in_progress` e `awaiting_payment` com a data marcada no período.
+- Taxas e médias com duas casas, meio centavo para cima (RN012); sem base, zero.
 
 ## Persistência
 
-`create_appointment`, `update_appointment` e `reschedule_appointment` são funções SQL que gravam, em uma transação, o agendamento, a cópia dos dados e os serviços; o reagendamento também muda o original para `rescheduled` (`dados.md`). `dashboard_figures` é a única função de leitura: agrega no banco o que passaria do limite de linhas de uma consulta.
+`create_appointment`, `update_appointment` e `reschedule_appointment` são funções SQL que gravam, em uma transação, o agendamento, a cópia dos dados e os serviços; o reagendamento também muda o original para `rescheduled` (`dados.md`). `dashboard_figures` e `dashboard_details` são as funções de leitura: agregam no banco o que passaria do limite de linhas de uma consulta.

@@ -23,6 +23,7 @@ Mensagens exibidas junto ao campo quando a entrada não segue RN035 ([RN035-form
 | Data de calendário fora do formato aaaa-mm-dd ou inexistente | Informe uma data válida. |
 | Data final anterior à inicial | A data final não pode ser anterior à inicial. |
 | Período do dashboard de mais de 12 meses | O período não pode passar de 12 meses. |
+| Tipo de análise do dashboard desconhecido | Escolha um tipo de análise válido. |
 | Tipo do veículo ausente ou fora da lista | Escolha o tipo do veículo. |
 | Marca e modelo | Use de 1 a 40 caracteres. |
 | Cor | Use de 3 a 30 letras. |

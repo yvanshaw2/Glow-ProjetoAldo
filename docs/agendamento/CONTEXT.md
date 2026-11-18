@@ -6,7 +6,7 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 
 | Arquivo | Conteúdo |
 |---|---|
-| requisitos.md | Requisitos funcionais RF019–RF032, RF040–RF056, RF089–RF090 (33) |
+| requisitos.md | Requisitos funcionais RF019–RF032, RF040–RF056, RF089–RF094 (37) |
 | UC06-agendar-servico.md | Agendar serviço (Cliente) |
 | UC07-acompanhar-agendamentos.md | Acompanhar agendamentos (Cliente) |
 | UC09-visualizar-dashboard.md | Visualizar dashboard (Funcionário) |
@@ -36,10 +36,11 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 | RN037-copia-no-agendamento.md | Cópia no agendamento |
 | RN038-dados-da-analise-do-dashboard.md | Dados da análise do dashboard |
 | RN039-conteudo-da-analise-do-dashboard.md | Conteúdo da análise do dashboard |
+| RN040-indicadores-da-analise-detalhada.md | Indicadores da análise detalhada |
 | dados.md | Tabelas `appointments`, `appointment_services` |
 | rotas.md | Telas e rotas da API |
 | meus-agendamentos.md | Conteúdo e textos da página de agendamentos do cliente (`/appointments`) |
-| dashboard-do-painel.md | Conteúdo e textos da tela do dashboard (`/admin`): período, indicadores, agenda do dia e estados |
+| dashboard-do-painel.md | Conteúdo e textos da tela do dashboard (`/admin`): período, indicadores, análise do período (resumida e detalhada, cópia e impressão), gráficos, agenda do dia e estados |
 | agendamentos-do-painel.md | Conteúdo e textos da página de agendamentos do painel (`/admin/appointments`): visões, controles, cartão, detalhe, ações de status (inclusive o reagendamento) e estados |
 | agendar-servico.md | Etapas, campos e textos do assistente de agendamento (`/booking`), edição e reagendamento (`/appointments`) |
-| calculos.md | Funções puras de preço, status, datas, edição e da análise do dashboard (testadas com TDD) |
+| calculos.md | Funções puras de preço, status, datas, edição, da análise do dashboard e dos indicadores da análise detalhada (testadas com TDD) |
