@@ -57,3 +57,7 @@ Com o PR 1, `calculos.md` passa de cerca de 8,8 mil para 11,7 mil caracteres e `
 ## 2026-11-18 – decisão: UC27, passo 5
 
 Além do texto da L2, o passo 5 do UC27 passou a citar "os valores do sistema a que cada observação se refere e a comparação com o período anterior (RF092)", para o caso de uso refletir o RF092 da L7 aprovada. Arquivo do plano; só a frase é nova.
+
+## 2026-11-18 – decisão: instruções ao modelo sem menção a demonstração
+
+Orientação do Yvan: as instruções enviadas ao modelo (a mensagem de sistema, constante no código, no PR 2 e no PR 6) não mencionam dados fictícios, demonstração, teste nem projeto acadêmico, e também não ganham uma regra do tipo "os dados são reais": só não tocam no assunto. Nada muda em `docs/`; o modelo nunca lê os arquivos `.md`, só a mensagem de sistema e a entrada em JSON. Conferir no PR 2 e no PR 6.
