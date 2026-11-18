@@ -34,8 +34,8 @@ Dados da conta (UC04).
 
 Altera os dados da conta.
 
-- Entrada: `firstName, lastName, phone`
-- Resposta: **200** dados atualizados.
+- Entrada: `updatedAt*` e, ao menos um, `firstName`, `lastName` e `phone`. Só o que veio é alterado. O e-mail não é alterado.
+- Resposta: **200** os mesmos campos do `GET`, com o novo `updatedAt`; 400; 409 `VERSION_CONFLICT`.
 
 #### `GET /api/me/vehicles`
 
@@ -55,15 +55,15 @@ Consulta uma placa antes do cadastro (UC05).
 
 Cadastra um veículo ou vincula à conta o veículo de uma placa já cadastrada (UC05).
 
-- Entrada: `plate*`; Placa nova: `type*, brand*, model*, color*, year*`.
-- Resposta: **201** veículo criado ou vinculado, com o porte definido; 409 `VEHICLE_ALREADY_LINKED`.
+- Entrada: `plate*`; Placa nova: `type*, brand*, model*, color*, year*`. Com a placa já cadastrada, só `plate` vale e os demais campos são ignorados: o veículo existente é vinculado sem ser alterado (RN036). Com a placa nova, faltando algum dos cinco dados, 400 com os campos.
+- Resposta: **201** veículo criado ou vinculado, com o porte definido; 409 `VEHICLE_ALREADY_LINKED`, com a mensagem "Este veículo já está na sua conta.".
 
 #### `PATCH /api/me/vehicles/:id`
 
 Edita um veículo do cliente (UC05).
 
-- Entrada: `type, plate, brand, model, color, year`
-- Resposta: **200** veículo atualizado, com o porte redefinido se o tipo mudar; 409 `VEHICLE_SHARED` se o veículo estiver vinculado a outra conta; `PLATE_IN_USE`.
+- Entrada: `updatedAt*` e, ao menos um, `type`, `plate`, `brand`, `model`, `color` e `year`. Só o que veio é alterado.
+- Resposta: **200** veículo atualizado, com o porte redefinido se o tipo mudar; 404 se o veículo não existe ou não está na conta do cliente (RS009); 409 `VEHICLE_SHARED` se o veículo também estiver vinculado a outra conta; `PLATE_IN_USE`; `VERSION_CONFLICT`.
 
 ### Rotas do painel: clientes e veículos
 
