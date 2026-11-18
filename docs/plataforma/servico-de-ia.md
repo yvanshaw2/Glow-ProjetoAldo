@@ -1,13 +1,13 @@
 ---
 titulo: Serviço de inteligência artificial
 assunto: plataforma
-origem: issue #66, plano memoria/tarefas/66-analise-por-ia/01_plano.md (L5 a L8, D1 e Evolução prevista)
-relacionados: [RF089, RF090, RN038, RN039, UC27, RNF017, RNF018, RS016, RS018, RS019, RS020, 0029, 0030, 0054]
+origem: issue #66, plano memoria/tarefas/66-analise-por-ia/01_plano.md (L5 a L8, D1 e Evolução prevista); issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L2, L6, L9)
+relacionados: [RF089, RF090, RF091, RN038, RN039, RN040, UC27, RNF017, RNF018, RS016, RS018, RS019, RS020, 0029, 0030, 0054]
 ---
 
 # Serviço de inteligência artificial
 
-A análise do período no dashboard (UC27) é escrita por um modelo de linguagem de um serviço externo, chamado só pelo servidor (decisão 0054). Requisitos: RS019 e RS020 ([seguranca.md](seguranca.md)), RNF017 e RNF018 ([requisitos.md](requisitos.md)). Entrada e resposta: RN038, RN039 e `docs/agendamento/calculos.md`, seção 6.
+A análise do período no dashboard (UC27), resumida ou detalhada (RF091), é escrita por um modelo de linguagem de um serviço externo, chamado só pelo servidor (decisão 0054). Requisitos: RS019 e RS020 ([seguranca.md](seguranca.md)), RNF017 e RNF018 ([requisitos.md](requisitos.md)). Entrada e resposta: RN038, RN039, RN040 e `docs/agendamento/calculos.md`, seções 6 e 7.
 
 ## Provedor e modelo
 
@@ -18,7 +18,7 @@ A análise do período no dashboard (UC27) é escrita por um modelo de linguagem
 | Formato | Chat Completions, em `POST {AI_BASE_URL}/chat/completions`, com `Authorization: Bearer` |
 | Pedido | o modelo, as duas mensagens, `response_format` com o esquema JSON estrito da resposta, `temperature` 0,3, limite de tokens de saída e raciocínio baixo |
 
-Limites do plano Free para o `openai/gpt-oss-120b`, conferidos em 21/10/2026 na página de limites do Groq (os da conta ficam nas configurações dela): 30 requisições e 8 mil tokens por minuto; 1.000 requisições e 200 mil tokens por dia. Uma análise de um mês usa cerca de 1,5 mil tokens; uma de 12 meses, cerca de 5,5 mil. O Groq não retém os dados das requisições por padrão, salvo os registros de abuso, por até 30 dias, e oferece retenção zero nas configurações da conta. Os limites e os termos dos planos gratuitos mudam sem aviso: confira-os nos dias antes de cada apresentação.
+Limites do plano Free para o `openai/gpt-oss-120b`, conferidos em 21/10/2026 na página de limites do Groq (os da conta ficam nas configurações dela): 30 requisições e 8 mil tokens por minuto; 1.000 requisições e 200 mil tokens por dia. Com as instruções e a resposta, a análise resumida usa cerca de 1,5 mil tokens num mês e 2,5 mil em 12 meses, porque acima de 62 dias a receita vai em blocos de sete dias (RN038); a detalhada, de 3,5 mil a 4,5 mil. Todas cabem nos 8 mil tokens por minuto. O Groq não retém os dados das requisições por padrão, salvo os registros de abuso, por até 30 dias, e oferece retenção zero nas configurações da conta. Os limites e os termos dos planos gratuitos mudam sem aviso: confira-os nos dias antes de cada apresentação.
 
 ## Variáveis de ambiente
 
@@ -32,7 +32,7 @@ Lidas durante a requisição, nunca no build. Sem alguma delas, a análise respo
 
 ## Chamada e falhas
 
-- O adaptador de `src/server/ai/` (`import "server-only"`) recebe as mensagens e o esquema da resposta e devolve o texto da resposta e os tokens usados, ou o motivo da falha.
+- O adaptador de `src/server/ai/` (`import "server-only"`) recebe as mensagens, o esquema da resposta e o limite de tokens de saída e devolve o texto da resposta e os tokens usados, ou o motivo da falha.
 - A chamada é interrompida em 15 segundos (RNF018) e nunca é repetida automaticamente.
 - Não há limite próprio de chamadas: o botão fica desativado durante a geração, nenhuma chamada é repetida, e o limite do provedor responde `AI_UNAVAILABLE`.
 - Nada é gravado: nem a entrada, nem a resposta.
@@ -48,7 +48,11 @@ Lidas durante a requisição, nunca no build. Sem alguma delas, a análise respo
 
 ## Registro (decisão 0029)
 
-A falha grava uma linha `warn` com o motivo, o status HTTP do provedor e a duração; a análise gerada, uma linha `info` com o modelo, os tokens de entrada e de saída e a duração. Nunca a chave, as mensagens nem a resposta (RS018, RS019).
+A falha grava uma linha `warn` com o motivo, o status HTTP do provedor e a duração; a análise gerada, uma linha `info` com o modelo, o modo, a versão das instruções, os tokens de entrada e de saída e a duração. Nunca a chave, as mensagens nem a resposta (RS018, RS019).
+
+## Versão das instruções e avaliação
+
+As instruções de cada modo têm uma versão no código (`resumida-1`, `detalhada-1`), que volta na resposta e vai à linha `info` do registro. Mudar as instruções ou o modelo pede uma versão nova e a avaliação de `workflows/procedimentos/testes.md` (Avaliação da análise por IA).
 
 ## Troca de provedor
 

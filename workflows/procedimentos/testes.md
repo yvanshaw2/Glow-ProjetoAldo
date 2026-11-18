@@ -50,6 +50,10 @@ A IA do produto é conferida localmente com um provedor simulado no scratchpad, 
 2. Percorrer o caso de uso afetado: fluxo principal, fluxos alternativos e fluxos de exceção, com os dados fictícios dos dados iniciais.
 3. Marcar o resultado no checklist do pull request; anexar captura de tela quando a interface mudar.
 
+## Avaliação da análise por IA
+
+Na pré-visualização, com o `seed-demo.sql`, o desenvolvedor gera os dois modos em seis períodos: o mês atual, o anterior, os últimos 7 dias, um dia, 12 meses e um período sem anterior. Para cada um, anota se foi gerada, o motivo da recusa, a duração e os tokens do registro, e confere: nenhuma afirmação contradiz os números da tela, causas aparecem só como hipótese e o português está correto. O resultado vai ao relatório da tarefa. Repetir sempre que as instruções ao modelo ou o modelo mudarem (`docs/plataforma/servico-de-ia.md`).
+
 ## Exploratórios (antes da AV3)
 
 Um integrante que não construiu a funcionalidade tenta usá-la de formas não previstas: dados no limite dos formatos, ações repetidas, navegação fora de ordem. Cada defeito vira issue `tipo:defeito` com passo a passo, resultado esperado (com a RN ou o UC), resultado observado, ambiente e evidência.
