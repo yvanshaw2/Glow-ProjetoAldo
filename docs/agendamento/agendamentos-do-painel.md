@@ -1,8 +1,8 @@
 ---
 titulo: Conteúdo da página de agendamentos do painel
 assunto: agendamento
-origem: issue #61, plano memoria/tarefas/61-agendamentos-do-painel/01_plano.md (L1, L3, L4, L5), e issue #62, plano memoria/tarefas/62-novo-agendamento-e-edicao/01_plano.md (L3, L4, L5)
-relacionados: [UC10, UC11, UC12, UC25, UC26, RF044, RF045, RF046, RF047, RF048, RF049, RF052, RF050, RF051, RF053, RF054, RF055, RF056, RN003, RN004, RN010, RN012, RN017, RN018, RN019, RN020, RN032, RN033, RN037, RNF004, RNF008]
+origem: issue #61, plano memoria/tarefas/61-agendamentos-do-painel/01_plano.md (L1, L3, L4, L5), e issue #62, plano memoria/tarefas/62-novo-agendamento-e-edicao/01_plano.md (L3, L4, L5); issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L11, L14)
+relacionados: [UC10, UC11, UC12, UC25, UC26, RF044, RF045, RF046, RF047, RF048, RF049, RF052, RF050, RF051, RF053, RF054, RF055, RF056, RN003, RN004, RN010, RN012, RN017, RN018, RN019, RN020, RN032, RN033, RN037, RNF004, RNF008, RF095, RN041, RN043]
 ---
 
 # Conteúdo da página de agendamentos do painel
@@ -45,6 +45,7 @@ A etiqueta de status ([RN017](RN017-sequencia-de-status.md)), o nome do cliente,
 
 - Janela "Detalhes do agendamento", que lê o agendamento ao abrir: a etiqueta; "Cliente"; "Data e horário", "Previsão de conclusão" e "Duração estimada"; "Veículo" (marca e modelo, placa, cor, ano, tipo e porte); "Serviços", com o valor de cada um; "Forma de pagamento"; "Subtotal" e "Acréscimo de <percentual>" ou "Desconto de <percentual>", só quando a forma de pagamento tem percentual; "Total".
 - No "Finalizado", também "Total por forma de pagamento": as quatro formas, cada uma com o total que a rota devolve para ela e, quando tem percentual, o acréscimo ou o desconto ([RF053](requisitos.md)). A tela nunca soma nem recalcula.
+- No "Cancelado", "Motivo: <motivo>" ([RN041](RN041-motivo-do-cancelamento.md)), ou "Motivo: Não informado". No "Concluído" e no "Reagendado", "Avaliação do cliente: <nota> de 5" ou "Avaliação do cliente: ainda não avaliado" ([RN043](RN043-avaliacao-do-atendimento.md)).
 - Enquanto carrega, o lugar fica reservado; na falha, o aviso com "Tentar novamente".
 
 ## Ações por status
@@ -63,7 +64,7 @@ Só no detalhe. A tela só orienta; quem decide é a API (RS008).
 "Editar" ([UC26](UC26-editar-agendamento.md) FA01, [RN032](RN032-quem-edita-o-agendamento.md)) aparece em todos os status, no rodapé do detalhe, antes das outras ações.
 
 - **Avançar** ([UC12](UC12-atualizar-status-do-agendamento.md) passos 2 a 5, [RN017](RN017-sequencia-de-status.md)): sem confirmação. O botão passa a "Avançando…", fica indisponível sem perder o foco (`aria-disabled`), e, concluído, a janela fecha e a listagem é lida de novo.
-- **Cancelamento** (FA02): confirmação com o título "Cancelar este agendamento?", o texto "O agendamento passa a Cancelado e vai para o histórico. Esta ação não pode ser desfeita.", e os botões "Voltar" e "Cancelar agendamento" ("Cancelando…"), na cor de erro; a falha aparece dentro da confirmação, e, concluído, as duas janelas fecham.
+- **Cancelamento** (FA02): confirmação com o título "Cancelar este agendamento?", o texto "O agendamento passa a Cancelado e vai para o histórico. Esta ação não pode ser desfeita.", o campo "Motivo do cancelamento" (lista, obrigatório, [RN041](RN041-motivo-do-cancelamento.md)), com "Escolha o motivo" até a escolha e as seis opções da regra, e os botões "Voltar" e "Cancelar agendamento" ("Cancelando…"), na cor de erro; a falha aparece dentro da confirmação, e, concluído, as duas janelas fecham.
 - **Falha** (FE01): o aviso com a mensagem da API fica no topo da janela, com o foco. No 409 `INVALID_STATUS`, a mensagem traz o status atual ("Este agendamento está Em execução. Esta ação não está disponível para esse status."), e o detalhe lê o agendamento de novo, então a etiqueta e as ações passam a ser as do status atual.
 
 ## Reagendar (UC25 FA01, RF056)
