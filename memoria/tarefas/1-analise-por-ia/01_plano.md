@@ -4,7 +4,7 @@ titulo: "Análise do período no dashboard, gerada por IA"
 areas: [frontend, backend, banco, testes]
 tipo: funcionalidade
 requisitos: [UC27, UC09, UC07, UC12, UC13, UC14, UC23, UC28, RF089, RF090, RF040, RF041, RF042, RF095, RF096, RF097, RF098, RN038, RN039, RN021, RN035, RN037, RN019, RN009, RN013, RN016, RN040, RN041, RN042, RN043, RN044, RNF017, RNF018, RNF007, RS008, RS009, RS014, RS016, RS017, RS018, RS019, RS020, RS021]
-status: aguardando_aprovacao
+status: aprovado
 aprovado_por: 18/11/2026  
 aprovado_em: 17:41
 ---
@@ -39,7 +39,7 @@ Cada PR fica perto de 400 linhas fora os testes, com a sua ramificação, e só 
 
 | PR | Ramificação | Conteúdo | Depende de |
 |---|---|---|---|
-| 1. Documentação da análise | `docs/1-ai-analysis-details` | os textos de L2 a L9, a decisão 0057, a memória da tarefa (pronto, sem envio) | nada |
+| 1. Documentação da análise | `docs/1-ai-analysis-details` | os textos de L2 a L9 (prontos, sem envio) e de L18, a decisão 0057, a memória da tarefa | nada |
 | 2. Documentação dos dados novos | `docs/1-business-data` | os textos de L10 a L17 | PR 1 |
 | 3. Rota da análise resumida | `feat/1-ai-analysis` | regras puras com TDD, esquema, códigos do catálogo, adaptador, serviço, rota, OpenAPI, versão das instruções no registro | PR 1 |
 | 4. Cartão ligado | `feat/1-analysis-card` | o cartão na rota real (sai a entrada da lista de demonstração e o aviso), o número ao lado das observações, a tabela comparativa, o gráfico dos dois períodos, copiar, imprimir | PR 3 |
@@ -63,6 +63,7 @@ Os PRs 1 a 5 entregam a análise resumida completa e o sistema sem demonstraçã
 
 - **Entrada:** `from*`, `to*` (datas do período exibido, RN035) e `detail` (`summary`, o padrão, ou `detailed`, a partir do PR 7). Campos não previstos são descartados (RS013).
 - **Resposta 200** (`DashboardAnalysis`): os campos de hoje (`from`, `to`, `previousFrom`, `previousTo`, `hasComparison`, `summary`, `highlights`, `generatedAt`) e mais:
+  - `analyzedTo`: o último dia analisado, `to` ou o dia corrente, o que vier antes (L18);
   - `detail`: o modo gerado;
   - `promptVersion`: a versão das instruções que gerou o texto;
   - `comparison`: para `revenue`, `appointmentCount`, `averageTicket` e `cancellationRate`, os valores `current`, `previous` e `variation` (percentual com uma casa; na taxa de cancelamento, pontos percentuais; `null` sem valor anterior), calculados pelo sistema;
@@ -103,7 +104,7 @@ Texto copiado (exemplo da resumida):
 
 ```
 Análise do período – 01/10/2026 a 31/10/2026
-Comparado com 31/08/2026 a 30/09/2026
+Comparado com 01/09/2026 a 30/09/2026
 
 <resumo>
 
@@ -112,6 +113,10 @@ Observações
 
 Gerado por inteligência artificial em 18/11/2026 às 14:32. Pode conter imprecisões: os números oficiais são os dos indicadores.
 ```
+
+### Instruções ao modelo
+
+A mensagem de sistema de cada modo, constante no código, põe o modelo no lugar do analista da empresa que entrega ao dono o relatório do período: o que os números do dashboard e os outros dados mostram, o que mudou em relação ao período anterior (L18), o que merece atenção e, na detalhada, as sugestões. Texto em português do Brasil, em tom profissional e direto, só com os valores recebidos, sem algarismos (RN039) e com as causas apresentadas como hipóteses. As instruções não mencionam a origem dos dados (`notas.md`, 18/11/2026). O relatório é gerado quando o dono, ou o funcionário com a permissão `dashboard`, pede, para qualquer período: o do dia, do mês, do ano ou outro.
 
 ### Dados novos (L10 a L15)
 
@@ -133,7 +138,7 @@ Gerado por inteligência artificial em 18/11/2026 às 14:32. Pode conter impreci
 | Critério (Dado, Quando, Então) | Verificação |
 |---|---|
 | Dado um período com agendamentos, quando aciono "Gerar análise", então vejo, em até 20 s, um resumo e até quatro observações em português, sem algarismos, identificados como gerados por IA (UC27, RF089, RF090, RN039, RNF018) | testes de `parseAnalysis`; local, com o provedor simulado e o `seed-demo.sql`; com a chave real, só na pré-visualização, pelo Yvan |
-| Dado o período de 01/10/2026 a 31/10/2026, quando a análise é gerada, então o serviço de IA recebe os indicadores dele e os de 31/08/2026 a 30/09/2026, sem nome, e-mail, telefone, placa, identificador nem a agenda do dia (RN038, RS020) | testes de `findPreviousPeriod` e `buildAnalysisInput` (resumida e detalhada); local: o provedor simulado grava o corpo, conferido contra os nomes e as placas do `seed-demo.sql` |
+| Dado o período de 01/10/2026 a 31/10/2026, quando a análise é gerada, então o serviço de IA recebe os indicadores dele e os de 01/09/2026 a 30/09/2026, sem nome, e-mail, telefone, placa, identificador nem a agenda do dia (RN038, RS020) | testes de `findPreviousPeriod` e `buildAnalysisInput` (resumida e detalhada); local: o provedor simulado grava o corpo, conferido contra os nomes e as placas do `seed-demo.sql` |
 | Dado um período sem agendamentos, quando o abro, então "Gerar análise" fica indisponível, e a rota responde 409 `INSUFFICIENT_DATA` sem chamar a IA (UC27 FE01) | local, na tela e por `POST` direto |
 | Dado o serviço de IA fora do ar, lento, sem cota ou com resposta fora do formato, quando gero a análise, então vejo que ela não pôde ser gerada, com "Tentar novamente", e os indicadores continuam (UC27 FE02, RNF017) | local, com o provedor simulado em cada modo; 503 `AI_UNAVAILABLE`, a linha `warn`, nenhuma nova chamada |
 | Dado um funcionário sem a permissão `dashboard`, quando chama a rota, então recebe 403, e a IA não é chamada (RS008, RS019) | local, com as contas de teste |
@@ -339,7 +344,8 @@ Escritos antes do código e vistos falhar, num commit próprio em cada PR de reg
 
 `tests/rules/dashboard-analysis.test.ts` (PR 3):
 
-- finds the previous period with the same number of days: 2026-10-01 a 2026-10-31 → 2026-08-31 a 2026-09-30; um dia, 2026-10-21 → 2026-10-20; a virada do ano; o ano bissexto, 2028-03-01 a 2028-03-31 → 2028-01-30 a 2028-02-29
+- finds the previous period by the calendar (L18): 2026-10-01 a 2026-10-31 → 2026-09-01 a 2026-09-30; 2026-01-01 a 2026-12-31 → 2025-01-01 a 2025-12-31; 2028-03-01 a 2028-03-31 → 2028-02-01 a 2028-02-29; um dia, 2026-10-21 → 2026-10-20; sete dias, 2026-10-15 a 2026-10-21 → 2026-10-08 a 2026-10-14; a virada do ano por dias, 2026-01-01 a 2026-01-07 → 2025-12-25 a 2025-12-31
+- cuts a period that ends after today and compares the same days: hoje 2026-11-18, 2026-11-01 a 2026-11-30 → analisado até 2026-11-18, com 2026-10-01 a 2026-10-18; hoje 2027-03-30, 2027-03-01 a 2027-03-31 → com 2027-02-01 a 2027-02-28
 - calculates the variation over the previous value: 10.000,00 → 12.500,00 = 25,0; 80 → 60 = −25,0; 3 → 4 = 33,3; anterior zero = `null`; taxa de cancelamento 10,0 → 15,0 = 5,0 pontos
 - builds the comparison of the four indicators, with no previous values when the previous period has no appointments
 - builds the revenue series by day up to 62 days and in blocks of seven days above it: 62 dias → 62 posições; 63 dias → 9 blocos, o último de 7; 366 dias → 53 blocos, o último de 2; os dois períodos alinhados por posição
@@ -527,7 +533,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Incluir em RN040 a antecedência média e a distribuição por faixa (recomendada).** Sem migration de coluna; mostra se os clientes marcam em cima da hora.
+- [ x] **1. Incluir em RN040 a antecedência média e a distribuição por faixa (recomendada).** Sem migration de coluna; mostra se os clientes marcam em cima da hora.
 - [ ] **2. Não incluir.**
 
 **Texto proposto (opção 1):** RN040, item novo: "13. Antecedência: a média, em dias com uma casa, entre a data do registro e a data marcada dos agendamentos do período, pelas datas de calendário no fuso da empresa, e a quantidade em cada faixa: no mesmo dia, de 1 a 3 dias, de 4 a 7 dias e mais de 7 dias." Com L10 a L15, a frase de RN040 "Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a variação." passa a "Os indicadores 3, 6, 7, 8, 13 (a média), 15 (o percentual da margem), 16 (a média) e 17 vão também com o valor do período anterior e a variação.", com os itens que forem aprovados.
@@ -538,7 +544,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Lista fechada, obrigatória nos cancelamentos novos, com motivos por ator (recomendada).** Conferível, sem texto livre (que não poderia ir à IA, RS020); os cancelamentos antigos ficam como "Não informado".
+- [ x] **1. Lista fechada, obrigatória nos cancelamentos novos, com motivos por ator (recomendada).** Conferível, sem texto livre (que não poderia ir à IA, RS020); os cancelamentos antigos ficam como "Não informado".
 - [ ] **2. Lista e um texto livre em "Outro".** Mais detalhe, mas o texto fica fora da análise e precisa de limite e de exibição.
 - [ ] **3. Sem motivo.**
 
@@ -558,7 +564,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Custo dos insumos por serviço, na mesma forma do preço, opcional, copiado no agendamento; margem bruta só com os pagos de custo informado (recomendada).** Mede o que cada serviço deixa sem entrar no financeiro (aluguel, salários).
+- [ x] **1. Custo dos insumos por serviço, na mesma forma do preço, opcional, copiado no agendamento; margem bruta só com os pagos de custo informado (recomendada).** Mede o que cada serviço deixa sem entrar no financeiro (aluguel, salários).
 - [ ] **2. Custo como um percentual do preço por serviço.** Mais simples, menos real: o insumo de um porte maior não cresce na mesma proporção do preço.
 - [ ] **3. Despesas gerais da empresa.** É o módulo financeiro, fora do MVP.
 
@@ -580,7 +586,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Copiar o nome da categoria no agendamento; nos agendamentos anteriores à cópia, usar a categoria atual (recomendada).** A análise por categoria fica fiel à época.
+- [x ] **1. Copiar o nome da categoria no agendamento; nos agendamentos anteriores à cópia, usar a categoria atual (recomendada).** A análise por categoria fica fiel à época.
 - [ ] **2. Manter a L5 (só a categoria atual).**
 
 **Texto proposto (opção 1):** RN040, item 2 passa a "Categorias: o valor e a quantidade dos serviços dos pagos do período por categoria, pelo nome da categoria copiado no agendamento (RN037); nos registrados antes da cópia, pela categoria atual do serviço."; `dados.md`, `appointment_services.category_name`: "Cópia do nome da categoria do serviço; vazia nos serviços sem categoria e nos agendamentos anteriores à cópia."
@@ -591,7 +597,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Nota de 1 a 5, sem comentário, uma vez por atendimento, até 30 dias depois da conclusão, dada pelo cliente e vista no detalhe nos dois lados (recomendada).** Simples de capturar e de conferir; nenhum texto livre.
+- [ x] **1. Nota de 1 a 5, sem comentário, uma vez por atendimento, até 30 dias depois da conclusão, dada pelo cliente e vista no detalhe nos dois lados (recomendada).** Simples de capturar e de conferir; nenhum texto livre.
 - [ ] **2. Nota e comentário.** Mais rico, mas o comentário é texto livre do cliente: não vai à IA (RS020) e pede limite, exibição e cuidado com dado pessoal.
 - [ ] **3. Sem avaliação.**
 
@@ -611,7 +617,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Número de atendimentos simultâneos nas configurações, só para medir a ocupação, sem bloquear agendamentos (recomendada).** RN016 e a decisão 0014 continuam valendo.
+- [x ] **1. Número de atendimentos simultâneos nas configurações, só para medir a ocupação, sem bloquear agendamentos (recomendada).** RN016 e a decisão 0014 continuam valendo.
 - [ ] **2. Controle de capacidade, recusando o agendamento acima das vagas.** Contraria a decisão 0014 e muda o agendamento inteiro.
 - [ ] **3. Sem ocupação.**
 
@@ -631,7 +637,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Decisão nova 0058, que substitui a 0055 (recomendada).** Cabe no molde: a 0055 recebe só o status; a 0058 registra a remoção. Substitui o texto proposto na L1 para a 0055; o resto da L1 continua.
+- [ x] **1. Decisão nova 0058, que substitui a 0055 (recomendada).** Cabe no molde: a 0055 recebe só o status; a 0058 registra a remoção. Substitui o texto proposto na L1 para a 0055; o resto da L1 continua.
 - [ ] **2. Manter a L1 (seção "Encerramento" na 0055).**
 
 **Texto proposto (opção 1):** `docs/decisoes/0058-fim-das-telas-de-demonstracao.md`: Decisão: "As telas usam só as rotas reais. `src/lib/demo/`, o código `NOT_IMPLEMENTED` e o `DemoNotice` foram removidos com a última rota de demonstração, `POST /api/admin/dashboard/analysis` (issue #1), e o cliente da API volta a falar só com a rede." Alternativa descartada: "Manter o mecanismo para telas futuras." Justificativa: "A 0055 previa a remoção com a última rota; uma tela nova nasce junto com a rota dela, e o mecanismo sem uso seria código morto no cliente da API." A 0055 passa a `status: substituída por 0058`.
@@ -642,10 +648,32 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. `src/shared/format/analysis-text.ts`, com `tests/format/analysis-text.test.ts` (recomendada).** Testada como as outras funções de exibição.
+- [ x] **1. `src/shared/format/analysis-text.ts`, com `tests/format/analysis-text.test.ts` (recomendada).** Testada como as outras funções de exibição.
 - [ ] **2. Em `src/components/admin/dashboard/`, conferida à mão.**
 
 **Texto proposto (opção 1):** nenhum texto de `docs/`; só o lugar do arquivo nos PRs 4 e 8.
+
+### L18. Período de comparação pelo calendário e até o dia corrente
+
+**Problema.** RN038 e `calculos.md`, seção 6 (já na `main`), comparam com um período de mesma quantidade de dias terminado no dia anterior: outubro inteiro (01/10 a 31/10) é comparado com 31/08 a 30/09, e não com setembro. E o período "Este mês", padrão do dashboard, vai até o último dia do mês: no dia 18, a análise compararia um mês pela metade com o mês anterior inteiro e apontaria uma queda que não existe. O relatório que o Yvan descreveu compara o dia com o dia anterior, o mês com o mês anterior e o ano com o ano anterior, como faria o analista da empresa.
+
+**Opções:**
+
+- [ ] **1. Comparação pelo calendário, até o dia corrente (recomendada).**
+  - Período de meses inteiros do calendário (do dia 1 ao último dia de um mês: "Este mês", um trimestre, um ano) → os mesmos meses imediatamente anteriores: outubro com setembro; 2026 inteiro com 2025.
+  - Outros períodos → a mesma quantidade de dias, terminando no dia anterior à data inicial: hoje com ontem; os últimos 7 dias com os 7 anteriores.
+  - Período que termina depois do dia corrente → é analisado até o dia corrente, e o anterior, pelos mesmos dias: em 18/11/2026, "Este mês" compara 01/11 a 18/11 com 01/10 a 18/10; o dia que não existe no mês anterior passa ao último dia dele. Os agendamentos em aberto (RN040, item 12) continuam contando o período inteiro exibido, o que ainda está por vir.
+  - Consequências: a tabela, o gráfico e o texto copiado mostram as datas dos dois períodos ("01/11 a 18/11 × 01/10 a 18/10"); os cartões dos indicadores do dashboard continuam com o período inteiro.
+- [ ] **2. Manter a mesma quantidade de dias (RN038 atual).** Simples, mas o mês não compara com o mês anterior, e o mês em andamento compara com um mês inteiro.
+
+**Texto proposto (opção 1), no PR 1:**
+
+- RN038: "os do período anterior, de mesma quantidade de dias e terminado no dia anterior à data inicial" passa a "os do período anterior: num período de meses inteiros do calendário, os mesmos meses imediatamente anteriores (outubro com setembro; um ano com o ano anterior); nos demais, a mesma quantidade de dias, terminando no dia anterior à data inicial (um dia com o dia anterior). O período que termina depois do dia corrente é analisado até ele, e o anterior, pelos mesmos dias (em 18/11, 01/11 a 18/11 com 01/10 a 18/10); o dia que não existe no mês anterior passa ao último dia dele".
+- `calculos.md`, seção 6, "Período anterior": os exemplos passam a 01/10/2026 a 31/10/2026 → 01/09/2026 a 30/09/2026; 01/01/2026 a 31/12/2026 → 01/01/2025 a 31/12/2025; 01/03/2028 a 31/03/2028 → 01/02/2028 a 29/02/2028; 21/10/2026 → 20/10/2026; 15/10/2026 a 21/10/2026 → 08/10/2026 a 14/10/2026; em 18/11/2026, 01/11/2026 a 30/11/2026 → analisado de 01/11 a 18/11, com 01/10 a 18/10; em 30/03/2027, 01/03/2027 a 31/03/2027 → 01/03 a 30/03, com 01/02 a 28/02.
+- `calculos.md`, seção 6, "Série da receita": "O período e o anterior têm a mesma duração e se alinham por posição" passa a "O período e o anterior se alinham por posição; quando o anterior é mais curto (setembro diante de outubro), as últimas posições dele ficam vazias" (muda também o texto aprovado na L6).
+- `rotas.md`: a resposta ganha `analyzedTo` (o último dia analisado, que é `to` ou o dia corrente, o que vier antes).
+- `dashboard-do-painel.md` e o texto copiado: "Comparado com 01/09/2026 a 30/09/2026"; no período em andamento, "Analisado até 18/11/2026, comparado com 01/10/2026 a 18/10/2026".
+- Issue #1, critério de aceitação: "os de 31/08/2026 a 30/09/2026" passa a "os de 01/09/2026 a 30/09/2026" (com a atualização do corpo, ponto 6).
 
 ## Decisões técnicas
 
@@ -663,7 +691,7 @@ Escolhas locais, sem registro: o serviço da análise no `dashboard.ts` existent
 ## Riscos e dúvidas
 
 1. **Prazo da AV3.** Treze PRs, cada um revisado por outro integrante (decisão 0039), seis migrations aplicadas por você e a #2 dependendo da documentação. Mesmo com um PR incorporado por dia útil, o conjunto passa do início de dezembro. A ordem da tabela deixa o sistema inteiro em qualquer fronteira: a análise resumida (PRs 1 a 5), a detalhada com os dados de hoje (6 a 8) e cada dado novo completo (9 a 13). As duas opções do plano anterior foram marcadas juntas; esta substitui aquele ponto:
-   - [ ] **1. Seguir a ordem da tabela, com os PRs de documentação (1 e 2) primeiro, para a #2 andar em paralelo; o que não couber até a AV3 continua depois, sem nada pela metade (recomendada).**
+   - [x ] **1. Seguir a ordem da tabela, com os PRs de documentação (1 e 2) primeiro, para a #2 andar em paralelo; o que não couber até a AV3 continua depois, sem nada pela metade (recomendada).**
    - [ ] **2. Outra ordem** (escreva qual).
 2. **Migrations.** Seis, todas aplicadas por você (`npx supabase db push`) antes da incorporação do PR de cada uma, como manda `migration.md`: `dashboard_details` (PR 6), motivo do cancelamento (PR 9), custo e categoria (PR 10), avaliações (PR 12), atendimentos simultâneos (PR 13) e a remoção da `save_service` antiga (depois do PR 11 publicado). O agente só as confere no banco local, o que depende do `.env.local`. O `seed-demo.sql` atualizado é carregado por você no SQL Editor depois de cada uma.
 3. **Campos do pedido ao Groq.** Confiro na documentação do Groq, no PR 3, os nomes do esquema JSON estrito, do limite de saída e do raciocínio baixo (`response_format` com `json_schema`, `max_completion_tokens`, `reasoning_effort`) e se os tokens de raciocínio contam no limite de saída; o que for usado vai a `servico-de-ia.md`. Se divergir do texto atual, volto a você.
@@ -675,6 +703,7 @@ Escolhas locais, sem registro: o serviço da análise no `dashboard.ts` existent
 
 ## Fora do escopo
 
+- Geração automática ou agendada do relatório e o envio dele (e-mail, decisão 0015): o relatório é gerado quando pedido, de qualquer período.
 - Guardar análises, inclusive uma diária para alimentar as mensais e anuais: a análise de um período longo usa os agregados do banco, que são exatos, e não textos de IA anteriores; guardar exigiria tabela, agendador e regra de validade e contraria RS020 ("entradas e respostas não são gravadas").
 - Chat livre, texto digitado enviado à IA, consulta gerada pelo modelo e acesso do modelo ao banco.
 - Limite próprio de chamadas, resposta em fluxo e envio da análise por e-mail (decisão 0015).

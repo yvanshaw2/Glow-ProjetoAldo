@@ -71,3 +71,11 @@ A entrada "dados disponíveis para a análise detalhada" disse que `appointments
 O Yvan pediu que a análise tenha de fato os dados que faltam, simulados no `seed-demo.sql` como os de hoje, e escolheu "Tudo na #1" em vez de issues separadas. Princípio combinado: nenhum dado existe só no seed; cada um tem banco, captura no fluxo real, exibição, simulação e indicador.
 
 O plano ganhou a entrega 6, as lacunas L10 (antecedência), L11 (motivo do cancelamento), L12 (custo dos insumos e margem), L13 (categoria copiada), L14 (avaliação do atendimento), L15 (ocupação da agenda), L16 (decisão 0058 no lugar da seção "Encerramento" da 0055) e L17 (lugar da função do texto copiado), e passou a treze PRs, com um ponto 1 novo sobre o prazo. Voltou a `aguardando_aprovacao`; as caixas de L1 a L9 continuam marcadas, e as novas estão vazias. O PR 1 continua só com commits locais.
+
+## 2026-11-18 – decisão: o relatório como o do analista da empresa (L18)
+
+O Yvan descreveu a ideia: o relatório da IA faz o papel do funcionário que analisa o dashboard e outros dados e entrega ao dono o relatório do período, comparando o dia com o dia anterior, o mês com o mês anterior e o ano com o ano anterior, para poupar o tempo e o custo desse funcionário. Conferindo o plano contra isso:
+
+- Coerente: a análise sob demanda de qualquer período, os dados além do dashboard (RN040 e L10 a L15), as seções e as sugestões da detalhada, os números do sistema ao lado do texto.
+- Incoerente, corrigido pela L18 (nova): RN038 compara com um período de mesma quantidade de dias (outubro com 31/08 a 30/09), e "Este mês" em andamento seria comparado com o mês anterior inteiro.
+- Registrado no plano: a seção "Instruções ao modelo" (o modelo no lugar do analista que relata ao dono) e, em "Fora do escopo", a geração automática ou agendada e o envio do relatório (decisão 0015): ele é gerado quando pedido.
