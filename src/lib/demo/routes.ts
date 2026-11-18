@@ -43,23 +43,6 @@ export const DEMO_ROUTES: readonly DemoRoute[] = [
       ),
   },
   { method: "POST", path: "/api/me/appointments/:id/cancel" },
-  {
-    method: "GET",
-    path: "/api/me/bookable-services",
-    load: () =>
-      import("@/lib/demo/appointments").then(
-        (appointments) => appointments.answerBookableServices,
-      ),
-  },
-  {
-    method: "POST",
-    path: "/api/me/appointments/preview",
-    load: () =>
-      import("@/lib/demo/appointments").then(
-        (appointments) => appointments.answerAppointmentPreview,
-      ),
-  },
-  { method: "POST", path: "/api/me/appointments" },
   { method: "PATCH", path: "/api/me/appointments/:id" },
   { method: "POST", path: "/api/me/appointments/:id/reschedule" },
   // docs/agendamento/rotas.md, built by #66; the analysis is a POST that
