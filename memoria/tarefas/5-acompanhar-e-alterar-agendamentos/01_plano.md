@@ -4,7 +4,7 @@ titulo: "Acompanhar, editar, cancelar e reagendar agendamentos do cliente"
 areas: [backend, frontend, testes]
 tipo: funcionalidade
 requisitos: [UC07, UC25, UC26, RF028, RF029, RF030, RF031, RF032, RN005, RN006, RN008, RN009, RN010, RN011, RN012, RN013, RN014, RN015, RN017, RN019, RN020, RN032, RN033, RN034, RN037, RNF011, RS009]
-status: em_execucao
+status: concluido
 aprovado_por: yvan
 aprovado_em: 18/1/2026
 ---
