@@ -79,3 +79,11 @@ O Yvan descreveu a ideia: o relatório da IA faz o papel do funcionário que ana
 - Coerente: a análise sob demanda de qualquer período, os dados além do dashboard (RN040 e L10 a L15), as seções e as sugestões da detalhada, os números do sistema ao lado do texto.
 - Incoerente, corrigido pela L18 (nova): RN038 compara com um período de mesma quantidade de dias (outubro com 31/08 a 30/09), e "Este mês" em andamento seria comparado com o mês anterior inteiro.
 - Registrado no plano: a seção "Instruções ao modelo" (o modelo no lugar do analista que relata ao dono) e, em "Fora do escopo", a geração automática ou agendada e o envio do relatório (decisão 0015): ele é gerado quando pedido.
+
+## 2026-11-18 – decisão: plano aprovado com a segunda ampliação
+
+O Yvan gravou `status: aprovado` e marcou a opção 1 de L10 a L18 e do ponto 1. Conferido no arquivo; o status passou a `em_execucao`. Os campos `aprovado_por` e `aprovado_em` ficaram como na primeira aprovação. A segunda caixa do ponto 6 ("Acrescentar ao corpo da issue a segunda ampliação") ficou vazia: o corpo da issue #1 não foi alterado de novo, e o exemplo do critério de aceitação de lá continua "31/08/2026 a 30/09/2026", diferente da L18. Fica para o Yvan decidir.
+
+## 2026-11-18 – descoberta: período em andamento e o botão da análise
+
+Com a L18, um período em andamento é analisado só até o dia corrente. O botão "Gerar análise" continua disponível pelo período exibido (que pode ter só agendamentos futuros, como "Este mês" no dia 1); nesse caso, a rota responde 409 `INSUFFICIENT_DATA`, e o cartão mostra a mensagem dela. RN038 e `rotas.md` passaram a dizer "período analisado".

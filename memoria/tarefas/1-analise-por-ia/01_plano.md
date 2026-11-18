@@ -4,7 +4,7 @@ titulo: "Análise do período no dashboard, gerada por IA"
 areas: [frontend, backend, banco, testes]
 tipo: funcionalidade
 requisitos: [UC27, UC09, UC07, UC12, UC13, UC14, UC23, UC28, RF089, RF090, RF040, RF041, RF042, RF095, RF096, RF097, RF098, RN038, RN039, RN021, RN035, RN037, RN019, RN009, RN013, RN016, RN040, RN041, RN042, RN043, RN044, RNF017, RNF018, RNF007, RS008, RS009, RS014, RS016, RS017, RS018, RS019, RS020, RS021]
-status: aprovado
+status: em_execucao
 aprovado_por: 18/11/2026  
 aprovado_em: 17:41
 ---
@@ -659,7 +659,7 @@ Os indicadores 3, 6, 7 e 8 vão também com o valor do período anterior e a var
 
 **Opções:**
 
-- [ ] **1. Comparação pelo calendário, até o dia corrente (recomendada).**
+- [ x] **1. Comparação pelo calendário, até o dia corrente (recomendada).**
   - Período de meses inteiros do calendário (do dia 1 ao último dia de um mês: "Este mês", um trimestre, um ano) → os mesmos meses imediatamente anteriores: outubro com setembro; 2026 inteiro com 2025.
   - Outros períodos → a mesma quantidade de dias, terminando no dia anterior à data inicial: hoje com ontem; os últimos 7 dias com os 7 anteriores.
   - Período que termina depois do dia corrente → é analisado até o dia corrente, e o anterior, pelos mesmos dias: em 18/11/2026, "Este mês" compara 01/11 a 18/11 com 01/10 a 18/10; o dia que não existe no mês anterior passa ao último dia dele. Os agendamentos em aberto (RN040, item 12) continuam contando o período inteiro exibido, o que ainda está por vir.
