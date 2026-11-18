@@ -29,22 +29,22 @@ Acesso: Perfil `client`; opera só sobre os dados do cliente da sessão (RS009).
 
 Serviços disponíveis para o veículo, com valores e adicionais vinculados.
 
-- Entrada: `vehicleId*`
-- Resposta: **200** lista paginada dos serviços principais e complementares ativos de categorias ativas (RN008, RN031), na ordem do catálogo público, com `id`, `name`, `description`, `type`, `category` (`id` e `name`), `price` (o do porte do veículo ou o valor fixo, RN009), `durationMinutes` e `additionals`: `id`, `name`, `price` e `durationMinutes` dos adicionais ativos vinculados ao principal (RN006); lista vazia no complementar.
+- Entrada: `vehicleId*`, `page`, `pageSize` (12 por página)
+- Resposta: **200** lista paginada dos serviços principais e complementares ativos de categorias ativas (RN008, RN031), na ordem do catálogo público, com `id`, `name`, `description`, `type`, `category` (`id` e `name`), `price` (o do porte do veículo ou o valor fixo, RN009), `durationMinutes` e `additionals`: `id`, `name`, `price` e `durationMinutes` dos adicionais ativos vinculados ao principal (RN006); lista vazia no complementar; 404 se o veículo não existe ou não está na conta do cliente (RS009).
 
 #### `POST /api/me/appointments/preview`
 
 Calcula os valores do carrinho ou da edição de um agendamento, sem gravar.
 
-- Entrada: `vehicleId*, serviceIds*, paymentMethod, scheduledAt`; `appointmentId`, na edição.
-- Resposta: **200** `services` (`id`, `name`, `type`, `price` e `durationMinutes` de cada serviço pedido que pode ser agendado, pelo catálogo atual; o serviço inativo ou de categoria inativa fica de fora, RN008, RN031), `subtotal`, `feePercent` (o percentual da forma de pagamento, RN012, ou `null` sem `paymentMethod`), `total` (RN010; sem `paymentMethod`, igual ao subtotal), `estimatedDurationMinutes` (RN014) e `estimatedEndAt` (RN034, ou `null` sem `scheduledAt`).
+- Entrada: `vehicleId*, serviceIds*` (de 1 a 20 ids, sem repetição), `paymentMethod, scheduledAt` (instante com fuso); `appointmentId`, na edição, que não muda o cálculo.
+- Resposta: **200** `services` (`id`, `name`, `type`, `price` e `durationMinutes` de cada serviço pedido que pode ser agendado, pelo catálogo atual; o serviço inativo ou de categoria inativa fica de fora, RN008, RN031), `subtotal`, `feePercent` (o percentual da forma de pagamento, RN012, ou `null` sem `paymentMethod`), `total` (RN010; sem `paymentMethod`, igual ao subtotal), `estimatedDurationMinutes` (RN014) e `estimatedEndAt` (RN034, ou `null` sem `scheduledAt`); 404 se o veículo não existe ou não está na conta do cliente (RS009). A prévia só calcula, pelo catálogo vigente: a data, o horário e a composição são conferidos só no registro.
 
 #### `POST /api/me/appointments`
 
 Registra o agendamento (UC06).
 
-- Entrada: `vehicleId*, serviceIds*, paymentMethod*, scheduledAt*`
-- Resposta: **201** agendamento com o status `scheduled`; 400 data ou horário fora do funcionamento ou no passado; adicional sem o serviço principal.
+- Entrada: `vehicleId*, serviceIds*` (de 1 a 20 ids, sem repetição), `paymentMethod*, scheduledAt*` (instante com fuso). Preço, total, porte, previsão, cópias e status são calculados pelo servidor; o cliente é o da sessão.
+- Resposta: **201** agendamento com o status `scheduled`, no formato de `GET /api/me/appointments/:id`; 400 com o campo em `fields`: data ou horário fora do funcionamento ou no passado (`scheduledAt`), serviços sem principal ou complementar, adicional sem o seu principal ou serviço que não pode ser agendado (`serviceIds`); 404 se o veículo não existe ou não está na conta do cliente (RS009), sem gravar.
 
 #### `GET /api/me/appointments`
 
