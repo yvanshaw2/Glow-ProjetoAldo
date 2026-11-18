@@ -4,8 +4,8 @@ titulo: Manter serviços
 assunto: catalogo
 ator: Funcionário
 origem: Documentação de Análise do Sistema, seção 10.2 (Quadro 39)
-requisitos: [RF058, RF059, RF064, RF065, RF066]
-regras: [RN008, RN030]
+requisitos: [RF058, RF059, RF064, RF065, RF066, RF096]
+regras: [RN008, RN030, RN042]
 ---
 
 # UC14 – Manter serviços
@@ -27,7 +27,7 @@ regras: [RN008, RN030]
 3. O funcionário localiza o serviço, podendo filtrar por tipo.
 4. O funcionário seleciona a opção de editar.
 5. O sistema exibe os dados do serviço.
-6. O funcionário altera os dados e confirma.
+6. O funcionário altera os dados, inclusive os valores e o custo dos insumos (RN042), e confirma.
 7. O sistema valida e grava as alterações.
 
 ## Fluxos alternativos
@@ -58,6 +58,6 @@ regras: [RN008, RN030]
 
 ## Relacionados
 
-- Requisitos: [RF058](requisitos.md), [RF059](requisitos.md), [RF064](requisitos.md), [RF065](requisitos.md), [RF066](requisitos.md)
-- Regras: [RN008](RN008-servico-inativo.md), [RN030](../plataforma/RN030-exclusao-logica.md)
+- Requisitos: [RF058](requisitos.md), [RF059](requisitos.md), [RF064](requisitos.md), [RF065](requisitos.md), [RF066](requisitos.md), [RF096](requisitos.md)
+- Regras: [RN008](RN008-servico-inativo.md), [RN030](../plataforma/RN030-exclusao-logica.md), [RN042](RN042-custo-dos-insumos.md)
 - Telas e API: [rotas.md](rotas.md)

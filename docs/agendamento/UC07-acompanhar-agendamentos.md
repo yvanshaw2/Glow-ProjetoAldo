@@ -4,8 +4,8 @@ titulo: Acompanhar agendamentos
 assunto: agendamento
 ator: Cliente
 origem: Documentação de Análise do Sistema, seção 10.2 (Quadro 32)
-requisitos: [RF028, RF029, RF030]
-regras: [RN019]
+requisitos: [RF028, RF029, RF030, RF095]
+regras: [RN019, RN041]
 ---
 
 # UC07 – Acompanhar agendamentos
@@ -33,8 +33,8 @@ regras: [RN019]
 ### FA01 – Cancelamento de agendamento (passo 2)
 
 1. O cliente seleciona um agendamento com o status “Agendado” e solicita o cancelamento (RN019).
-2. O sistema solicita a confirmação.
-3. O cliente confirma e o sistema altera o status para “Cancelado”, movendo o agendamento para o histórico.
+2. O sistema solicita a confirmação e o motivo do cancelamento (RN041).
+3. O cliente escolhe o motivo e confirma, e o sistema altera o status para “Cancelado”, movendo o agendamento para o histórico.
 
 ### FA02 – Reagendamento de serviço concluído (passo 4)
 
@@ -43,6 +43,10 @@ regras: [RN019]
 ### FA03 – Edição de agendamento (passo 2)
 
 1. O cliente aciona a opção de editar em um agendamento com o status “Agendado”, e o fluxo prossegue conforme o UC26.
+
+### FA04 – Avaliação do atendimento (passo 4)
+
+1. No histórico, o cliente avalia um atendimento concluído, e o fluxo prossegue conforme o UC28.
 
 ## Fluxos de exceção
 
@@ -56,8 +60,8 @@ regras: [RN019]
 
 ## Relacionados
 
-- Requisitos: [RF028](requisitos.md), [RF029](requisitos.md), [RF030](requisitos.md)
-- Regras: [RN019](RN019-cancelamento.md)
+- Requisitos: [RF028](requisitos.md), [RF029](requisitos.md), [RF030](requisitos.md), [RF095](requisitos.md)
+- Regras: [RN019](RN019-cancelamento.md), [RN041](RN041-motivo-do-cancelamento.md)
 - Segurança: [RS009](../plataforma/seguranca.md)
-- Outros casos de uso: [UC25](UC25-reagendar-servico-concluido.md), [UC26](UC26-editar-agendamento.md)
+- Outros casos de uso: [UC25](UC25-reagendar-servico-concluido.md), [UC26](UC26-editar-agendamento.md), [UC28](UC28-avaliar-atendimento.md)
 - Telas e API: [rotas.md](rotas.md)

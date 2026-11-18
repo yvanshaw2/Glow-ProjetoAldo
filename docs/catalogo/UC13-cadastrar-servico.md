@@ -4,8 +4,8 @@ titulo: Cadastrar serviço
 assunto: catalogo
 ator: Funcionário
 origem: Documentação de Análise do Sistema, seção 10.2 (Quadro 38)
-requisitos: [RF060, RF061, RF062, RF063]
-regras: [RN006, RN007, RN009, RN035]
+requisitos: [RF060, RF061, RF062, RF063, RF096]
+regras: [RN006, RN007, RN009, RN035, RN042]
 ---
 
 # UC13 – Cadastrar serviço
@@ -29,8 +29,8 @@ regras: [RN006, RN007, RN009, RN035]
 3. O funcionário seleciona o tipo principal.
 4. O sistema solicita categoria, forma de precificação (por porte ou valor fixo), duração média, nome, descrição e imagem.
 5. O funcionário informa os dados e avança.
-6. O sistema solicita os valores: um para cada porte (P, M, G e GG) ou um valor único, conforme a forma de precificação (RN009).
-7. O funcionário informa os valores e avança.
+6. O sistema solicita os valores: um para cada porte (P, M, G e GG) ou um valor único, conforme a forma de precificação (RN009), e, ao lado de cada um, o custo dos insumos, opcional (RN042).
+7. O funcionário informa os valores e, se quiser, os custos, e avança.
 8. O sistema exibe os serviços adicionais já cadastrados para vínculo opcional.
 9. O funcionário seleciona os adicionais desejados, ou nenhum, e confirma.
 10. O sistema valida os dados, grava o serviço e o exibe na listagem. A categoria escolhida precisa ser ativa, e os vínculos, de serviços cadastrados do outro tipo ([rotas.md](rotas.md)).
@@ -40,7 +40,7 @@ regras: [RN006, RN007, RN009, RN035]
 ### FA01 – Serviço adicional (passo 3)
 
 1. O funcionário seleciona o tipo adicional.
-2. O sistema solicita nome, duração média e valor fixo e oferece o vínculo opcional a um serviço principal já cadastrado.
+2. O sistema solicita nome, duração média, valor fixo e o custo dos insumos, opcional (RN042), e oferece o vínculo opcional a um serviço principal já cadastrado.
 3. O funcionário informa os dados e confirma; o sistema valida e grava o serviço.
 
 ### FA02 – Serviço complementar (passo 3)
@@ -69,8 +69,8 @@ regras: [RN006, RN007, RN009, RN035]
 
 ## Relacionados
 
-- Requisitos: [RF060](requisitos.md), [RF061](requisitos.md), [RF062](requisitos.md), [RF063](requisitos.md)
-- Regras: [RN006](RN006-tipos-de-servico.md), [RN007](RN007-categoria-obrigatoria.md), [RN009](RN009-precificacao.md), [RN035](../plataforma/RN035-formatos-dos-dados.md)
+- Requisitos: [RF060](requisitos.md), [RF061](requisitos.md), [RF062](requisitos.md), [RF063](requisitos.md), [RF096](requisitos.md)
+- Regras: [RN006](RN006-tipos-de-servico.md), [RN007](RN007-categoria-obrigatoria.md), [RN009](RN009-precificacao.md), [RN035](../plataforma/RN035-formatos-dos-dados.md), [RN042](RN042-custo-dos-insumos.md)
 - Segurança: [RS015](../plataforma/seguranca.md)
 - Outros casos de uso: [UC15](UC15-manter-categorias.md)
 - Telas e API: [rotas.md](rotas.md)
