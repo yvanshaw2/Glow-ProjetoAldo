@@ -25,30 +25,6 @@ export type DemoRoute = {
 };
 
 export const DEMO_ROUTES: readonly DemoRoute[] = [
-  // docs/clientes/rotas.md, built in phase 3.
-  {
-    method: "GET",
-    path: "/api/me/profile",
-    load: () =>
-      import("@/lib/demo/clients").then((clients) => clients.answerProfile),
-  },
-  { method: "PATCH", path: "/api/me/profile" },
-  {
-    method: "GET",
-    path: "/api/me/vehicles",
-    load: () =>
-      import("@/lib/demo/vehicles").then((vehicles) => vehicles.answerVehicles),
-  },
-  {
-    method: "GET",
-    path: "/api/me/vehicles/lookup",
-    load: () =>
-      import("@/lib/demo/vehicles").then(
-        (vehicles) => vehicles.answerVehicleLookup,
-      ),
-  },
-  { method: "POST", path: "/api/me/vehicles" },
-  { method: "PATCH", path: "/api/me/vehicles/:id" },
   // docs/agendamento/rotas.md, built in phase 3.
   {
     method: "GET",
