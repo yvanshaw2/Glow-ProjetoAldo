@@ -6,7 +6,7 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 
 | Arquivo | Conteúdo |
 |---|---|
-| requisitos.md | Requisitos funcionais RF019–RF032, RF040–RF056, RF089–RF094 (37) |
+| requisitos.md | Requisitos funcionais RF019–RF032, RF040–RF056, RF089–RF095, RF097 (39) |
 | UC06-agendar-servico.md | Agendar serviço (Cliente) |
 | UC07-acompanhar-agendamentos.md | Acompanhar agendamentos (Cliente) |
 | UC09-visualizar-dashboard.md | Visualizar dashboard (Funcionário) |
@@ -16,6 +16,7 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 | UC25-reagendar-servico-concluido.md | Reagendar serviço concluído (Cliente) |
 | UC26-editar-agendamento.md | Editar agendamento (Cliente) |
 | UC27-gerar-analise-do-dashboard.md | Gerar análise do dashboard (Funcionário) |
+| UC28-avaliar-atendimento.md | Avaliar atendimento (Cliente) |
 | RN003-cliente-e-veiculo-do-agendamento.md | Cliente e veículo do agendamento |
 | RN004-veiculo-antes-dos-servicos.md | Veículo antes dos serviços |
 | RN005-servico-obrigatorio-no-agendamento.md | Serviço obrigatório no agendamento |
@@ -37,7 +38,9 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 | RN038-dados-da-analise-do-dashboard.md | Dados da análise do dashboard |
 | RN039-conteudo-da-analise-do-dashboard.md | Conteúdo da análise do dashboard |
 | RN040-indicadores-da-analise-detalhada.md | Indicadores da análise detalhada |
-| dados.md | Tabelas `appointments`, `appointment_services` |
+| RN041-motivo-do-cancelamento.md | Motivo do cancelamento |
+| RN043-avaliacao-do-atendimento.md | Avaliação do atendimento |
+| dados.md | Tabelas `appointments`, `appointment_services`, `appointment_reviews` |
 | rotas.md | Telas e rotas da API |
 | meus-agendamentos.md | Conteúdo e textos da página de agendamentos do cliente (`/appointments`) |
 | dashboard-do-painel.md | Conteúdo e textos da tela do dashboard (`/admin`): período, indicadores, análise do período (resumida e detalhada, cópia e impressão), gráficos, agenda do dia e estados |

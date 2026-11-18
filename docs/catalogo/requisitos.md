@@ -2,7 +2,7 @@
 titulo: Requisitos funcionais – Catálogo
 assunto: catalogo
 origem: Documentação de Análise do Sistema, seções 6.1.1, 6.2.4 (Quadros 6, 14)
-ids: [RF001, RF002, RF003, RF004, RF005, RF006, RF057, RF058, RF059, RF060, RF061, RF062, RF063, RF064, RF065, RF066, RF067, RF068]
+ids: [RF001, RF002, RF003, RF004, RF005, RF006, RF057, RF058, RF059, RF060, RF061, RF062, RF063, RF064, RF065, RF066, RF067, RF068, RF096]
 ---
 
 # Requisitos funcionais: Catálogo
@@ -36,3 +36,4 @@ Prioridade: Essencial (obrigatório no MVP), Importante (sem ele o sistema funci
 | RF066 | O sistema deve permitir a exclusão de serviços (RN030). | Importante |
 | RF067 | O sistema deve permitir o cadastro de categorias, informando nome e descrição. | Essencial |
 | RF068 | O sistema deve permitir editar, desativar e reativar categorias e exibir ou ocultar as categorias inativas na listagem (RN031). | Importante |
+| RF096 | O sistema deve permitir informar, no cadastro do serviço, o custo estimado dos insumos de um atendimento, por porte quando o preço for por porte (RN042). | Desejável |

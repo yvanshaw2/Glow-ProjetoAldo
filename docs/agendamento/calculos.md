@@ -2,7 +2,7 @@
 titulo: Funções puras do agendamento
 assunto: agendamento
 origem: Documentação de Arquitetura de Software, seção 4.2; Documentação de Análise do Sistema, seção 9
-relacionados: [RN005, RN006, RN009, RN010, RN012, RN013, RN015, RN016, RN017, RN018, RN019, RN020, RN021, RN032, RN033, RN034, RN037, RN038, RN039, RN040]
+relacionados: [RN005, RN006, RN009, RN010, RN012, RN013, RN015, RN016, RN017, RN018, RN019, RN020, RN021, RN032, RN033, RN034, RN037, RN038, RN039, RN040, RN041, RN042, RN043, RN044]
 ---
 
 # Funções puras do agendamento
@@ -23,6 +23,7 @@ Os indicadores (seção 5) não ficam em `rules/`: são agregações por períod
 ## 1. Preço (RN009, RN010, RN012)
 
 - Valor do item: `by_size` usa o preço do porte do veículo; `fixed` usa `fixed_price`; adicional é sempre fixo.
+- Custo do item (RN042): pela mesma regra, o `cost` do porte ou o `fixed_cost`; vazio quando o serviço não tem custo. O custo não entra no subtotal nem no total: só é copiado no agendamento, com o valor.
 - Subtotal: soma dos itens. Total: subtotal ajustado pelo percentual da forma (positivo acréscimo, negativo desconto). Desconto de 100% dá total zero.
 - Cálculo em centavos inteiros: as funções recebem e devolvem reais, como o banco, a API e as telas, e convertem para centavos por dentro. Só o total é arredondado, uma vez, ao centavo mais próximo, e o meio centavo sobe: R$ 150,10 com acréscimo de 5% (R$ 157,605) dá R$ 157,61, e com desconto de 5% (R$ 142,595), R$ 142,60. Como o total nunca é negativo, é o mesmo resultado do `round` do PostgreSQL.
 - Composição: ao menos um serviço principal ou complementar (RN005); adicional só com o principal a que está vinculado (RN006).
@@ -88,7 +89,7 @@ Os números do período são agregados no banco pela função `dashboard_figures
 Agregados no banco pela função `dashboard_details` (só leitura), chamada para o período e para o anterior, que devolve as quantidades e as somas de RN040 no fuso da empresa; `rules/dashboard-details.ts` monta com elas as taxas, os cinco maiores e "Demais", os sete dias da semana e as horas, com zero onde não há agendamento.
 
 - Serviços e cancelamentos: os cinco maiores por valor (serviços dos pagos) e por quantidade (serviços dos cancelados); empate pelo nome copiado. O valor de um serviço é o `price` dele no agendamento, antes do acréscimo ou desconto da forma de pagamento.
-- Categorias: pela `category_id` atual do serviço, sem cópia no agendamento (RN037).
+- Categorias: pelo `category_name` copiado no agendamento (RN037); vazio, pela categoria atual do serviço.
 - Complementos: pagos com ao menos um serviço `complementary` ou `additional` sobre os pagos; 1 de 3 dá 33,33.
 - Ticket médio por porte: receita dos pagos de cada porte sobre a quantidade deles; zero sem pagos.
 - Acréscimos e descontos: a soma de `total − subtotal` dos pagos, separada em positivos e negativos.
@@ -97,6 +98,11 @@ Agregados no banco pela função `dashboard_details` (só leitura), chamada para
 - Retornos: agendamentos do período com `rescheduled_from_id` preenchido.
 - Dias da semana e horários: pela data marcada (agendamentos e cancelados) e pela conclusão (receita), no fuso da empresa, de segunda a domingo e das 0 às 23 horas.
 - Em aberto: `scheduled`, `checked_in`, `in_progress` e `awaiting_payment` com a data marcada no período.
+- Antecedência: dias de calendário entre `created_at` e `scheduled_at`, no fuso da empresa; média com uma casa e as faixas 0, de 1 a 3, de 4 a 7 e mais de 7. Registrado em 01/10 para 01/10 dá 0; em 01/10 para 05/10, 4.
+- Motivos: os cancelados por `cancellation_reason`, com os vazios como "Não informado" (RN041).
+- Margem (RN042): só os pagos em que todos os serviços têm `cost`; margem = soma de `total` menos soma de `cost`, e o percentual sobre a soma de `total`, com duas casas. R$ 200,00 de receita e R$ 60,00 de custo dão R$ 140,00 e 70,00%. Os pagos com algum serviço sem custo são contados à parte; sem pagos com custo, a margem não é calculada.
+- Avaliação (RN043): as notas de `appointment_reviews` dos atendimentos com `completed_at` no período; média com duas casas e a quantidade de cada nota; sem notas, não é calculada.
+- Ocupação (RN044): soma de `estimated_duration_minutes` dos agendamentos não cancelados do período sobre os minutos disponíveis vezes `simultaneous_slots`; os minutos de um dia são `closes_at − opens_at` menos a pausa, pelo dia da semana na disponibilidade atual, e zero no dia fechado (`rules/occupancy.ts`). Um dia útil das 08:00 às 18:00 com pausa de uma hora dá 540 minutos; com 3 atendimentos simultâneos, 1.620; 810 minutos agendados dão 50,00%. Sem minutos disponíveis, não é calculada.
 - Taxas e médias com duas casas, meio centavo para cima (RN012); sem base, zero.
 
 ## Persistência

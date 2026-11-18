@@ -6,12 +6,13 @@ Leia só o que a tarefa pede: o caso de uso do fluxo, as regras que ele cita e, 
 
 | Arquivo | Conteúdo |
 |---|---|
-| requisitos.md | Requisitos funcionais RF085–RF088 (4) |
+| requisitos.md | Requisitos funcionais RF085–RF088, RF098 (5) |
 | UC22-configurar-dados-da-empresa.md | Configurar dados da empresa (Funcionário) |
 | UC23-configurar-disponibilidade.md | Configurar disponibilidade (Funcionário) |
 | UC24-configurar-formas-de-pagamento.md | Configurar formas de pagamento (Funcionário) |
 | RN012-percentual-da-forma-de-pagamento.md | Percentual da forma de pagamento |
 | RN028-dados-institucionais.md | Dados institucionais |
+| RN044-ocupacao-da-agenda.md | Ocupação da agenda |
 | dados.md | Tabelas `business_settings`, `business_hours`, `payment_fees` |
 | rotas.md | Telas e rotas da API |
 | configuracoes-do-painel.md | Conteúdo e textos das abas Disponibilidade e Formas de pagamento do painel |

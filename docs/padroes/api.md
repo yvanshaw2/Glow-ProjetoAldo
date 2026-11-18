@@ -85,6 +85,7 @@ Em `fields`, cada campo aparece uma vez, com a primeira mensagem; o campo dentro
 | 409 | `VEHICLE_ALREADY_LINKED` | Este veículo já está na sua conta. |
 | 409 | `VEHICLE_SHARED` | Este veículo também está vinculado a outra conta. Para alterar os dados, procure a empresa. |
 | 409 | `INSUFFICIENT_DATA` | Não há dados suficientes no período para gerar a análise. |
+| 409 | `REVIEW_NOT_ALLOWED` | Este atendimento não pode mais ser avaliado. |
 | 413 | `PAYLOAD_TOO_LARGE` | O conteúdo enviado é maior que o permitido. |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | Formato de envio não aceito. |
 | 429 | `ACCOUNT_LOCKED` | Muitas tentativas. Aguarde alguns minutos e tente novamente. (com `Retry-After`) |

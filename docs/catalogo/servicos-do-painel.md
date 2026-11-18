@@ -1,8 +1,8 @@
 ---
 titulo: Conteúdo da página de serviços e categorias do painel
 assunto: catalogo
-origem: issue #63, plano memoria/tarefas/63-servicos-e-categorias/01_plano.md (L1 a L6)
-relacionados: [UC13, UC14, UC15, RF057, RF058, RF059, RF060, RF061, RF062, RF063, RF064, RF065, RF066, RF067, RF068, RN006, RN007, RN008, RN009, RN030, RN031, RN035, RS015, RNF002, RNF011]
+origem: issue #63, plano memoria/tarefas/63-servicos-e-categorias/01_plano.md (L1 a L6); issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L12)
+relacionados: [UC13, UC14, UC15, RF057, RF058, RF059, RF060, RF061, RF062, RF063, RF064, RF065, RF066, RF067, RF068, RN006, RN007, RN008, RN009, RN030, RN031, RN035, RS015, RNF002, RNF011, RF096, RN042, RS021]
 ---
 
 # Conteúdo da página de serviços e categorias do painel
@@ -48,6 +48,7 @@ Primeiro a escolha do tipo, em três botões de opção com o nome e uma frase: 
 
 - **Informações** (RF061 e RF063): "Categoria" (só as ativas), "Forma de precificação" ("Por porte" ou "Valor fixo", em botões de opção), "Duração média (minutos)" (de 5 a 2.400), "Nome", "Descrição" e "Imagem (opcional)".
 - **Valores** ([RN009](RN009-precificacao.md)): "Valor fixo", ou "Pequeno (P)", "Médio (M)", "Grande (G)" e "Extra grande (GG)", todos obrigatórios, no campo monetário e maiores que zero.
+- **Custo dos insumos** ([RN042](RN042-custo-dos-insumos.md)): ao lado de cada valor, "Custo dos insumos (opcional)", no campo monetário, de R$ 0,00 a R$ 99.999,99, com a ajuda "Produtos e materiais gastos em um atendimento. Não aparece para o cliente."; vazio significa sem custo informado. No adicional, ao lado do valor fixo.
 - **Adicionais**, só no principal: os adicionais cadastrados, para marcar, sem obrigatoriedade. Sem nenhum: "Nenhum serviço adicional cadastrado."
 - **Adicional** (RF062): "Nome", "Duração média (minutos)", "Valor fixo" e, opcional, "Serviços principais vinculados"; sem categoria, descrição, imagem nem forma de precificação. Sem principal cadastrado: "Nenhum serviço principal cadastrado."
 - Sem categoria ativa, no principal e no complementar, o formulário diz "Cadastre uma categoria antes de criar este serviço." (FE03), com o botão "Ir para as categorias".
