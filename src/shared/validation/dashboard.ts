@@ -16,6 +16,29 @@ const INVALID_DATE_MESSAGE = "Informe uma data válida.";
 const REVERSED_PERIOD_MESSAGE = "A data final não pode ser anterior à inicial.";
 const LONG_PERIOD_MESSAGE = "O período não pode passar de 12 meses.";
 
+// UC09 FE02, RN035: the first day not after the last one, up to 12 months,
+// checked only when both dates are days of the calendar.
+function checkPeriodLength(
+  { from, to }: CalendarPeriod,
+  context: z.RefinementCtx,
+): void {
+  if (!isCalendarDay(from) || !isCalendarDay(to)) return;
+  const days = countCalendarDays({ from, to });
+  if (days < 1) {
+    context.addIssue({
+      code: "custom",
+      message: REVERSED_PERIOD_MESSAGE,
+      path: ["to"],
+    });
+  } else if (days > DASHBOARD_MAX_PERIOD_DAYS) {
+    context.addIssue({
+      code: "custom",
+      message: LONG_PERIOD_MESSAGE,
+      path: ["to"],
+    });
+  }
+}
+
 // An empty date is no date; one that comes must be a day of the calendar.
 const optionalDaySchema = z
   .string()
@@ -44,21 +67,7 @@ export const dashboardPeriodQuerySchema = z
       }
     }
     if (from === undefined || to === undefined) return;
-    if (!isCalendarDay(from) || !isCalendarDay(to)) return;
-    const days = countCalendarDays({ from, to });
-    if (days < 1) {
-      context.addIssue({
-        code: "custom",
-        message: REVERSED_PERIOD_MESSAGE,
-        path: ["to"],
-      });
-    } else if (days > DASHBOARD_MAX_PERIOD_DAYS) {
-      context.addIssue({
-        code: "custom",
-        message: LONG_PERIOD_MESSAGE,
-        path: ["to"],
-      });
-    }
+    checkPeriodLength({ from, to }, context);
   })
   .transform(({ from, to }) =>
     from === undefined || to === undefined
