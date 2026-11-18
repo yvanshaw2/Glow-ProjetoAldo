@@ -1,8 +1,8 @@
 ---
 titulo: Conteúdo da tela do dashboard
 assunto: agendamento
-origem: issue #60, plano memoria/tarefas/60-telas-do-dashboard/01_plano.md (L2, L3, L5, L6)
-relacionados: [UC09, UC27, RF040, RF041, RF042, RF043, RF089, RF090, RN017, RN021, RN035, RN037, RN038, RN039]
+origem: issue #60, plano memoria/tarefas/60-telas-do-dashboard/01_plano.md (L2, L3, L5, L6); issue #1, plano memoria/tarefas/1-analise-por-ia/01_plano.md (L2, L7, L8)
+relacionados: [UC09, UC27, RF040, RF041, RF042, RF043, RF089, RF090, RF091, RF092, RF093, RF094, RN017, RN021, RN035, RN037, RN038, RN039, RN040, 0057]
 ---
 
 # Conteúdo da tela do dashboard
@@ -37,14 +37,19 @@ Quatro, com os valores da resposta, sem cálculo na tela, cada um com uma linha 
 
 Período sem agendamentos (UC09 FE01): os valores zerados e "Não há dados a apresentar neste período."
 
-## Análise do período (UC27, RF089, RF090)
+## Análise do período (UC27, RF089 a RF094)
 
-Cartão na largura toda, logo abaixo dos indicadores, com o ícone `Sparkles` ([../padroes/design-midia.md](../padroes/design-midia.md)) e os textos abaixo. O texto da análise é de um serviço de IA e aparece como texto, nunca como HTML (RS020).
+Cartão na largura toda, logo abaixo dos indicadores, com o ícone `Sparkles` ([../padroes/design-midia.md](../padroes/design-midia.md)) e os textos abaixo. O texto da análise é de um serviço de IA e aparece como texto, nunca como HTML (RS020); todo número do cartão vem do sistema ([RN039](RN039-conteudo-da-analise-do-dashboard.md)).
 
 - Título "Análise do período" e "Um resumo em texto dos indicadores deste período, escrito por inteligência artificial a partir dos números do sistema."
-- Botão "Gerar análise". A geração é pedida pelo clique, nunca sozinha. Enquanto espera, o botão diz "Gerando análise…", fica indisponível sem perder o foco (`aria-disabled`) e o lugar do texto fica reservado, em três linhas.
-- Resultado: o resumo; as observações, cada uma com o nome do indicador em negrito; "Gerado por inteligência artificial em 23/10/2026 às 14:32. Pode conter imprecisões: os números oficiais são os dos indicadores." (data e hora no fuso da empresa, decisão 0053); e o botão passa a "Gerar novamente", que troca a análise exibida (UC27 FA01).
-- Sem comparação (UC27 FA03): "O período anterior não tem agendamentos: a análise não compara os períodos."
+- Antes de gerar: a escolha "Resumida" ou "Detalhada" (RF091), com "Resumida" marcada, e o botão "Gerar análise". A geração é pedida pelo clique, nunca sozinha. Enquanto espera, o botão diz "Gerando análise…", fica indisponível sem perder o foco (`aria-disabled`) e o lugar do texto fica reservado, em três linhas.
+- Resultado da resumida: o resumo; as observações, cada uma com o nome do indicador em negrito e, nos quatro indicadores do período, o valor e a variação do sistema, como "Receita: R$ 12.500,00, alta de 25,0% em relação ao período anterior" ("queda de", "estável" quando a variação é zero; na taxa de cancelamento, "alta de 5,0 pontos percentuais"), com os ícones `TrendingUp`, `TrendingDown` ou `Minus`, decorativos; a tabela "Este período × período anterior" (Indicador, Este período, Período anterior, Variação); o gráfico "Receita: este período e o anterior" (RF092); "Gerado por inteligência artificial em 23/10/2026 às 14:32. Pode conter imprecisões: os números oficiais são os dos indicadores." (data e hora no fuso da empresa, decisão 0053); e o botão passa a "Gerar novamente", que troca a análise exibida (UC27 FA01).
+- Resultado da detalhada: o mesmo e, depois das observações, as cinco seções em `h3`, cada uma com as observações da IA e "Números da seção", os indicadores de [RN040](RN040-indicadores-da-analise-detalhada.md) formatados pela tela: "Receita" (a comparação e os agendamentos em aberto), "Serviços" (serviços, categorias, complementos e cancelamentos por serviço), "Clientes e veículos" (novos e recorrentes, retornos, tipo e porte), "Operação" (dias da semana, horários e canal) e "Pagamentos" (formas de pagamento, acréscimos e descontos); e "Sugestões", com "Sugestões geradas por IA: avalie antes de colocar em prática."
+- Gráfico "Receita: este período e o anterior": linhas, este período em `--link` e o anterior em `--muted-foreground`, tracejado; no eixo horizontal, "Dia 1", "Dia 2"… ou, nos períodos de mais de 62 dias, "Semana 1", "Semana 2"… ([calculos.md](calculos.md), seção 6); a dica com as datas e os valores dos dois períodos; a tabela oculta para o leitor de tela ("Posição", "Este período" e "Período anterior"), como nos outros gráficos.
+- Sem comparação (UC27 FA03): "O período anterior não tem agendamentos: a análise não compara os períodos."; a tabela e o gráfico mostram só este período.
+- Depois de gerada, ao lado de "Gerar novamente": "Copiar análise" e "Imprimir ou salvar em PDF".
+- Copiar (UC27 FA04, RF093): o texto simples com "Análise do período – 01/10/2026 a 31/10/2026", "Comparado com 31/08/2026 a 30/09/2026", o resumo, as observações com os valores do sistema, na detalhada as seções e as sugestões, e a nota de geração por IA. A região de status anuncia "Análise copiada." ou, se o navegador recusar, "Não foi possível copiar. Selecione o texto e copie manualmente."
+- Imprimir (UC27 FA05, RF094): abre a impressão do navegador, que também salva em PDF. Saem a navegação, o cabeçalho, os campos e os atalhos do período, os botões e a agenda do dia; ficam a linha do período exibido, os indicadores, a análise com os números e os gráficos, sempre nas cores do tema claro, sem dividir um cartão entre páginas (decisão 0057).
 - Período sem agendamentos (UC27 FE01): o botão fica indisponível, e o texto "Não há dados suficientes no período para gerar a análise." o descreve.
 - Falha (UC27 FE02): o aviso com a mensagem da API e "Tentar novamente", que pede de novo e leva o foco ao botão; os indicadores continuam na tela (RNF017).
 - Uma região de status, sempre presente, anuncia "Análise gerada.". Escolher outro período leva o cartão de volta ao começo (UC27 FA02), e a chamada em curso é cancelada.
@@ -69,10 +74,10 @@ Cartão na largura toda, logo abaixo dos indicadores, com o ícone `Sparkles` ([
 
 ## Fora da tela, sem requisito
 
-A saudação, "Avaliação média", "Alertas" e a variação em relação ao período anterior nos cartões (a rota não devolve o período anterior).
+A saudação, "Avaliação média", "Alertas" e a variação em relação ao período anterior nos cartões dos indicadores (ela aparece só na análise).
 
 ## Onde se aplica
 
-- Requisitos: [RF040 a RF043](requisitos.md), [RF089 e RF090](requisitos.md)
+- Requisitos: [RF040 a RF043](requisitos.md), [RF089 a RF094](requisitos.md)
 - Casos de uso: [UC09](UC09-visualizar-dashboard.md), [UC27](UC27-gerar-analise-do-dashboard.md)
-- Regras: [RN021](RN021-indicadores-do-dashboard.md), [RN035](../plataforma/RN035-formatos-dos-dados.md), [RN038](RN038-dados-da-analise-do-dashboard.md), [RN039](RN039-conteudo-da-analise-do-dashboard.md)
+- Regras: [RN021](RN021-indicadores-do-dashboard.md), [RN035](../plataforma/RN035-formatos-dos-dados.md), [RN038](RN038-dados-da-analise-do-dashboard.md), [RN039](RN039-conteudo-da-analise-do-dashboard.md), [RN040](RN040-indicadores-da-analise-detalhada.md)

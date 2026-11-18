@@ -96,8 +96,8 @@ Indicadores e agenda do dia (UC09).
 
 Gera a análise do período por inteligência artificial (UC27); nada é gravado.
 
-- Entrada: `from*, to*` (datas do período exibido; até 12 meses).
-- Resposta: **200** `from`, `to`, `previousFrom`, `previousTo`, `hasComparison`, `summary`, `highlights` (até quatro, cada um com `indicator` e `comment`) e `generatedAt`; 400 período inválido ou maior que 12 meses; 409 `INSUFFICIENT_DATA`, período sem agendamentos, sem chamar a IA; 503 `AI_UNAVAILABLE`, serviço de IA sem configuração, sem resposta em 15 segundos, com o limite atingido ou com resposta fora de RN039 (`docs/plataforma/servico-de-ia.md`).
+- Entrada: `from*, to*` (datas do período exibido; até 12 meses); `detail`: `summary` (padrão, a análise resumida) ou `detailed` (RF091).
+- Resposta: **200** `from`, `to`, `previousFrom`, `previousTo`, `hasComparison`, `detail`, `promptVersion` (versão das instruções que gerou o texto), `summary`, `highlights` (até quatro, cada um com `indicator` e `comment`), `generatedAt`, `comparison` (`revenue`, `appointmentCount`, `averageTicket` e `cancellationRate`, cada um com `current`, `previous` e `variation`, este nulo sem valor anterior; RF092) e `revenueSeries` (`unit`, `day` ou `week`, e `points`, cada um com `currentStart`, `currentRevenue`, `previousStart` e `previousRevenue`; `calculos.md`, seção 6); na detalhada, também `details` (os indicadores de RN040), `sections` (as cinco seções, cada uma com `section` e `observations`) e `recommendations` (até quatro), que na resumida são nulos; 400 período inválido ou maior que 12 meses ou `detail` desconhecido; 409 `INSUFFICIENT_DATA`, período sem agendamentos, sem chamar a IA; 503 `AI_UNAVAILABLE`, serviço de IA sem configuração, sem resposta em 15 segundos, com o limite atingido ou com resposta fora de RN039 (`docs/plataforma/servico-de-ia.md`).
 
 ### Rotas do painel: agendamentos
 
