@@ -59,6 +59,8 @@ const HIGHLIGHTS: DashboardAnalysisHighlight[] = [
   },
 ];
 
+const NO_COMPARISON = { current: 0, previous: null, variation: null };
+
 // POST /api/admin/dashboard/analysis (UC27): a fixed text, for the period of
 // the body. The previous period (RN038) only tells whether there is something
 // to compare. The screen does not offer the analysis of a period without
@@ -85,11 +87,25 @@ export function answerDashboardAnalysis({
   };
   return {
     ...period,
+    analyzedTo: to,
     previousFrom: previousPeriod.from,
     previousTo: previousPeriod.to,
     hasComparison: hasAppointments(previousPeriod),
+    detail: "summary",
+    promptVersion: "resumida-1",
     summary: SUMMARY,
     highlights: HIGHLIGHTS,
+    // The demo shows only the text: the numbers come with the route.
+    comparison: {
+      revenue: NO_COMPARISON,
+      appointmentCount: NO_COMPARISON,
+      averageTicket: NO_COMPARISON,
+      cancellationRate: NO_COMPARISON,
+    },
+    revenueSeries: { unit: "day", points: [] },
+    details: null,
+    sections: null,
+    recommendations: null,
     generatedAt: new Date().toISOString(),
   };
 }

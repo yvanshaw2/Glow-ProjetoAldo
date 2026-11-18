@@ -15,6 +15,7 @@ export const DASHBOARD_MAX_PERIOD_DAYS = 366;
 const INVALID_DATE_MESSAGE = "Informe uma data válida.";
 const REVERSED_PERIOD_MESSAGE = "A data final não pode ser anterior à inicial.";
 const LONG_PERIOD_MESSAGE = "O período não pode passar de 12 meses.";
+const UNKNOWN_DETAIL_MESSAGE = "Escolha um tipo de análise válido.";
 
 // UC09 FE02, RN035: the first day not after the last one, up to 12 months,
 // checked only when both dates are days of the calendar.
@@ -76,3 +77,27 @@ export const dashboardPeriodQuerySchema = z
   );
 
 export type DashboardPeriodQuery = z.output<typeof dashboardPeriodQuerySchema>;
+
+// A date that must come: missing or empty is "Preencha este campo.".
+const requiredDaySchema = z
+  .string({ error: REQUIRED_MESSAGE })
+  .refine((value) => value !== "", { error: REQUIRED_MESSAGE, abort: true })
+  .refine(isCalendarDay, { error: INVALID_DATE_MESSAGE });
+
+// Body of POST /api/admin/dashboard/analysis (UC27): the period on the screen,
+// with the limits of RN035, and the analysis type, the summary by default
+// (RF091; the detailed one comes with its route). Unknown fields are
+// discarded (RS013).
+export const dashboardAnalysisSchema = z
+  .object({
+    from: requiredDaySchema,
+    to: requiredDaySchema,
+    detail: z
+      .enum(["summary"], { error: UNKNOWN_DETAIL_MESSAGE })
+      .default("summary"),
+  })
+  .superRefine(({ from, to }, context) => {
+    checkPeriodLength({ from, to }, context);
+  });
+
+export type DashboardAnalysisInput = z.output<typeof dashboardAnalysisSchema>;
