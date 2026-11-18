@@ -10,6 +10,7 @@ import {
   bookingFormSchema,
   clientLookupQuerySchema,
   myAppointmentInputSchema,
+  myAppointmentListQuerySchema,
   portalBookingFormSchema,
   serviceLookupQuerySchema,
   vehicleLookupQuerySchema,
@@ -571,5 +572,46 @@ describe("appointmentRescheduleSchema", () => {
       paymentMethod: "debit",
       scheduledAt: "2026-11-03T09:00:00-03:00",
     });
+  });
+});
+
+// The query of GET /api/me/appointments (UC07, RF028, RF029).
+
+describe("myAppointmentListQuerySchema", () => {
+  const SCOPE = "Escolha uma lista válida.";
+
+  function scopeMessages(query: Record<string, string>) {
+    const result = myAppointmentListQuerySchema.safeParse(query);
+    if (result.success) return {};
+    return Object.fromEntries(
+      result.error.issues.map((issue) => [issue.path.join("."), issue.message]),
+    );
+  }
+
+  it.each(["current", "history"])(
+    "accepts the scope %s with the defaults",
+    (scope) => {
+      expect(myAppointmentListQuerySchema.parse({ scope })).toEqual({
+        scope,
+        page: 1,
+        pageSize: 10,
+      });
+    },
+  );
+
+  it("rejects an absent scope and a scope outside the two", () => {
+    expect(scopeMessages({})).toEqual({ scope: SCOPE });
+    expect(scopeMessages({ scope: "future" })).toEqual({ scope: SCOPE });
+    expect(scopeMessages({ scope: "" })).toEqual({ scope: SCOPE });
+  });
+
+  it("discards an unknown parameter and applies the maximum page size", () => {
+    expect(
+      myAppointmentListQuerySchema.parse({
+        scope: "current",
+        clientId: "other",
+        pageSize: "500",
+      }),
+    ).toEqual({ scope: "current", page: 1, pageSize: 50 });
   });
 });

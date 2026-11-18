@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  describeClientInvalidStatus,
   describeInvalidStatus,
   findEditChanges,
   findEditErrors,
@@ -117,15 +118,18 @@ describe("findEditChanges", () => {
 });
 
 function errors({
+  actor = "staff",
   status = "scheduled",
   request = {},
   bookable = [MAIN, ADDITIONAL],
 }: {
+  actor?: "client" | "staff";
   status?: AppointmentStatus;
   request?: Parameters<typeof findEditChanges>[1];
   bookable?: CompositionService[];
 } = {}) {
   return findEditErrors({
+    actor,
     status,
     current: CURRENT,
     request,
@@ -146,6 +150,7 @@ describe("findEditErrors", () => {
   it("does not check a kept date, even if it has passed", () => {
     expect(
       findEditErrors({
+        actor: "staff",
         status: "scheduled",
         current: {
           ...CURRENT,
@@ -249,5 +254,72 @@ describe("findEditErrors", () => {
         bookable: [],
       }),
     ).toEqual({});
+  });
+});
+
+// UC26 FE02, RN033: the client only postpones the date, to a future moment
+// after the one scheduled; the Monday of the fixtures is 23 November 2026 and
+// the appointment is at 09:00, before NOW (10:00).
+describe("findEditErrors by the client", () => {
+  it("refuses a date before the one scheduled", () => {
+    expect(
+      errors({ actor: "client", request: at("2026-11-23T08:30:00-03:00") }),
+    ).toEqual({
+      scheduledAt: "Escolha uma data e um horário posteriores aos marcados.",
+    });
+  });
+
+  it("refuses a date after the one scheduled that has already passed", () => {
+    expect(
+      errors({ actor: "client", request: at("2026-11-23T09:30:00-03:00") }),
+    ).toEqual({
+      scheduledAt: "Escolha uma data e um horário que ainda não passaram.",
+    });
+  });
+
+  it("accepts a future date after the one scheduled", () => {
+    expect(
+      errors({ actor: "client", request: at("2026-11-23T10:30:00-03:00") }),
+    ).toEqual({});
+    expect(
+      errors({ actor: "client", request: at("2026-11-24T08:00:00-03:00") }),
+    ).toEqual({});
+  });
+
+  it("does not check a kept date, even if it has passed", () => {
+    expect(
+      errors({
+        actor: "client",
+        request: { paymentMethod: "cash", ...at("2026-11-23T09:00:00-03:00") },
+      }),
+    ).toEqual({});
+  });
+
+  it("still checks the business hours of the new date", () => {
+    expect(
+      errors({ actor: "client", request: at("2026-11-28T09:00:00-03:00") }),
+    ).toEqual({ scheduledAt: "A empresa não atende neste dia." });
+  });
+});
+
+// UC07 FE02, UC26 FE01: the refusal of the client names the status and says
+// what to do.
+describe("describeClientInvalidStatus", () => {
+  it("tells that the portal cannot cancel it", () => {
+    expect(describeClientInvalidStatus("cancel", "checked_in")).toBe(
+      "Este agendamento está Em espera e não pode ser cancelado pelo portal. Para mudar algo, fale com a empresa.",
+    );
+  });
+
+  it("tells that it can no longer be changed here", () => {
+    expect(describeClientInvalidStatus("edit", "in_progress")).toBe(
+      "Este agendamento está Em execução e não pode mais ser alterado por aqui. Para mudar algo, fale com a empresa.",
+    );
+  });
+
+  it("tells that only a completed service is rescheduled", () => {
+    expect(describeClientInvalidStatus("reschedule", "scheduled")).toBe(
+      "Este agendamento está Agendado. Só um serviço concluído pode ser reagendado.",
+    );
   });
 });
