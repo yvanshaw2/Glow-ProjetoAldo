@@ -6,6 +6,8 @@ Guard: `requirePermission('dashboard')`. Serviço: `src/server/services/dashboar
 |---|---|
 | `GET` | Indicadores e agenda do dia (UC09). |
 
+A análise do período (UC27) fica em `analysis/`, com o próprio README.
+
 Entrada, resposta e erros de cada método: `docs/agendamento/rotas.md`.
 
 ## Vai aqui

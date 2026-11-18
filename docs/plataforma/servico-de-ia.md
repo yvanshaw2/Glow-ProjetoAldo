@@ -16,7 +16,7 @@ A análise do período no dashboard (UC27), resumida ou detalhada (RF091), é es
 | Provedor | Groq, plano Free, sem cartão |
 | Modelo | `openai/gpt-oss-120b` |
 | Formato | Chat Completions, em `POST {AI_BASE_URL}/chat/completions`, com `Authorization: Bearer` |
-| Pedido | o modelo, as duas mensagens, `response_format` com o esquema JSON estrito da resposta, `temperature` 0,3, limite de tokens de saída e raciocínio baixo |
+| Pedido | `model`, `messages` (as duas mensagens), `response_format` (`type: "json_schema"`, com `json_schema` de `name`, `strict: true` e `schema`; no modo estrito, todo campo é obrigatório e `additionalProperties` é `false`), `temperature` 0,3, `max_completion_tokens` (2.048 na resumida) e `reasoning_effort: "low"`. O raciocínio do `gpt-oss` volta em `message.reasoning`, que não é lido nem registrado; a documentação não diz se ele conta no limite de saída, por isso o limite deixa folga; o texto vem em `choices[0].message.content`, e os tokens, em `usage.prompt_tokens` e `usage.completion_tokens`. Conferido na documentação do Groq em 18/11/2026. |
 
 Limites do plano Free para o `openai/gpt-oss-120b`, conferidos em 21/10/2026 na página de limites do Groq (os da conta ficam nas configurações dela): 30 requisições e 8 mil tokens por minuto; 1.000 requisições e 200 mil tokens por dia. Com as instruções e a resposta, a análise resumida usa cerca de 1,5 mil tokens num mês e 2,5 mil em 12 meses, porque acima de 62 dias a receita vai em blocos de sete dias (RN038); a detalhada, de 3,5 mil a 4,5 mil. Todas cabem nos 8 mil tokens por minuto. O Groq não retém os dados das requisições por padrão, salvo os registros de abuso, por até 30 dias, e oferece retenção zero nas configurações da conta. Os limites e os termos dos planos gratuitos mudam sem aviso: confira-os nos dias antes de cada apresentação.
 
@@ -48,7 +48,7 @@ Lidas durante a requisição, nunca no build. Sem alguma delas, a análise respo
 
 ## Registro (decisão 0029)
 
-A falha grava uma linha `warn` com o motivo, o status HTTP do provedor e a duração; a análise gerada, uma linha `info` com o modelo, o modo, a versão das instruções, os tokens de entrada e de saída e a duração. Nunca a chave, as mensagens nem a resposta (RS018, RS019).
+A falha grava uma linha `warn` (`dashboard_analysis_failed`) com o motivo, o status HTTP do provedor e a duração; a análise gerada, uma linha `info` (`dashboard_analysis_generated`) com o modelo, o modo, a versão das instruções, os tokens de entrada e de saída e a duração. Nunca a chave, as mensagens nem a resposta (RS018, RS019).
 
 ## Versão das instruções e avaliação
 
