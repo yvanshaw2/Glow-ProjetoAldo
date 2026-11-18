@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clientEditSchema,
   clientInputSchema,
   clientListQuerySchema,
   clientUpdateSchema,
@@ -123,6 +124,57 @@ describe("clientInputSchema", () => {
       "password",
       "phone",
     ]);
+  });
+});
+
+describe("clientEditSchema", () => {
+  it("normalizes the name and keeps only the 11 digits of the phone", () => {
+    expect(
+      clientEditSchema.parse({
+        firstName: "maria de",
+        lastName: "souza",
+        phone: "(82) 99999-8888",
+      }),
+    ).toEqual({
+      firstName: "Maria de",
+      lastName: "Souza",
+      phone: "82999998888",
+    });
+  });
+
+  it("requires the three fields", () => {
+    expect(messagesOf(clientEditSchema, {})).toEqual({
+      firstName: REQUIRED,
+      lastName: REQUIRED,
+      phone: REQUIRED,
+    });
+  });
+
+  it("rejects an incomplete phone", () => {
+    expect(
+      messagesOf(clientEditSchema, {
+        firstName: "Maria",
+        lastName: "Souza",
+        phone: "(82) 9999",
+      }),
+    ).toEqual({ phone: PHONE });
+  });
+
+  it("discards the e-mail, the id and the version", () => {
+    expect(
+      clientEditSchema.parse({
+        firstName: "Maria",
+        lastName: "Souza",
+        phone: "82999998888",
+        email: "outra@email.com",
+        id: "x",
+        updatedAt: UPDATED_AT,
+      }),
+    ).toEqual({
+      firstName: "Maria",
+      lastName: "Souza",
+      phone: "82999998888",
+    });
   });
 });
 
