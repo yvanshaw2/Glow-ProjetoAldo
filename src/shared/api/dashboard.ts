@@ -66,10 +66,7 @@ export type DashboardAnalysisDetail = "summary" | "detailed";
 
 // The indicators compared with the previous period (RF092).
 export type DashboardComparedIndicator =
-  | "revenue"
-  | "appointmentCount"
-  | "averageTicket"
-  | "cancellationRate";
+  "revenue" | "appointmentCount" | "averageTicket" | "cancellationRate";
 
 // One indicator of the period next to the previous one, as the system works
 // it out: the variation is a percentage with one place, or points in the
