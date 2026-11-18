@@ -4,7 +4,7 @@ titulo: "Agendar serviço pelo cliente no portal"
 areas: [backend, frontend, testes]
 tipo: funcionalidade
 requisitos: [UC06, RF019, RF020, RF021, RF022, RF023, RF024, RF025, RF026, RF027, RN003, RN004, RN005, RN006, RN009, RN010, RN011, RN013, RN014, RN015, RN016, RN034, RN037, RNF002, RNF010, RS009]
-status: em_execucao
+status: concluido
 aprovado_por: yvan
 aprovado_em: 18/11/2026
 ---
