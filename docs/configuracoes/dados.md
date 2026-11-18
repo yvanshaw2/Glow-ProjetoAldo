@@ -26,6 +26,7 @@ Dados da empresa (linha única).
 | `instagram_url` | `text` | Opcional | Endereço do perfil no Instagram. |
 | `facebook_url` | `text` | Opcional | Endereço da página no Facebook. |
 | `whatsapp` | `text` | Opcional | Número do WhatsApp. |
+| `simultaneous_slots` | `smallint` | De 1 a 20; padrão: 1 | Atendimentos simultâneos da empresa, usados só para medir a ocupação da agenda (RN044). |
 | `updated_at` | `timestamptz` |  | Data da última alteração. |
 
 ### `business_hours`

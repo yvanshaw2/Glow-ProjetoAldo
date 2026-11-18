@@ -40,6 +40,7 @@ Agendamentos.
 | `vehicle_year` | `smallint` |  | Cópia do ano do veículo. |
 | `completed_at` | `timestamptz` | Conforme o status | Momento do recebimento do pagamento; base da receita por dia. |
 | `cancelled_at` | `timestamptz` | Conforme o status | Momento do cancelamento. |
+| `cancellation_reason` | `cancellation_reason` | Opcional; só no status `cancelled` | Motivo do cancelamento (RN041); vazio nos cancelamentos anteriores à regra. |
 | `updated_at` | `timestamptz` |  | Data da última alteração. |
 
 ### `appointment_services`
@@ -54,6 +55,18 @@ Serviços de cada agendamento.
 | `service_type` | `service_type` |  | Cópia do tipo do serviço. |
 | `price` | `numeric(10,2)` | Maior que zero | Valor do serviço no registro ou na última edição do agendamento. |
 | `duration_minutes` | `integer` | Maior que zero | Duração média do serviço no mesmo momento. |
+| `cost` | `numeric(10,2)` | Opcional; maior ou igual a zero | Cópia do custo dos insumos do serviço para o porte, no mesmo momento (RN042); vazio quando o serviço não tinha custo. |
+| `category_name` | `text` | Opcional | Cópia do nome da categoria do serviço (RN037); vazia nos serviços sem categoria e nos agendamentos anteriores à cópia. |
+
+### `appointment_reviews`
+
+Avaliações dos atendimentos pelo cliente (RN043).
+
+| Coluna | Tipo | Restrições | Descrição |
+|---|---|---|---|
+| `appointment_id` | `uuid` | PK; FK para `appointments` | Atendimento avaliado; uma avaliação por atendimento. |
+| `rating` | `smallint` | De 1 a 5 | Nota dada pelo cliente. |
+| `created_at` | `timestamptz` | Padrão: agora | Momento da avaliação; a nota não é alterada. |
 
 ## Tipos enumerados
 
@@ -61,10 +74,12 @@ Serviços de cada agendamento.
 |---|---|---|
 | `payment_method` | `credit`, `debit`, `pix`, `cash` | Forma de pagamento (RN011). |
 | `appointment_status` | `scheduled`, `checked_in`, `in_progress`, `awaiting_payment`, `completed`, `cancelled`, `rescheduled` | Status do agendamento. |
+| `cancellation_reason` | `client_gave_up`, `client_unavailable`, `weather`, `no_show`, `business_unavailable`, `other` | Motivo do cancelamento (RN041): Desistência do cliente, Imprevisto do cliente, Condições do tempo, Não comparecimento, Indisponibilidade da empresa e Outro. |
 
 ## Regras garantidas pelo banco
 
-- em `appointments`, `completed_at` é preenchido se e somente se o status for `completed` ou `rescheduled`, e `cancelled_at`, se e somente se for `cancelled`;
+- em `appointments`, `completed_at` é preenchido se e somente se o status for `completed` ou `rescheduled`, e `cancelled_at`, se e somente se for `cancelled`; `cancellation_reason` só é preenchido no status `cancelled` (a obrigatoriedade nos cancelamentos novos é conferida pelo servidor, RN041);
+- em `appointment_reviews`, a nota é de 1 a 5 e há no máximo uma por atendimento; quem avalia e até quando é conferido pelo servidor (RN043);
 - os valores de serviço e de agendamento são maiores que zero, exceto o total, que pode ser zero quando houver desconto de 100%.
 
 ## Gravações em várias tabelas
