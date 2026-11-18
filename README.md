@@ -25,7 +25,7 @@ Pré-requisitos: Git, Node.js 24 (LTS) com o npm e, só para executar em contêi
 1. Clonar o repositório e entrar na pasta:
 
    ```
-   git clone https://github.com/yvanshaw1/Glow-ProjetoAldo.git
+   git clone https://github.com/yvanshaw2/Glow-ProjetoAldo.git
    cd Glow-ProjetoAldo
    ```
 
