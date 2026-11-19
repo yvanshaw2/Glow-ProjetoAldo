@@ -1774,8 +1774,8 @@ paths:
       operationId: cancelMyAppointment
       summary: Cancela um agendamento Agendado do cliente
       description: >-
-        Só do Agendado (UC07 FA01, RN019). Em outro status, 409
-        INVALID_STATUS com o status na mensagem.
+        Só do Agendado (UC07 FA01, RN019), com um dos motivos do cliente
+        (RN041). Em outro status, 409 INVALID_STATUS com o status na mensagem.
       security:
         - sessionCookie: []
       parameters:
@@ -1785,6 +1785,22 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  enum:
+                    - client_gave_up
+                    - client_unavailable
+                    - weather
+                    - other
       responses:
         "200":
           description: Agendamento cancelado.
@@ -1792,6 +1808,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ClientAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthenticated"
         "403":
@@ -2547,7 +2565,8 @@ paths:
       operationId: cancelAdminAppointment
       summary: Cancela o agendamento
       description: >-
-        Só do Agendado e do Em espera (UC12 FA02, RN019).
+        Só do Agendado e do Em espera (UC12 FA02, RN019), com o motivo
+        (RN041).
       security:
         - sessionCookie: []
       parameters:
@@ -2557,6 +2576,17 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  $ref: "#/components/schemas/CancellationReason"
       responses:
         "200":
           description: Agendamento cancelado.
@@ -2564,6 +2594,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthenticated"
         "403":
@@ -4529,6 +4561,19 @@ components:
           description: >-
             Percentual sobre o valor anterior, com uma casa; na taxa de
             cancelamento, pontos percentuais. Nulo sem valor anterior.
+    CancellationReason:
+      type: string
+      description: >-
+        Motivo do cancelamento (RN041): desistência do cliente, imprevisto do
+        cliente, condições do tempo, não comparecimento, indisponibilidade da
+        empresa e outro.
+      enum:
+        - client_gave_up
+        - client_unavailable
+        - weather
+        - no_show
+        - business_unavailable
+        - other
     DashboardNamedValue:
       type: object
       required:
@@ -4562,6 +4607,7 @@ components:
         - weekdays
         - hours
         - cancelledServices
+        - cancellationReasons
         - open
         - leadTime
       properties:
@@ -4728,6 +4774,23 @@ components:
             properties:
               name:
                 type: string
+              count:
+                type: integer
+        cancellationReasons:
+          type: array
+          description: Os cancelados do período por motivo (RN041); not_informed para os sem motivo.
+          items:
+            type: object
+            required:
+              - reason
+              - count
+            properties:
+              reason:
+                oneOf:
+                  - $ref: "#/components/schemas/CancellationReason"
+                  - type: string
+                    enum:
+                      - not_informed
               count:
                 type: integer
         open:
@@ -5003,6 +5066,7 @@ components:
         - total
         - vehicle
         - services
+        - cancellationReason
         - updatedAt
         - paymentOptions
       properties:
@@ -5073,6 +5137,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AppointmentService"
+        cancellationReason:
+          description: Motivo do cancelado (RN041); nulo em outro status e nos cancelamentos anteriores à regra.
+          oneOf:
+            - $ref: "#/components/schemas/CancellationReason"
+            - type: "null"
         updatedAt:
           type: string
           format: date-time
@@ -5165,6 +5234,7 @@ components:
         - total
         - vehicle
         - services
+        - cancellationReason
         - updatedAt
       properties:
         id:
@@ -5228,6 +5298,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AppointmentService"
+        cancellationReason:
+          description: Motivo do cancelado (RN041); nulo em outro status e nos cancelamentos anteriores à regra.
+          oneOf:
+            - $ref: "#/components/schemas/CancellationReason"
+            - type: "null"
         updatedAt:
           type: string
           format: date-time

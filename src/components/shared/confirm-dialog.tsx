@@ -6,6 +6,7 @@ import {
   useState,
   type ComponentProps,
   type ReactElement,
+  type ReactNode,
 } from "react";
 import { FormAlert } from "@/components/shared/form-alert";
 import {
@@ -34,6 +35,12 @@ type ConfirmDialogProps = {
   isDestructive?: boolean;
   onConfirm: () => Promise<void>;
   onConfirmed?: () => void;
+  // A field the action needs, like the reason of a cancellation (RN041),
+  // shown between the text and the buttons.
+  children?: ReactNode;
+  // False keeps the dialog open without running the action; the field shows
+  // why.
+  canConfirm?: () => boolean;
   // Where the focus goes when the trigger is gone, like after a deletion.
   finalFocus?: ComponentProps<typeof AlertDialogContent>["finalFocus"];
 };
@@ -55,6 +62,8 @@ export function ConfirmDialog({
   isDestructive = false,
   onConfirm,
   onConfirmed,
+  children,
+  canConfirm,
   finalFocus,
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -69,6 +78,7 @@ export function ConfirmDialog({
   }
 
   async function confirm() {
+    if (canConfirm && !canConfirm()) return;
     setIsRunning(true);
     setFailure(null);
     try {
@@ -93,6 +103,7 @@ export function ConfirmDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
+        {children}
         {failure && (
           <FormAlert key={failure.key}>{failure.error.message}</FormAlert>
         )}

@@ -8,6 +8,7 @@ import type {
   ClientAppointmentSummary,
 } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
+import type { CancellationReason } from "@/shared/constants/cancellation-reasons";
 import type { AppointmentSort } from "@/shared/constants/appointment-views";
 import type { PaymentMethod } from "@/shared/constants/payment-methods";
 import type { ServiceType } from "@/shared/constants/service-types";
@@ -46,6 +47,7 @@ type AppointmentRow = {
   vehicle_model: string;
   vehicle_color: string;
   vehicle_year: number;
+  cancellation_reason: CancellationReason | null;
   updated_at: string;
   appointment_services: ServiceRow[];
 };
@@ -54,7 +56,7 @@ const APPOINTMENT_COLUMNS = `id, status, scheduled_at, estimated_end_at,
   estimated_duration_minutes, client_id, client_name, payment_method,
   subtotal, fee_percent, total, vehicle_id, vehicle_plate, vehicle_type,
   vehicle_size, vehicle_brand, vehicle_model, vehicle_color, vehicle_year,
-  updated_at,
+  cancellation_reason, updated_at,
   appointment_services (service_id, service_name, service_type, price,
     duration_minutes)`;
 
@@ -142,6 +144,7 @@ function toAdminAppointment(row: AppointmentRow): AdminAppointment {
       price: toNumber(service.price),
       durationMinutes: service.duration_minutes,
     })),
+    cancellationReason: row.cancellation_reason,
     updatedAt: row.updated_at,
     paymentOptions: null,
   };
@@ -309,6 +312,8 @@ export type StatusChange = {
   payment?: { method: PaymentMethod; feePercent: number; total: number };
   completedAt?: string;
   cancelledAt?: string;
+  // RN041
+  cancellationReason?: CancellationReason;
 };
 
 // One statement, so a change made by someone else in the meantime is not
@@ -331,6 +336,9 @@ export async function changeAppointmentStatus(
       }),
       ...(change.completedAt && { completed_at: change.completedAt }),
       ...(change.cancelledAt && { cancelled_at: change.cancelledAt }),
+      ...(change.cancellationReason && {
+        cancellation_reason: change.cancellationReason,
+      }),
     })
     .eq("id", id)
     .eq("status", fromStatus)

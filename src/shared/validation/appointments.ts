@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import {
+  CANCELLATION_REASONS,
+  CLIENT_CANCELLATION_REASONS,
+} from "@/shared/constants/cancellation-reasons";
+import {
   APPOINTMENT_SCOPES,
   APPOINTMENT_SORTS,
   APPOINTMENT_VIEW_STATUSES,
@@ -180,6 +184,22 @@ export const appointmentCompleteSchema = z.object({
 export type AppointmentCompleteInput = z.output<
   typeof appointmentCompleteSchema
 >;
+
+const REASON_MESSAGE = "Escolha um motivo da lista.";
+
+// UC12 FA02 and UC07 FA01, RN041: the reason of the cancellation, from the
+// whole list for the staff and from the reasons of the client for the client.
+export const appointmentCancelSchema = z.object(
+  { reason: z.enum(CANCELLATION_REASONS, { error: REASON_MESSAGE }) },
+  { error: REASON_MESSAGE },
+);
+
+export const myAppointmentCancelSchema = z.object(
+  { reason: z.enum(CLIENT_CANCELLATION_REASONS, { error: REASON_MESSAGE }) },
+  { error: REASON_MESSAGE },
+);
+
+export type AppointmentCancelInput = z.output<typeof appointmentCancelSchema>;
 
 const NO_FIELD_MESSAGE = "Informe ao menos um campo para alterar.";
 

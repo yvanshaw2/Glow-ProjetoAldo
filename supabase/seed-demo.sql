@@ -72,6 +72,24 @@ $$;
 
 -- Adds one appointment with its services and copies (RN037), with the status that suits
 -- its date; returns the status, or null when the appointment already exists.
+-- The reason of a demo cancellation (RN041), fixed by the appointment: mostly the client gave up
+-- or had an unforeseen problem; a no-show only for a day that has passed.
+create or replace function pg_temp.glow_demo_reason(appointment_id uuid, scheduled_at timestamptz)
+returns public.cancellation_reason
+language sql
+as $$
+  select case
+    when draw < 30 then 'client_gave_up'
+    when draw < 55 then 'client_unavailable'
+    when draw < 70 then 'weather'
+    when draw < 88 and scheduled_at <= now() then 'no_show'
+    when draw < 88 then 'client_gave_up'
+    when draw < 94 then 'business_unavailable'
+    else 'other'
+  end::public.cancellation_reason
+  from (select pg_temp.glow_demo_number(appointment_id::text || ':reason') % 100 as draw) d;
+$$;
+
 create or replace function pg_temp.glow_demo_add_appointment(
   appointment_id uuid,
   client_id uuid,
@@ -156,13 +174,14 @@ begin
     id, client_id, vehicle_id, rescheduled_from_id, scheduled_at, status, payment_method,
     subtotal, fee_percent, total, estimated_duration_minutes, estimated_end_at,
     client_name, vehicle_plate, vehicle_type, vehicle_size, vehicle_brand, vehicle_model,
-    vehicle_color, vehicle_year, completed_at, cancelled_at, created_at, updated_at
+    vehicle_color, vehicle_year, completed_at, cancelled_at, cancellation_reason, created_at, updated_at
   )
   values (
     appointment_id, client_id, vehicle_id, rescheduled_from_id, scheduled_at, status, method,
     subtotal, fee, round(subtotal * (100 + fee) / 100, 2), duration, end_at,
     client.first_name || ' ' || client.last_name, vehicle.plate, vehicle.type, vehicle.size,
-    vehicle.brand, vehicle.model, vehicle.color, vehicle.year, completed, cancelled, created,
+    vehicle.brand, vehicle.model, vehicle.color, vehicle.year, completed, cancelled,
+    case when status = 'cancelled' then pg_temp.glow_demo_reason(appointment_id, scheduled_at) end, created,
     coalesce(completed, cancelled, case when status = 'scheduled' then created else least(scheduled_at, now_at) end)
   )
   on conflict do nothing;
@@ -536,6 +555,16 @@ begin
   end loop;
 end;
 $$;
+
+-- The demo cancellations loaded before the reason existed get one too (RN041); only the ones of
+-- the demo clients, whose e-mails are at example.com.
+update public.appointments a
+set cancellation_reason = pg_temp.glow_demo_reason(a.id, a.scheduled_at)
+from public.clients c
+where c.id = a.client_id
+  and c.email like '%@example.com'
+  and a.status = 'cancelled'
+  and a.cancellation_reason is null;
 
 -- Contact data shown in the portal footer, only where it is still empty (RN028).
 update public.business_settings

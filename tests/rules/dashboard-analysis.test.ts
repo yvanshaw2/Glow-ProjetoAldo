@@ -557,6 +557,7 @@ const DETAIL_FIGURES: DashboardDetailsFigures = {
   revenueByWeekday: [{ weekday: 1, revenue: 700 }],
   hours: [{ hour: 9, count: 4 }],
   cancelledServices: [{ name: "Lavagem simples", count: 2 }],
+  cancellationReasons: [],
   open: { count: 3, total: 420 },
   leadTime: {
     count: 20,
@@ -696,7 +697,6 @@ describe("buildDetailedAnalysisInput", () => {
       buildAnalysisMessages(base)[0].content,
     );
     expect(JSON.parse(messages[1].content)).toEqual(input);
-    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-1");
   });
 });
 
@@ -774,5 +774,38 @@ describe("parseDetailedAnalysis", () => {
         parseDetailedAnalysis(JSON.stringify({ ...VALID_DETAILED, ...change })),
       ).toEqual({ ok: false, refusal: "NUMBERS_IN_TEXT" });
     }
+  });
+});
+
+describe("buildDetailedAnalysisInput, cancellation reasons", () => {
+  it("sends the reasons by their labels", () => {
+    const periods = {
+      analyzed: { from: "2026-10-01", to: "2026-10-31" },
+      previous: { from: "2026-09-01", to: "2026-09-30" },
+      isPartial: false,
+    };
+    const current = indicators(periods.analyzed, { appointmentCount: 5 });
+    const input = buildDetailedAnalysisInput({
+      base: buildAnalysisInput({
+        periods,
+        current,
+        comparison: buildComparison(current, null),
+        series: buildRevenueSeries(current.revenueByDay, null),
+        hasComparison: false,
+      }),
+      details: buildDetails({
+        ...DETAIL_FIGURES,
+        cancellationReasons: [
+          { reason: "no_show", count: 2 },
+          { reason: null, count: 1 },
+        ],
+      }),
+      previousDetails: null,
+    });
+    expect(input.details.cancellationReasons).toEqual([
+      { reason: "Não comparecimento", count: 2 },
+      { reason: "Não informado", count: 1 },
+    ]);
+    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-2");
   });
 });

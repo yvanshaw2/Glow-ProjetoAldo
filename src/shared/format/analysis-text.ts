@@ -9,6 +9,10 @@ import {
   type DashboardIndicator,
 } from "@/shared/constants/dashboard-indicators";
 import {
+  CANCELLATION_REASON_LABELS,
+  NOT_INFORMED_REASON_LABEL,
+} from "@/shared/constants/cancellation-reasons";
+import {
   DASHBOARD_SECTION_LABELS,
   type DashboardSection,
 } from "@/shared/constants/dashboard-sections";
@@ -222,6 +226,16 @@ export function describeSectionNumbers(
         ? "Antecedência média: sem agendamentos no período"
         : `Antecedência média: ${variationFormat.format(averageDays)} ${averageDays === 1 ? "dia" : "dias"} (no mesmo dia: ${sameDay} · de 1 a 3 dias: ${upToThree} · de 4 a 7 dias: ${upToSeven} · mais de 7 dias: ${overSeven})`,
     );
+    if (details.cancellationReasons.length > 0) {
+      lines.push(
+        `Motivos de cancelamento: ${details.cancellationReasons
+          .map(
+            ({ reason, count: amount }) =>
+              `${reason === "not_informed" ? NOT_INFORMED_REASON_LABEL : CANCELLATION_REASON_LABELS[reason]} ${amount}`,
+          )
+          .join(SEPARATOR)}`,
+      );
+    }
     return lines;
   }
   return [

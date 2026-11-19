@@ -176,3 +176,14 @@ Ramificação `feat/1-detailed-analysis-card`, de `origin/main` com o #19. Teste
 - **Números das seções:** uma linha por número, montada por `describeSectionNumbers` (testada), a mesma no texto copiado ("Números: ..."). Na operação, só os dias da semana com agendamentos e os três horários mais procurados; nos pagamentos, só as formas usadas; no ticket por porte, só os portes com pagos. Os itens de RN040 que entram nos PRs 9 a 13 (motivos, margem, avaliação, ocupação) ainda não aparecem.
 - **Ordem no cartão:** resumo, observações, as cinco seções, as sugestões, a tabela e o gráfico dos dois períodos e a nota de IA.
 - **Verificação:** `npm run check` aprovado, 848 testes em 40 arquivos. Não verificado: a tela no navegador (exige a sessão do banco local, com o `.env.local`) e a detalhada com o modelo real.
+
+## 2026-11-19 – decisão: PR 9, motivo do cancelamento
+
+Ramificação `feat/1-cancellation-reason`, de `origin/main` com o #20. Testes em vermelho num commit próprio (7 novos: os esquemas por ator, os motivos em `buildDetails`, a entrada da detalhada e a linha da operação); depois a migration `20261119130318_cancellation_reason.sql` (tipo, coluna com `ck_appointments_cancellation_reason` e a `dashboard_details` refeita com `cancellationReasons`), os esquemas, o repositório, o serviço, as duas rotas, os diálogos, a análise e o `seed-demo.sql`.
+
+- **Arquivos fora da lista do plano:** `src/components/shared/confirm-dialog.tsx`, que passou a aceitar um campo (`children`) e uma conferência antes da ação (`canConfirm`), e `src/components/shared/cancellation-reason-field.tsx`, o campo do motivo usado pelos dois diálogos. Os README de `src/shared/constants/` e `src/components/shared/` mudaram por terem arquivo novo.
+- **Ordem dos motivos na análise:** por quantidade e, no empate, na ordem de RN041, com "Não informado" no fim.
+- **Instruções:** a detalhada passou a `detalhada-2`, com os motivos na seção Operação.
+- **Seed:** o motivo dos cancelados de demonstração sai de um sorteio fixo pelo id (desistência 30%, imprevisto 25%, tempo 15%, não comparecimento 18% só em dia passado, indisponibilidade da empresa 6%, outro 6%); os cancelados de demonstração já gravados recebem o motivo na carga seguinte (clientes com e-mail em `example.com`).
+- **Achado para a tarefa dos dados de um ano:** os agendamentos do `seed-demo.sql` não preenchem `created_by_staff_id`, então o canal da análise sai 100% pelo portal.
+- **Verificação:** `npm run check` aprovado, 854 testes em 40 arquivos. Banco local: `npx supabase db reset` aplicou a migration nova sem erro. Não verificado: o `seed-demo.sql` carregado no banco local e as telas (o `docker exec ... psql` continua recusado pelas permissões, e as telas exigem a sessão com o `.env.local`).

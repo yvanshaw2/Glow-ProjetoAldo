@@ -1,5 +1,6 @@
 import type { PublicCategory } from "@/shared/api/catalog";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
+import type { CancellationReason } from "@/shared/constants/cancellation-reasons";
 import type { PaymentMethod } from "@/shared/constants/payment-methods";
 import type { ServiceType } from "@/shared/constants/service-types";
 import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
@@ -60,6 +61,9 @@ export type ClientAppointment = Omit<
   feePercent: number;
   vehicle: AppointmentVehicle;
   services: AppointmentService[];
+  // RN041: the reason of a cancelled one; null in any other status and in a
+  // cancellation from before the rule.
+  cancellationReason: CancellationReason | null;
   // RNF011: treated as text.
   updatedAt: string;
 };

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
   adminAppointmentListQuerySchema,
+  appointmentCancelSchema,
   appointmentCompleteSchema,
   appointmentEditSchema,
   appointmentRescheduleSchema,
@@ -9,6 +10,7 @@ import {
   appointmentPreviewSchema,
   bookingFormSchema,
   clientLookupQuerySchema,
+  myAppointmentCancelSchema,
   myAppointmentInputSchema,
   myAppointmentListQuerySchema,
   portalBookingFormSchema,
@@ -613,5 +615,60 @@ describe("myAppointmentListQuerySchema", () => {
         pageSize: "500",
       }),
     ).toEqual({ scope: "current", page: 1, pageSize: 50 });
+  });
+});
+
+// The body of the two cancellations (RN041, docs/agendamento/rotas.md).
+describe("appointmentCancelSchema and myAppointmentCancelSchema", () => {
+  const REASON = "Escolha um motivo da lista.";
+
+  function reasonMessage(schema: z.ZodType, body: unknown) {
+    const result = schema.safeParse(body);
+    return result.success ? null : result.error.issues[0]?.message;
+  }
+
+  it("lets the staff choose any reason of the list", () => {
+    for (const reason of [
+      "client_gave_up",
+      "client_unavailable",
+      "weather",
+      "no_show",
+      "business_unavailable",
+      "other",
+    ]) {
+      expect(appointmentCancelSchema.parse({ reason })).toEqual({ reason });
+    }
+  });
+
+  it("lets the client choose only the reasons of the client", () => {
+    for (const reason of [
+      "client_gave_up",
+      "client_unavailable",
+      "weather",
+      "other",
+    ]) {
+      expect(myAppointmentCancelSchema.parse({ reason })).toEqual({ reason });
+    }
+    expect(
+      reasonMessage(myAppointmentCancelSchema, { reason: "no_show" }),
+    ).toBe(REASON);
+    expect(
+      reasonMessage(myAppointmentCancelSchema, {
+        reason: "business_unavailable",
+      }),
+    ).toBe(REASON);
+  });
+
+  it("requires a reason of the list", () => {
+    for (const body of [{}, { reason: "" }, { reason: "late" }, null]) {
+      expect(reasonMessage(appointmentCancelSchema, body)).toBe(REASON);
+      expect(reasonMessage(myAppointmentCancelSchema, body)).toBe(REASON);
+    }
+  });
+
+  it("discards the unknown fields", () => {
+    expect(
+      appointmentCancelSchema.parse({ reason: "other", status: "cancelled" }),
+    ).toEqual({ reason: "other" });
   });
 });
