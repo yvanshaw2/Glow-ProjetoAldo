@@ -4,6 +4,9 @@ import type {
 } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import type { DashboardIndicator } from "@/shared/constants/dashboard-indicators";
+import type { PaymentMethod } from "@/shared/constants/payment-methods";
+import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
+import type { VehicleType } from "@/shared/constants/vehicle-types";
 
 // Bodies of the dashboard routes in docs/agendamento/rotas.md (UC09, UC27).
 // The dates of a period are calendar days (2026-10-01) and the instants are
@@ -96,6 +99,56 @@ export type DashboardRevenuePoint = {
 export type DashboardRevenueSeries = {
   unit: "day" | "week";
   points: DashboardRevenuePoint[];
+};
+
+// A name with a value and a count, as the services and categories of the
+// detailed analysis (RN040).
+export type DashboardNamedValue = {
+  name: string;
+  revenue: number;
+  count: number;
+};
+
+export type DashboardNamedCount = { name: string; count: number };
+
+// RN040: the indicators of one period for the detailed analysis, worked out
+// by the system (docs/agendamento/calculos.md, section 7). The weekdays go
+// from Monday (1) to Sunday (0), and the hours from 0 to 23.
+export type DashboardDetails = {
+  services: {
+    top: DashboardNamedValue[];
+    // The others summed, as "Demais"; null with five services or fewer.
+    others: { revenue: number; count: number } | null;
+  };
+  categories: DashboardNamedValue[];
+  // Percent of the paid appointments with a complementary or additional one.
+  extrasRate: number;
+  vehicleTypes: { type: VehicleType; count: number }[];
+  vehicleSizes: { size: VehicleSize; count: number; averageTicket: number }[];
+  payments: { method: PaymentMethod; count: number; revenue: number }[];
+  surcharges: number;
+  discounts: number;
+  channel: { client: number; panel: number };
+  clients: { total: number; new: number; returning: number };
+  returns: number;
+  weekdays: {
+    weekday: number;
+    appointments: number;
+    cancelled: number;
+    revenue: number;
+  }[];
+  hours: { hour: number; count: number }[];
+  cancelledServices: DashboardNamedCount[];
+  // Of the whole period shown, which may go beyond the days analyzed.
+  open: { count: number; total: number };
+  leadTime: {
+    // Days with one place; null without appointments.
+    averageDays: number | null;
+    sameDay: number;
+    upToThree: number;
+    upToSeven: number;
+    overSeven: number;
+  };
 };
 
 // POST /api/admin/dashboard/analysis (UC27): the text only interprets the

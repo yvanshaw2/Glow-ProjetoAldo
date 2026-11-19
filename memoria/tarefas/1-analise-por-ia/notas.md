@@ -148,3 +148,12 @@ Ramificação `chore/1-remove-demo`, de `origin/main` com o #16. Saíram `src/li
 
 - **Arquivos fora da lista do plano:** as páginas de tela que citavam o aviso ou as "telas de demonstração" na lista de referências: `docs/agendamento/agendamentos-do-painel.md`, `agendar-servico.md`, `docs/catalogo/servicos-do-painel.md`, `docs/clientes/area-do-cliente.md`, `clientes-do-painel.md`, `docs/configuracoes/configuracoes-do-painel.md` e `docs/equipe/equipe-do-painel.md`. Só saiu a menção; nada mais mudou.
 - **Verificação:** `npm run check` aprovado, 819 testes em 39 arquivos; nenhuma menção a `lib/demo`, `DemoNotice`, `NOT_IMPLEMENTED` ou ao aviso de demonstração fora da memória e das decisões 0055 e 0058.
+
+## 2026-11-19 – decisão: PR 6, indicadores detalhados
+
+Ramificação `feat/1-analysis-details-data`, de `origin/main` com o #17. Testes de `buildDetails` em vermelho num commit próprio (12); depois a migration `20261119015327_dashboard_details_function.sql`, `findDashboardDetails`, `src/server/rules/dashboard-details.ts`, `DashboardDetails` e `src/shared/constants/dashboard-sections.ts`.
+
+- **Parâmetro a mais:** `dashboard_details(p_from, p_to, p_open_to, p_time_zone)`. O `p_open_to` é o fim do período exibido, porque os agendamentos em aberto contam o período inteiro, e o resto conta só o período analisado (L18, `calculos.md`, seção 6).
+- **Categorias:** pela categoria atual do serviço (a cópia entra no PR 10); os adicionais não têm categoria e ficam fora da lista de categorias.
+- **Antecedência:** dias de calendário entre o registro e a data marcada, no fuso da empresa; um registro posterior à data marcada (lançamento atrasado pelo painel) conta como no mesmo dia.
+- **Verificação:** `npm run check` aprovado. Banco local: o Docker Desktop foi aberto, e `npx supabase start` e `npx supabase db reset` aplicaram todas as migrations, inclusive a nova, sem erro. Não verificado: a função com dados (carregar o `seed-demo.sql` e comparar com contagens diretas), porque o `docker exec ... psql` foi recusado pelas permissões da sessão, mesmo depois do OK do Yvan na conversa. O roteiro da conferência ficou com o Yvan.
