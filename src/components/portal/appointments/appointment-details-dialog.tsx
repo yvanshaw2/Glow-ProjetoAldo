@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { AppointmentChangeDialog } from "@/components/portal/appointments/appointment-change-dialog";
+import { CancellationReasonField } from "@/components/shared/cancellation-reason-field";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,6 +24,12 @@ import type {
   ClientAppointmentSummary,
 } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
+import {
+  CANCELLATION_REASON_LABELS,
+  CLIENT_CANCELLATION_REASONS,
+  NOT_INFORMED_REASON_LABEL,
+  type CancellationReason,
+} from "@/shared/constants/cancellation-reasons";
 import { PAYMENT_METHOD_LABELS } from "@/shared/constants/payment-methods";
 import { VEHICLE_SIZE_LABELS } from "@/shared/constants/vehicle-sizes";
 import { VEHICLE_TYPE_LABELS } from "@/shared/constants/vehicle-types";
@@ -34,6 +41,15 @@ import { formatPlate } from "@/shared/format/plate";
 
 // UC07 (docs/agendamento/meus-agendamentos.md): the whole appointment, read
 // when the dialog opens, and the actions of its status.
+
+const REASON_REQUIRED = "Escolha um motivo da lista.";
+
+// RN041: "Não informado" for a cancellation from before the rule.
+function describeReason(reason: CancellationReason | null): string {
+  return reason
+    ? CANCELLATION_REASON_LABELS[reason]
+    : NOT_INFORMED_REASON_LABEL;
+}
 
 const APPOINTMENTS_PATH = "/api/me/appointments";
 
@@ -166,6 +182,7 @@ function AppointmentContent({
     subtotal,
     feePercent,
     total,
+    cancellationReason,
   } = currentAppointment;
   const actions: readonly AppointmentAction[] = STATUS_ACTIONS[status];
   return (
@@ -210,6 +227,11 @@ function AppointmentContent({
           <DetailItem term="Forma de pagamento" className="sm:col-span-2">
             {PAYMENT_METHOD_LABELS[paymentMethod]}
           </DetailItem>
+          {status === "cancelled" && (
+            <DetailItem term="Motivo" className="sm:col-span-2">
+              {describeReason(cancellationReason)}
+            </DetailItem>
+          )}
         </dl>
         <div className="flex flex-col gap-1 border-t border-border pt-4">
           <p className="flex justify-between gap-3">
@@ -278,8 +300,21 @@ function DetailItem({ term, className, children }: DetailItemProps) {
 // UC07 FA01 and FE02: the cancellation asks for confirmation; a failure, as
 // the INVALID_STATUS of a status that changed, shows inside it.
 function CancelAppointment({ id, onChange }: AppointmentDetailsProps) {
+  const [reason, setReason] = useState<CancellationReason | null>(null);
+  const [reasonError, setReasonError] = useState<string | null>(null);
+
+  // RN041: the reason is required; the route also checks it.
+  function hasReason() {
+    if (reason) return true;
+    setReasonError(REASON_REQUIRED);
+    return false;
+  }
+
   async function cancel() {
-    await apiRequest(`${APPOINTMENTS_PATH}/${id}/cancel`, { method: "POST" });
+    await apiRequest(`${APPOINTMENTS_PATH}/${id}/cancel`, {
+      method: "POST",
+      body: { reason },
+    });
   }
   return (
     <ConfirmDialog
@@ -292,6 +327,17 @@ function CancelAppointment({ id, onChange }: AppointmentDetailsProps) {
       isDestructive
       onConfirm={cancel}
       onConfirmed={onChange}
-    />
+      canConfirm={hasReason}
+    >
+      <CancellationReasonField
+        reasons={CLIENT_CANCELLATION_REASONS}
+        value={reason}
+        onChange={(next) => {
+          setReason(next);
+          setReasonError(null);
+        }}
+        error={reasonError}
+      />
+    </ConfirmDialog>
   );
 }
