@@ -61,17 +61,65 @@ export type DashboardAnalysisHighlight = {
   comment: string;
 };
 
+// The analysis types (RF091): the summary and the detailed one.
+export type DashboardAnalysisDetail = "summary" | "detailed";
+
+// The indicators compared with the previous period (RF092).
+export type DashboardComparedIndicator =
+  "revenue" | "appointmentCount" | "averageTicket" | "cancellationRate";
+
+// One indicator of the period next to the previous one, as the system works
+// it out: the variation is a percentage with one place, or points in the
+// cancellation rate; null without a previous value (docs/agendamento/
+// calculos.md, section 6).
+export type DashboardComparisonValue = {
+  current: number;
+  previous: number | null;
+  variation: number | null;
+};
+
+export type DashboardComparison = Record<
+  DashboardComparedIndicator,
+  DashboardComparisonValue
+>;
+
+// One position of the revenue of the two periods: a day, or a block of seven
+// days from the first one in periods over 62 days (RN038). The previous period
+// is null without a comparison or where it is shorter.
+export type DashboardRevenuePoint = {
+  currentStart: string;
+  currentRevenue: number;
+  previousStart: string | null;
+  previousRevenue: number | null;
+};
+
+export type DashboardRevenueSeries = {
+  unit: "day" | "week";
+  points: DashboardRevenuePoint[];
+};
+
 // POST /api/admin/dashboard/analysis (UC27): the text only interprets the
-// indicators of the screen (RN039).
+// indicators, and every number comes from the system (RN039).
 export type DashboardAnalysis = {
   from: string;
   to: string;
-  // RN038: the period of the same number of days that ends the day before.
+  // RN038: the last day analyzed, `to` or the current day, the earlier one.
+  analyzedTo: string;
+  // RN038: the previous period, by the calendar.
   previousFrom: string;
   previousTo: string;
   // False when the previous period has no appointments (UC27 FA03).
   hasComparison: boolean;
+  detail: DashboardAnalysisDetail;
+  // The version of the instructions that wrote the text.
+  promptVersion: string;
   summary: string;
   highlights: DashboardAnalysisHighlight[];
+  comparison: DashboardComparison;
+  revenueSeries: DashboardRevenueSeries;
+  // Only in the detailed analysis, which comes with its own route.
+  details: null;
+  sections: null;
+  recommendations: null;
   generatedAt: string;
 };

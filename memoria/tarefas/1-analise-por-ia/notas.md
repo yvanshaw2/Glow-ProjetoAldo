@@ -96,3 +96,19 @@ Ramificação `docs/1-business-data`, de `origin/main` (ebf1009, com o PR #12 in
 - Com o corpo `{ days, simultaneousSlots }`, o campo com erro de `business-hours` passa de `1.closesAt` a `days.1.closesAt`; o formulário muda junto, no PR 13.
 - Textos de tela propostos: "Motivo: <motivo>" e "Motivo: Não informado"; "Sua avaliação: <nota> de 5", "Como foi o atendimento?", "Enviar avaliação", "Avaliação enviada."; no painel, "Avaliação do cliente: <nota> de 5" ou "ainda não avaliado"; "Custo dos insumos (opcional)" e "Atendimentos simultâneos", com as ajudas da L12 e da L15.
 - L16 (decisão 0058) fica para o PR 5, junto da remoção; L17 não tem texto de `docs/`.
+
+## 2026-11-18 – decisão: PR 3 dividido em 3a e 3b
+
+O PR 3 (rota da análise resumida) passou de 1.000 linhas fora os testes; o Yvan escolheu dividi-lo em dois:
+
+- **3a, regras** (`feat/1-analysis-rules`, de `origin/main` com o #13): os testes em vermelho, a refatoração da conferência do período, `src/server/rules/dashboard-analysis.ts`, `dashboardAnalysisSchema`, os tipos de `DashboardAnalysis` e os campos novos na resposta de demonstração. Cerca de 510 linhas fora os testes: as regras (391) são um arquivo só.
+- **3b, rota** (`feat/1-ai-analysis`): o catálogo de erros, o adaptador de `src/server/ai/`, o serviço, a rota, a OpenAPI e `servico-de-ia.md`. Abre depois da incorporação do 3a, atualizada com a `main`.
+
+Escolhas do 3a que o plano não fixava:
+
+- **Nome da função:** o plano citava `findPreviousPeriod`; com a L18 ela devolve o período analisado e o anterior, e virou `findComparisonPeriods`.
+- **Período futuro:** um período que começa depois do dia corrente não tem nada a analisar (`null`); o serviço do 3b responde 409 `INSUFFICIENT_DATA`, sem chamar a IA.
+- **Série com o anterior mais longo** (fevereiro diante de janeiro): os pontos seguem as posições do período analisado, e os dias a mais do anterior ficam fora do gráfico; os totais da comparação os incluem. `calculos.md` só fala do anterior mais curto.
+- **Arquivo fora da lista do plano:** `src/lib/demo/dashboard.ts`, com os campos novos de `DashboardAnalysis` na resposta de demonstração (`analyzedTo`, `detail`, `promptVersion`, `comparison` sem valores, `revenueSeries` vazia e os nulos da detalhada), para o tipo compilar enquanto o cartão usa a demonstração (até o PR 4).
+
+Verificação do 3a: `npm run check` aprovado, 822 testes em 38 arquivos; 29 testes novos das regras e 5 do esquema.
