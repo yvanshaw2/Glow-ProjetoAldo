@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13) e 3a (#14), incorporados, e 3b, com `Refs #1`. Os PRs 4 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14) e 3b (#15), incorporados, e 4, com `Refs #1`. Os PRs 5 a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -37,12 +37,19 @@ Relatório parcial: PRs 1 (#12), 2 (#13) e 3a (#14), incorporados, e 3b, com `Re
 - `dashboardAnalysisSchema`, com a resumida como padrão, e os tipos `DashboardAnalysis`, `DashboardComparison` e `DashboardRevenueSeries`.
 - Testes: 29 das regras e 5 do esquema, escritos antes do código.
 
-### PR 3b (rota da análise resumida)
+### PR 3b (#15, rota da análise resumida)
 
 - `POST /api/admin/dashboard/analysis`, com `requirePermission("dashboard")`: valida o período e o tipo, compara pelo calendário até o dia corrente (L18), calcula os indicadores dos dois períodos, chama o serviço de IA e confere a resposta (RN039); 409 `INSUFFICIENT_DATA` sem chamar a IA e 503 `AI_UNAVAILABLE` nas falhas.
 - `src/server/ai/chat-completion.ts`: Chat Completions com `fetch`, esquema JSON estrito, corte em 15 s, sem nova tentativa, com `AI_BASE_URL`, `AI_MODEL` e `AI_API_KEY` lidas a cada chamada.
 - Registro: `dashboard_analysis_failed` com o motivo e `dashboard_analysis_generated` com o modelo, a versão das instruções, os tokens e a duração; nunca a chave, as mensagens nem a resposta.
 - OpenAPI da rota; `servico-de-ia.md` com os campos do pedido ao Groq.
+
+### PR 4 (cartão ligado à rota)
+
+- O cartão "Análise do período" chama a rota real e não mostra mais o aviso de demonstração; a lista de `src/lib/demo/routes.ts` ficou vazia.
+- Cada observação de um indicador traz o valor e a variação do sistema ("Receita: R$ 12.500,00, alta de 25,0% em relação ao período anterior"), com os ícones de alta, queda ou estabilidade; a tabela "Este período × período anterior" e o gráfico da receita dos dois períodos (RF092).
+- "Copiar análise" (texto simples, RF093) e "Imprimir ou salvar em PDF" (impressão do navegador, sem navegação, controles nem agenda do dia, no tema claro, RF094, decisão 0057).
+- Testes: 10 do texto copiado e dos valores, escritos antes do código.
 
 ## Arquivos alterados
 
