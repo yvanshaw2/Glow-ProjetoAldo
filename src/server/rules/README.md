@@ -1,6 +1,6 @@
 # `src/server/rules/` – Regras puras
 
-Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `status-transitions.ts`, `scheduling.ts`, `editing.ts`, `services.ts` (a edição parcial de um serviço) e `appointment-services.ts` (a ordem dos serviços de um agendamento na listagem do painel), `service-image.ts` (o tipo e o tamanho da imagem de um serviço, pelos bytes do arquivo), `dashboard-indicators.ts` (os indicadores do dashboard a partir dos números agregados pelo banco), `dashboard-analysis.ts` (os períodos comparados, as variações, a entrada e as instruções do modelo e a conferência da resposta da análise do período, RN038 e RN039) e `vehicle-ownership.ts` (se o cliente pode editar um veículo: da conta e não compartilhado). Recebem tudo por parâmetro, inclusive o instante atual e a disponibilidade, e devolvem resultados; não gravam nada.
+Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `status-transitions.ts`, `scheduling.ts`, `editing.ts`, `services.ts` (a edição parcial de um serviço) e `appointment-services.ts` (a ordem dos serviços de um agendamento na listagem do painel), `service-image.ts` (o tipo e o tamanho da imagem de um serviço, pelos bytes do arquivo), `dashboard-indicators.ts` (os indicadores do dashboard a partir dos números agregados pelo banco), `dashboard-analysis.ts` (os períodos comparados, as variações, a entrada e as instruções do modelo e a conferência da resposta da análise do período, RN038 e RN039), `dashboard-details.ts` (os indicadores da análise detalhada a partir dos números agregados pelo banco, RN040) e `vehicle-ownership.ts` (se o cliente pode editar um veículo: da conta e não compartilhado). Recebem tudo por parâmetro, inclusive o instante atual e a disponibilidade, e devolvem resultados; não gravam nada.
 
 ## Vai aqui
 
@@ -10,7 +10,7 @@ Funções puras das regras de negócio, desenvolvidas com TDD: `pricing.ts`, `st
 ## Não vai aqui
 
 - imports de `repositories/`, do Supabase, de `process.env` ou leitura do relógio (`new Date()` sem parâmetro)
-- a agregação dos agendamentos por período: é feita no banco (`dashboard_figures`, `docs/agendamento/calculos.md`)
+- a agregação dos agendamentos por período: é feita no banco (`dashboard_figures` e `dashboard_details`, `docs/agendamento/calculos.md`)
 - código HTTP
 
 ## Referências
