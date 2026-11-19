@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17) e 6 (#18), incorporados, e 7, com `Refs #1`. Os PRs 8 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18) e 7 (#19), incorporados, e 8, com `Refs #1`. Os PRs 9 a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -63,11 +63,17 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17) e
 - `DashboardDetails` e as cinco seções da análise detalhada (`dashboard-sections.ts`).
 - Testes: 12, escritos antes do código. A migration foi aplicada sem erro no banco local; a função com dados não foi conferida pelo agente.
 
-### PR 7 (análise detalhada no servidor)
+### PR 7 (#19, análise detalhada no servidor)
 
 - `POST /api/admin/dashboard/analysis` aceita `detail: "detailed"` (RF091): lê os indicadores de RN040 dos dois períodos, manda-os ao modelo com as instruções `detalhada-1` e confere as cinco seções e as sugestões (RN039); a resposta traz `details`, `sections` e `recommendations`.
 - OpenAPI com `DashboardDetails` e a resposta da detalhada.
 - Testes: 9 das regras e 1 do esquema, escritos antes do código.
+
+### PR 8 (análise detalhada na tela)
+
+- A escolha "Resumida" ou "Detalhada" antes de gerar (RF091); na detalhada, as cinco seções com as observações da IA e os "Números da seção" do sistema, e as sugestões com o aviso "Sugestões geradas por IA: avalie antes de colocar em prática.".
+- O texto copiado e a impressão levam as seções e as sugestões.
+- Testes: 8 dos números das seções e do texto copiado, escritos antes do código.
 
 ## Arquivos alterados
 
@@ -95,7 +101,7 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17) e
 
 ## Pendências
 
-- PRs 8 a 13 da issue #1 (ordem em `01_plano.md`).
+- PRs 9 a 13 da issue #1 (ordem em `01_plano.md`).
 - A migration do PR 6 é aplicada pelo Yvan (`npx supabase db push`) antes da incorporação.
 - O corpo da issue #1 não recebeu a segunda ampliação (caixa do ponto 6 vazia), e o exemplo do critério de aceitação de lá difere da L18.
 - Sugestão fora do plano: dividir `calculos.md`, `dashboard-do-painel.md` e `rotas.md`, acima do limite de tamanho de `docs/CONTEXT.md`.
