@@ -1,4 +1,3 @@
-import { findDemoRoute, waitForDemo, type DemoMatch } from "@/lib/demo/match";
 import type { ProblemDetails } from "@/shared/api/problem";
 import { ERROR_CATALOG, type ErrorCode } from "@/shared/errors/catalog";
 
@@ -53,9 +52,6 @@ export async function apiRequest<T>(
     isSessionLoad = false,
   }: ApiRequestOptions = {},
 ): Promise<T> {
-  const demoMatch = findDemoRoute(method, path, body);
-  if (demoMatch) return answerDemo<T>(demoMatch, signal);
-
   const response = await send(path, { method, body, signal });
   if (response.ok) {
     return (response.status === 204 ? undefined : await response.json()) as T;
@@ -87,18 +83,6 @@ export function withQuery(path: string, params: QueryParams): string {
   });
   const queryText = query.toString();
   return queryText === "" ? path : `${path}?${queryText}`;
-}
-
-// Decision 0055: a route of the demo list answers without the network, after
-// the wait. A read gives the fixed data of its module; a write is refused.
-async function answerDemo<T>(
-  { route, request }: DemoMatch,
-  signal: AbortSignal | undefined,
-): Promise<T> {
-  await waitForDemo(signal);
-  if (!route.load) throw catalogError("NOT_IMPLEMENTED");
-  const answer = await route.load();
-  return answer(request) as T;
 }
 
 async function send(
