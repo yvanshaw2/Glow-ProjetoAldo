@@ -123,6 +123,16 @@ describe("dashboardAnalysisSchema", () => {
     });
   });
 
+  it("accepts the detailed analysis (RF091)", () => {
+    expect(
+      dashboardAnalysisSchema.parse({
+        from: "2026-10-01",
+        to: "2026-10-31",
+        detail: "detailed",
+      }),
+    ).toEqual({ from: "2026-10-01", to: "2026-10-31", detail: "detailed" });
+  });
+
   it("rejects an unknown analysis type", () => {
     expect(
       analysisMessages({

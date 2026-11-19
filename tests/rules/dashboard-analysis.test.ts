@@ -4,11 +4,18 @@ import {
   buildAnalysisInput,
   buildAnalysisMessages,
   buildComparison,
+  buildDetailedAnalysisInput,
+  buildDetailedAnalysisMessages,
   buildRevenueSeries,
   calculateVariation,
   findComparisonPeriods,
   parseAnalysis,
+  parseDetailedAnalysis,
 } from "@/server/rules/dashboard-analysis";
+import {
+  buildDetails,
+  type DashboardDetailsFigures,
+} from "@/server/rules/dashboard-details";
 import type { DashboardIndicators } from "@/server/rules/dashboard-indicators";
 import type { Dashboard } from "@/shared/api/dashboard";
 import { APPOINTMENT_STATUSES } from "@/shared/constants/appointment-statuses";
@@ -523,5 +530,249 @@ describe("parseAnalysis", () => {
         }),
       ),
     ).toEqual({ ok: false, refusal: "NUMBERS_IN_TEXT" });
+  });
+});
+
+// The detailed analysis (RF091, RN039, RN040): the indicators of RN040 go to
+// the model with the summary input, and the answer has five sections and the
+// recommendations.
+const DETAIL_FIGURES: DashboardDetailsFigures = {
+  services: [
+    { name: "Polimento técnico", revenue: 1800, count: 3 },
+    { name: "Lavagem simples", revenue: 600, count: 12 },
+  ],
+  categories: [{ name: "Polimento", revenue: 1800, count: 3 }],
+  paidCount: 15,
+  paidWithExtras: 5,
+  vehicleTypes: [{ type: "suv", count: 6 }],
+  scheduledSizes: [{ size: "large", count: 6 }],
+  paidSizes: [{ size: "large", paidCount: 5, paidRevenue: 1500 }],
+  payments: [{ method: "pix", count: 9, revenue: 1450 }],
+  surcharges: 30,
+  discounts: 12.5,
+  channel: { client: 4, panel: 16 },
+  clients: { total: 18, new: 5 },
+  returns: 2,
+  scheduledByWeekday: [{ weekday: 1, count: 6, cancelled: 1 }],
+  revenueByWeekday: [{ weekday: 1, revenue: 700 }],
+  hours: [{ hour: 9, count: 4 }],
+  cancelledServices: [{ name: "Lavagem simples", count: 2 }],
+  open: { count: 3, total: 420 },
+  leadTime: {
+    count: 20,
+    totalDays: 50,
+    sameDay: 4,
+    upToThree: 8,
+    upToSeven: 6,
+    overSeven: 2,
+  },
+};
+
+const VALID_DETAILED = {
+  summary: "O período teve alta de receita, puxada pelos polimentos.",
+  highlights: [{ indicator: "revenue", comment: "A receita subiu." }],
+  sections: [
+    {
+      section: "payments",
+      observations: ["O Pix segue como a forma preferida."],
+    },
+    {
+      section: "revenue",
+      observations: ["A receita cresceu na segunda metade."],
+    },
+    {
+      section: "services",
+      observations: ["O polimento técnico liderou.", "A lavagem simples caiu."],
+    },
+    { section: "clients", observations: ["Os clientes recorrentes dominam."] },
+    {
+      section: "operation",
+      observations: ["As segundas foram as mais cheias."],
+    },
+  ],
+  recommendations: ["Considere uma promoção de polimento nas quintas."],
+};
+
+describe("buildDetailedAnalysisInput", () => {
+  const periods = {
+    analyzed: { from: "2026-10-01", to: "2026-10-31" },
+    previous: { from: "2026-09-01", to: "2026-09-30" },
+    isPartial: false,
+  };
+  const current = indicators(periods.analyzed, {
+    revenue: 2400,
+    appointmentCount: 20,
+  });
+  const previous = indicators(periods.previous, {
+    revenue: 2000,
+    appointmentCount: 16,
+  });
+  const base = buildAnalysisInput({
+    periods,
+    current,
+    comparison: buildComparison(current, previous),
+    series: buildRevenueSeries(current.revenueByDay, previous.revenueByDay),
+    hasComparison: true,
+  });
+
+  it("adds the indicators of RN040, with labels and no personal data", () => {
+    const input = buildDetailedAnalysisInput({
+      base,
+      details: buildDetails(DETAIL_FIGURES),
+      previousDetails: buildDetails({
+        ...DETAIL_FIGURES,
+        clients: { total: 15, new: 3 },
+        returns: 1,
+        paidCount: 10,
+        paidWithExtras: 2,
+      }),
+    });
+    expect(input.indicators).toEqual(base.indicators);
+    expect(input.details.services.top[0]).toEqual({
+      name: "Polimento técnico",
+      revenue: 1800,
+      count: 3,
+    });
+    expect(input.details.payments).toContainEqual({
+      method: "Pix",
+      count: 9,
+      revenue: 1450,
+    });
+    expect(input.details.weekdays[0]).toEqual({
+      weekday: "Segunda-feira",
+      appointments: 6,
+      cancelled: 1,
+      revenue: 700,
+    });
+    expect(input.details.hours).toEqual([{ hour: 9, count: 4 }]);
+    expect(input.details.clients).toEqual({
+      new: { current: 5, previous: 3, variationPercent: 66.7 },
+      returning: { current: 13, previous: 12, variationPercent: 8.3 },
+    });
+    expect(input.details.extrasRate).toEqual({
+      current: 33.33,
+      previous: 20,
+      variationPoints: 13.3,
+    });
+    expect(input.details.returns).toEqual({
+      current: 2,
+      previous: 1,
+      variationPercent: 100,
+    });
+    const text = JSON.stringify(input);
+    for (const value of ["client_id", "GLW", "@", "Maria"]) {
+      expect(text).not.toContain(value);
+    }
+  });
+
+  it("has no previous values without a comparison", () => {
+    const input = buildDetailedAnalysisInput({
+      base,
+      details: buildDetails(DETAIL_FIGURES),
+      previousDetails: null,
+    });
+    expect(input.details.returns).toEqual({
+      current: 2,
+      previous: null,
+      variationPercent: null,
+    });
+    expect(input.details.leadTimeDays).toEqual({
+      current: 2.5,
+      previous: null,
+      variationPercent: null,
+    });
+  });
+
+  it("sends the instructions of the detailed analysis and the input as JSON", () => {
+    const input = buildDetailedAnalysisInput({
+      base,
+      details: buildDetails(DETAIL_FIGURES),
+      previousDetails: null,
+    });
+    const messages = buildDetailedAnalysisMessages(input);
+    expect(messages[0].role).toBe("system");
+    expect(messages[0].content).toContain("sections");
+    expect(messages[0].content).not.toBe(
+      buildAnalysisMessages(base)[0].content,
+    );
+    expect(JSON.parse(messages[1].content)).toEqual(input);
+    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-1");
+  });
+});
+
+describe("parseDetailedAnalysis", () => {
+  it("accepts a valid analysis and orders the sections as the screen", () => {
+    const result = parseDetailedAnalysis(JSON.stringify(VALID_DETAILED));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.analysis.sections.map(({ section }) => section)).toEqual([
+      "revenue",
+      "services",
+      "clients",
+      "operation",
+      "payments",
+    ]);
+    expect(result.analysis.recommendations).toEqual(
+      VALID_DETAILED.recommendations,
+    );
+    expect(result.analysis.summary).toBe(VALID_DETAILED.summary);
+  });
+
+  it("accepts no recommendations", () => {
+    expect(
+      parseDetailedAnalysis(
+        JSON.stringify({ ...VALID_DETAILED, recommendations: [] }),
+      ).ok,
+    ).toBe(true);
+  });
+
+  it("rejects a missing, unknown or repeated section", () => {
+    const [first, ...others] = VALID_DETAILED.sections;
+    for (const sections of [
+      others,
+      [...others, { ...first, section: "staff" }],
+      [...others, { ...others[0] }],
+    ]) {
+      expect(
+        parseDetailedAnalysis(JSON.stringify({ ...VALID_DETAILED, sections })),
+      ).toEqual({ ok: false, refusal: "INVALID_RESPONSE" });
+    }
+  });
+
+  it("rejects no or four observations, five recommendations and long texts", () => {
+    const [first, ...others] = VALID_DETAILED.sections;
+    for (const change of [
+      { sections: [{ ...first, observations: [] }, ...others] },
+      {
+        sections: [
+          { ...first, observations: ["Alta.", "Queda.", "Alta.", "Queda."] },
+          ...others,
+        ],
+      },
+      { sections: [{ ...first, observations: ["a".repeat(241)] }, ...others] },
+      { recommendations: ["Uma.", "Duas.", "Três.", "Quatro.", "Cinco."] },
+      { recommendations: ["a".repeat(241)] },
+    ]) {
+      expect(
+        parseDetailedAnalysis(JSON.stringify({ ...VALID_DETAILED, ...change })),
+      ).toEqual({ ok: false, refusal: "INVALID_RESPONSE" });
+    }
+  });
+
+  it("rejects digits in a section or in a recommendation (RN039)", () => {
+    const [first, ...others] = VALID_DETAILED.sections;
+    for (const change of [
+      {
+        sections: [
+          { ...first, observations: ["Foram 12 polimentos."] },
+          ...others,
+        ],
+      },
+      { recommendations: ["Abra mais cedo, às 7h, aos sábados."] },
+    ]) {
+      expect(
+        parseDetailedAnalysis(JSON.stringify({ ...VALID_DETAILED, ...change })),
+      ).toEqual({ ok: false, refusal: "NUMBERS_IN_TEXT" });
+    }
   });
 });
