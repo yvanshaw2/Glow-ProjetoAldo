@@ -157,3 +157,14 @@ Ramificação `feat/1-analysis-details-data`, de `origin/main` com o #17. Testes
 - **Categorias:** pela categoria atual do serviço (a cópia entra no PR 10); os adicionais não têm categoria e ficam fora da lista de categorias.
 - **Antecedência:** dias de calendário entre o registro e a data marcada, no fuso da empresa; um registro posterior à data marcada (lançamento atrasado pelo painel) conta como no mesmo dia.
 - **Verificação:** `npm run check` aprovado. Banco local: o Docker Desktop foi aberto, e `npx supabase start` e `npx supabase db reset` aplicaram todas as migrations, inclusive a nova, sem erro. Não verificado: a função com dados (carregar o `seed-demo.sql` e comparar com contagens diretas), porque o `docker exec ... psql` foi recusado pelas permissões da sessão, mesmo depois do OK do Yvan na conversa. O roteiro da conferência ficou com o Yvan.
+
+## 2026-11-19 – decisão: PR 7, análise detalhada no servidor
+
+Ramificação `feat/1-detailed-analysis`, de `origin/main` com o #18. Testes em vermelho num commit próprio (9 das regras e 1 do esquema); depois `buildDetailedAnalysisInput`, as instruções `detalhada-1`, o esquema e `parseDetailedAnalysis`, o serviço lendo `dashboard_details` dos dois períodos na detalhada, os tipos, o esquema da rota e a OpenAPI.
+
+- **Entrada da detalhada:** os rótulos da tela (dia da semana, tipo, porte, forma de pagamento), só as horas com agendamentos (menos tokens) e o valor anterior com a variação nos itens 3, 6, 7, 8 e 13 de RN040 (complementos em pontos; canal, clientes, retornos e antecedência em percentual).
+- **Saída:** as seções voltam na ordem da tela, qualquer que seja a ordem do modelo; seção faltando, repetida ou desconhecida recusa a resposta.
+- **Limite de saída:** 4.096 tokens na detalhada (`servico-de-ia.md`).
+- **`pointsBetween`:** a diferença em pontos passou a uma função, usada pela taxa de cancelamento e pela de complementos, com o mesmo resultado; foi no mesmo commit da funcionalidade.
+- **Lembrete:** o #18 foi incorporado sem o comentário de que a migration da `dashboard_details` foi aplicada no projeto; sem ela, a análise detalhada responde 500 na pré-visualização.
+- **Verificação:** `npm run check` aprovado. Provedor simulado, à mão, com os repositórios simulados: a detalhada manda os detalhes com os rótulos e 4.096 tokens, devolve as seções na ordem da tela e as sugestões; a resumida continua sem ler `dashboard_details`; seção faltando dá 503; no mês em andamento, os em aberto vão até o fim do período exibido. 4 de 4.
