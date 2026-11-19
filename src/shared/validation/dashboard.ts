@@ -86,14 +86,13 @@ const requiredDaySchema = z
 
 // Body of POST /api/admin/dashboard/analysis (UC27): the period on the screen,
 // with the limits of RN035, and the analysis type, the summary by default
-// (RF091; the detailed one comes with its route). Unknown fields are
-// discarded (RS013).
+// (RF091). Unknown fields are discarded (RS013).
 export const dashboardAnalysisSchema = z
   .object({
     from: requiredDaySchema,
     to: requiredDaySchema,
     detail: z
-      .enum(["summary"], { error: UNKNOWN_DETAIL_MESSAGE })
+      .enum(["summary", "detailed"], { error: UNKNOWN_DETAIL_MESSAGE })
       .default("summary"),
   })
   .superRefine(({ from, to }, context) => {

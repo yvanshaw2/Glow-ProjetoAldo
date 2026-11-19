@@ -2,14 +2,21 @@ import { z } from "zod";
 import type { DashboardIndicators } from "@/server/rules/dashboard-indicators";
 import type {
   DashboardAnalysisHighlight,
+  DashboardAnalysisSection,
   DashboardComparison,
   DashboardComparisonValue,
+  DashboardDetails,
   DashboardRevenueDay,
   DashboardRevenuePoint,
   DashboardRevenueSeries,
 } from "@/shared/api/dashboard";
 import { APPOINTMENT_STATUS_LABELS } from "@/shared/constants/appointment-statuses";
 import { DASHBOARD_INDICATORS } from "@/shared/constants/dashboard-indicators";
+import { DASHBOARD_SECTIONS } from "@/shared/constants/dashboard-sections";
+import { PAYMENT_METHOD_LABELS } from "@/shared/constants/payment-methods";
+import { VEHICLE_SIZE_LABELS } from "@/shared/constants/vehicle-sizes";
+import { VEHICLE_TYPE_LABELS } from "@/shared/constants/vehicle-types";
+import { WEEKDAY_LABELS } from "@/shared/constants/weekdays";
 import {
   addCalendarDays,
   countCalendarDays,
@@ -27,7 +34,10 @@ import { normalizeText } from "@/shared/validation/formats";
 // The version of the instructions of each analysis type, written in the log
 // and in the answer; changing the instructions or the model asks for a new one
 // and the evaluation of workflows/procedimentos/testes.md.
-export const ANALYSIS_PROMPT_VERSIONS = { summary: "resumida-1" } as const;
+export const ANALYSIS_PROMPT_VERSIONS = {
+  summary: "resumida-1",
+  detailed: "detalhada-1",
+} as const;
 
 // RN038: up to this many days the revenue goes by day; above, by blocks.
 const SERIES_DAY_LIMIT = 62;
@@ -36,6 +46,8 @@ const BLOCK_DAYS = 7;
 const SUMMARY_MAX_LENGTH = 600;
 const COMMENT_MAX_LENGTH = 240;
 const MAX_HIGHLIGHTS = 4;
+const MAX_OBSERVATIONS = 3;
+const MAX_RECOMMENDATIONS = 4;
 const CENTS_PER_REAL = 100;
 
 export type ComparisonPeriods = {
@@ -114,6 +126,11 @@ function fromTenths(tenths: number): number {
   return (Math.sign(tenths) * Math.round(Math.abs(tenths))) / 10 || 0;
 }
 
+// The difference between two rates with two places, in points with one.
+function pointsBetween(current: number, previous: number): number {
+  return fromTenths((toHundredths(current) - toHundredths(previous)) / 10);
+}
+
 // The percentage over the previous value, with one place; no variation when
 // the previous value is zero.
 export function calculateVariation(
@@ -152,11 +169,7 @@ export function buildComparison(
       current: current.cancellationRate,
       previous: previous ? previous.cancellationRate : null,
       variation: previous
-        ? fromTenths(
-            (toHundredths(current.cancellationRate) -
-              toHundredths(previous.cancellationRate)) /
-              10,
-          )
+        ? pointsBetween(current.cancellationRate, previous.cancellationRate)
         : null,
     },
   };
@@ -386,6 +399,258 @@ export function parseAnalysis(
         indicator,
         comment,
       })),
+    },
+  };
+}
+
+// The detailed analysis (RF091, RN039, RN040) ---------------------------------
+
+// A number of the period next to the previous one; null without a previous
+// period (UC27 FA03).
+type ComparedCount = {
+  current: number | null;
+  previous: number | null;
+  variationPercent: number | null;
+};
+
+type ComparedRate = {
+  current: number;
+  previous: number | null;
+  variationPoints: number | null;
+};
+
+function compareCount(
+  current: number | null,
+  previous: number | null | undefined,
+): ComparedCount {
+  const hasPrevious = previous !== null && previous !== undefined;
+  return {
+    current,
+    previous: hasPrevious ? previous : null,
+    variationPercent:
+      hasPrevious && current !== null
+        ? calculateVariation(current, previous)
+        : null,
+  };
+}
+
+// RN040: the indicators of the detailed analysis, as the model receives them:
+// with the labels of the screen, the hours with appointments only and the
+// previous values of items 3, 6, 7, 8 and 13. Only aggregated values.
+export type DetailedAnalysisInput = AnalysisInput & {
+  details: {
+    services: DashboardDetails["services"];
+    categories: DashboardDetails["categories"];
+    extrasRate: ComparedRate;
+    vehicleTypes: { type: string; count: number }[];
+    vehicleSizes: { size: string; count: number; averageTicket: number }[];
+    payments: { method: string; count: number; revenue: number }[];
+    surcharges: number;
+    discounts: number;
+    channel: { client: ComparedCount; panel: ComparedCount };
+    clients: { new: ComparedCount; returning: ComparedCount };
+    returns: ComparedCount;
+    weekdays: {
+      weekday: string;
+      appointments: number;
+      cancelled: number;
+      revenue: number;
+    }[];
+    hours: { hour: number; count: number }[];
+    cancelledServices: DashboardDetails["cancelledServices"];
+    open: DashboardDetails["open"];
+    leadTimeDays: ComparedCount;
+    leadTimeBands: {
+      sameDay: number;
+      upToThree: number;
+      upToSeven: number;
+      overSeven: number;
+    };
+  };
+};
+
+export function buildDetailedAnalysisInput({
+  base,
+  details,
+  previousDetails,
+}: {
+  base: AnalysisInput;
+  details: DashboardDetails;
+  previousDetails: DashboardDetails | null;
+}): DetailedAnalysisInput {
+  const previous = previousDetails;
+  return {
+    ...base,
+    details: {
+      services: details.services,
+      categories: details.categories,
+      extrasRate: {
+        current: details.extrasRate,
+        previous: previous ? previous.extrasRate : null,
+        variationPoints: previous
+          ? pointsBetween(details.extrasRate, previous.extrasRate)
+          : null,
+      },
+      vehicleTypes: details.vehicleTypes.map(({ type, count }) => ({
+        type: VEHICLE_TYPE_LABELS[type],
+        count,
+      })),
+      vehicleSizes: details.vehicleSizes.map(
+        ({ size, count, averageTicket }) => ({
+          size: VEHICLE_SIZE_LABELS[size],
+          count,
+          averageTicket,
+        }),
+      ),
+      payments: details.payments.map(({ method, count, revenue }) => ({
+        method: PAYMENT_METHOD_LABELS[method],
+        count,
+        revenue,
+      })),
+      surcharges: details.surcharges,
+      discounts: details.discounts,
+      channel: {
+        client: compareCount(details.channel.client, previous?.channel.client),
+        panel: compareCount(details.channel.panel, previous?.channel.panel),
+      },
+      clients: {
+        new: compareCount(details.clients.new, previous?.clients.new),
+        returning: compareCount(
+          details.clients.returning,
+          previous?.clients.returning,
+        ),
+      },
+      returns: compareCount(details.returns, previous?.returns),
+      weekdays: details.weekdays.map(({ weekday, ...day }) => ({
+        weekday: WEEKDAY_LABELS[weekday],
+        ...day,
+      })),
+      hours: details.hours.filter(({ count }) => count > 0),
+      cancelledServices: details.cancelledServices,
+      open: details.open,
+      leadTimeDays: compareCount(
+        details.leadTime.averageDays,
+        previous?.leadTime.averageDays,
+      ),
+      leadTimeBands: {
+        sameDay: details.leadTime.sameDay,
+        upToThree: details.leadTime.upToThree,
+        upToSeven: details.leadTime.upToSeven,
+        overSeven: details.leadTime.overSeven,
+      },
+    },
+  };
+}
+
+// The instructions of the detailed analysis (detalhada-1): the same report of
+// the summary, with a section for each area of the business and the
+// recommendations.
+const DETAILED_INSTRUCTIONS = [
+  SUMMARY_INSTRUCTIONS,
+  "Este é o relatório detalhado: além do resumo e das observações, analise cada área do negócio com os dados de details.",
+  `Responda também sections, as cinco seções, uma vez cada, com uma a ${MAX_OBSERVATIONS} observações de até ${COMMENT_MAX_LENGTH} caracteres: revenue (receita: os indicadores, a receita ao longo do período e os agendamentos em aberto), services (serviços: os que mais faturam, as categorias, a venda de complementos e os serviços mais cancelados), clients (clientes e veículos: novos e recorrentes, retornos, tipos e portes), operation (operação: dias da semana, horários, canal de agendamento e antecedência) e payments (pagamentos: formas de pagamento, acréscimos e descontos).`,
+  `Responda também recommendations, de nenhuma a ${MAX_RECOMMENDATIONS} sugestões práticas de até ${COMMENT_MAX_LENGTH} caracteres para o dono avaliar, apoiadas nos dados e escritas como sugestões, nunca como ordens.`,
+].join("\n");
+
+export function buildDetailedAnalysisMessages(
+  input: DetailedAnalysisInput,
+): AnalysisMessage[] {
+  return [
+    { role: "system", content: DETAILED_INSTRUCTIONS },
+    { role: "user", content: JSON.stringify(input) },
+  ];
+}
+
+export const DETAILED_ANALYSIS_RESPONSE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["summary", "highlights", "sections", "recommendations"],
+  properties: {
+    ...ANALYSIS_RESPONSE_SCHEMA.properties,
+    sections: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "observations"],
+        properties: {
+          section: { type: "string", enum: [...DASHBOARD_SECTIONS] },
+          observations: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+    recommendations: { type: "array", items: { type: "string" } },
+  },
+} as const;
+
+const detailedAnswerSchema = answerSchema.extend({
+  sections: z
+    .array(
+      z.object({
+        section: z.enum(DASHBOARD_SECTIONS),
+        observations: z
+          .array(textSchema(COMMENT_MAX_LENGTH))
+          .min(1)
+          .max(MAX_OBSERVATIONS),
+      }),
+    )
+    .length(DASHBOARD_SECTIONS.length)
+    .refine(
+      (sections) =>
+        new Set(sections.map(({ section }) => section)).size ===
+        sections.length,
+    ),
+  recommendations: z
+    .array(textSchema(COMMENT_MAX_LENGTH))
+    .max(MAX_RECOMMENDATIONS),
+});
+
+export type ParsedDetailedAnalysis = ParsedAnalysis & {
+  sections: DashboardAnalysisSection[];
+  recommendations: string[];
+};
+
+// RN039: the detailed answer, with the five sections in the order of the
+// screen, checked as the summary.
+export function parseDetailedAnalysis(
+  text: string,
+):
+  | { ok: true; analysis: ParsedDetailedAnalysis }
+  | { ok: false; refusal: AnalysisRefusal } {
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    return { ok: false, refusal: "INVALID_RESPONSE" };
+  }
+  const parsed = detailedAnswerSchema.safeParse(value);
+  if (!parsed.success) return { ok: false, refusal: "INVALID_RESPONSE" };
+  const { summary, highlights, sections, recommendations } = parsed.data;
+  const texts = [
+    summary,
+    ...highlights.map(({ comment }) => comment),
+    ...sections.flatMap(({ observations }) => observations),
+    ...recommendations,
+  ];
+  if (texts.some((item) => DIGIT.test(item))) {
+    return { ok: false, refusal: "NUMBERS_IN_TEXT" };
+  }
+  const bySection = new Map(
+    sections.map(({ section, observations }) => [section, observations]),
+  );
+  return {
+    ok: true,
+    analysis: {
+      summary,
+      highlights: highlights.map(({ indicator, comment }) => ({
+        indicator,
+        comment,
+      })),
+      sections: DASHBOARD_SECTIONS.map((section) => ({
+        section,
+        observations: bySection.get(section) ?? [],
+      })),
+      recommendations,
     },
   };
 }

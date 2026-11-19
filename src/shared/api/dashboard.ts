@@ -4,6 +4,7 @@ import type {
 } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
 import type { DashboardIndicator } from "@/shared/constants/dashboard-indicators";
+import type { DashboardSection } from "@/shared/constants/dashboard-sections";
 import type { PaymentMethod } from "@/shared/constants/payment-methods";
 import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
 import type { VehicleType } from "@/shared/constants/vehicle-types";
@@ -151,6 +152,13 @@ export type DashboardDetails = {
   };
 };
 
+// One section of the detailed analysis, with one to three observations
+// (RN039).
+export type DashboardAnalysisSection = {
+  section: DashboardSection;
+  observations: string[];
+};
+
 // POST /api/admin/dashboard/analysis (UC27): the text only interprets the
 // indicators, and every number comes from the system (RN039).
 export type DashboardAnalysis = {
@@ -170,9 +178,9 @@ export type DashboardAnalysis = {
   highlights: DashboardAnalysisHighlight[];
   comparison: DashboardComparison;
   revenueSeries: DashboardRevenueSeries;
-  // Only in the detailed analysis, which comes with its own route.
-  details: null;
-  sections: null;
-  recommendations: null;
+  // Only in the detailed analysis (RF091); null in the summary.
+  details: DashboardDetails | null;
+  sections: DashboardAnalysisSection[] | null;
+  recommendations: string[] | null;
   generatedAt: string;
 };
