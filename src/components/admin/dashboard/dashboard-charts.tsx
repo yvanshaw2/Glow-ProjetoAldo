@@ -5,6 +5,8 @@ import {
   BarChart,
   CartesianGrid,
   LabelList,
+  Line,
+  LineChart,
   Rectangle,
   ResponsiveContainer,
   Tooltip,
@@ -14,6 +16,7 @@ import {
 } from "recharts";
 import type {
   DashboardRevenueDay,
+  DashboardRevenueSeries,
   DashboardStatusCount,
 } from "@/shared/api/dashboard";
 import {
@@ -24,7 +27,7 @@ import { DASHBOARD_INDICATOR_LABELS } from "@/shared/constants/dashboard-indicat
 import { formatCurrency } from "@/shared/format/currency";
 import { formatDate, formatDayMonth } from "@/shared/format/date";
 
-// The drawing of the two charts of the dashboard (RF041, RF042), the only
+// The drawing of the charts of the dashboard (RF041, RF042, RF092), the only
 // module that imports Recharts. It is loaded on demand by chart-card.tsx
 // (docs/padroes/frontend.md, Desempenho, RNF006). Colors only from the theme
 // (docs/padroes/design.md, Gráficos); the drawing is aria-hidden, and the
@@ -157,6 +160,70 @@ export function StatusChart({
           />
         </Bar>
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// RF092: the revenue of the period analyzed and of the previous one, by
+// position (a day, or a block of seven days in periods over 62 days, RN038).
+// The previous period is dashed and in the muted color; the names are
+// written in the legend of the card.
+export function RevenueComparisonChart({
+  series,
+}: {
+  series: DashboardRevenueSeries;
+}) {
+  const unit = series.unit === "week" ? "Semana" : "Dia";
+  const rows = series.points.map((point, index) => ({
+    ...point,
+    position: `${unit} ${index + 1}`,
+  }));
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={rows}
+        accessibilityLayer={false}
+        margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+      >
+        <CartesianGrid vertical={false} stroke="var(--border)" />
+        <XAxis
+          dataKey="position"
+          interval="preserveStartEnd"
+          minTickGap={24}
+          tick={AXIS_TICK}
+          tickLine={false}
+          axisLine={{ stroke: "var(--border)" }}
+        />
+        <YAxis
+          tickFormatter={formatCurrency}
+          width={REVENUE_AXIS_WIDTH}
+          tick={AXIS_TICK}
+          tickLine={false}
+          axisLine={false}
+        />
+        <Tooltip
+          contentStyle={TOOLTIP_STYLE}
+          formatter={(value, name) => [formatCurrency(Number(value)), name]}
+          isAnimationActive={false}
+        />
+        <Line
+          dataKey="currentRevenue"
+          name="Este período"
+          stroke="var(--link)"
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={false}
+        />
+        <Line
+          dataKey="previousRevenue"
+          name="Período anterior"
+          stroke="var(--muted-foreground)"
+          strokeWidth={2}
+          strokeDasharray="4 4"
+          dot={false}
+          isAnimationActive={false}
+        />
+      </LineChart>
     </ResponsiveContainer>
   );
 }

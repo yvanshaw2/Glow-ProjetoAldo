@@ -30,7 +30,8 @@
   --shadow-light: #faf3eb;
 }
 
-@media (prefers-color-scheme: dark) {
+/* The print is always in the light theme (RF094). */
+@media screen and (prefers-color-scheme: dark) {
   :root {
     --background: #2e2e24;
     --foreground: #f2ede4;
@@ -146,5 +147,20 @@
 
   svg.lucide {
     stroke-width: 1.5;
+  }
+}
+
+/* RF094, decision 0057: the print of the dashboard, also saved as PDF, in the
+   light theme, with lines instead of the shadows and no card split between
+   pages (docs/agendamento/dashboard-do-painel.md). */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  section {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--border);
   }
 }

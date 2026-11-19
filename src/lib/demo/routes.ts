@@ -24,15 +24,6 @@ export type DemoRoute = {
   load?: () => Promise<DemoAnswer>;
 };
 
-export const DEMO_ROUTES: readonly DemoRoute[] = [
-  // docs/agendamento/rotas.md, built by #66; the analysis is a POST that
-  // writes nothing.
-  {
-    method: "POST",
-    path: "/api/admin/dashboard/analysis",
-    load: () =>
-      import("@/lib/demo/dashboard").then(
-        (dashboard) => dashboard.answerDashboardAnalysis,
-      ),
-  },
-];
+// The analysis of the dashboard, the last one, has its route (issue #1); the
+// folder leaves in the next PR (decision 0055).
+export const DEMO_ROUTES: readonly DemoRoute[] = [];
