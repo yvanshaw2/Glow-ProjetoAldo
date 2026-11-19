@@ -11,13 +11,16 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { AnalysisComparison } from "@/components/admin/dashboard/analysis-comparison";
+import { AnalysisSections } from "@/components/admin/dashboard/analysis-sections";
 import type { Period } from "@/components/admin/dashboard/dashboard-period";
+import { ChoiceGroup, type Choice } from "@/components/shared/choice-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, toApiError } from "@/lib/api-client";
 import type {
   DashboardAnalysis,
+  DashboardAnalysisDetail,
   DashboardAnalysisHighlight,
 } from "@/shared/api/dashboard";
 import { DASHBOARD_INDICATOR_LABELS } from "@/shared/constants/dashboard-indicators";
@@ -30,6 +33,21 @@ import {
 } from "@/shared/format/analysis-text";
 
 const ANALYSIS_PATH = "/api/admin/dashboard/analysis";
+
+// RF091: the summary or the detailed analysis, the summary chosen first.
+const DETAIL_CHOICES: readonly Choice<DashboardAnalysisDetail>[] = [
+  {
+    value: "summary",
+    label: "Resumida",
+    description: "Um resumo e até quatro observações sobre os indicadores.",
+  },
+  {
+    value: "detailed",
+    label: "Detalhada",
+    description:
+      "Também serviços, clientes, operação e pagamentos, com sugestões.",
+  },
+];
 // Places held for the text while the analysis is made, as three lines.
 const LOADING_LINES = 3;
 
@@ -62,6 +80,7 @@ export function DashboardAnalysisCard({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const [state, setState] = useState<AnalysisState>({ status: "idle" });
+  const [detail, setDetail] = useState<DashboardAnalysisDetail>("summary");
   // The status region says when the analysis is ready.
   const [announcement, setAnnouncement] = useState("");
 
@@ -94,7 +113,7 @@ export function DashboardAnalysisCard({
     try {
       const analysis = await apiRequest<DashboardAnalysis>(ANALYSIS_PATH, {
         method: "POST",
-        body: period,
+        body: { ...period, detail },
         signal: controller.signal,
       });
       if (controller.signal.aborted) return;
@@ -122,7 +141,15 @@ export function DashboardAnalysisCard({
           inteligência artificial a partir dos números do sistema.
         </p>
       </div>
-      <div className="flex flex-col items-start gap-2 print:hidden">
+      <div className="flex flex-col items-start gap-4 print:hidden">
+        <div className="@container w-full">
+          <ChoiceGroup
+            legend="Tipo de análise"
+            choices={DETAIL_CHOICES}
+            value={detail}
+            onChange={setDetail}
+          />
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button
             ref={buttonRef}
@@ -230,6 +257,13 @@ function AnalysisContent({
             />
           ))}
         </ul>
+      )}
+      {analysis.sections && analysis.details && (
+        <AnalysisSections
+          sections={analysis.sections}
+          recommendations={analysis.recommendations ?? []}
+          details={analysis.details}
+        />
       )}
       <AnalysisComparison analysis={analysis} />
       <p className="text-sm text-muted-foreground">
