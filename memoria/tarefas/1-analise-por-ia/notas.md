@@ -168,3 +168,11 @@ Ramificação `feat/1-detailed-analysis`, de `origin/main` com o #18. Testes em 
 - **`pointsBetween`:** a diferença em pontos passou a uma função, usada pela taxa de cancelamento e pela de complementos, com o mesmo resultado; foi no mesmo commit da funcionalidade.
 - **Lembrete:** o #18 foi incorporado sem o comentário de que a migration da `dashboard_details` foi aplicada no projeto; sem ela, a análise detalhada responde 500 na pré-visualização.
 - **Verificação:** `npm run check` aprovado. Provedor simulado, à mão, com os repositórios simulados: a detalhada manda os detalhes com os rótulos e 4.096 tokens, devolve as seções na ordem da tela e as sugestões; a resumida continua sem ler `dashboard_details`; seção faltando dá 503; no mês em andamento, os em aberto vão até o fim do período exibido. 4 de 4.
+
+## 2026-11-19 – decisão: PR 8, análise detalhada na tela
+
+Ramificação `feat/1-detailed-analysis-card`, de `origin/main` com o #19. Testes em vermelho num commit próprio (8 novos, dos números das seções e do texto copiado da detalhada); depois `describeSectionNumbers` e o texto copiado em `src/shared/format/analysis-text.ts`, `analysis-sections.tsx` e o cartão com a escolha "Resumida / Detalhada" (`ChoiceGroup`, "Resumida" marcada).
+
+- **Números das seções:** uma linha por número, montada por `describeSectionNumbers` (testada), a mesma no texto copiado ("Números: ..."). Na operação, só os dias da semana com agendamentos e os três horários mais procurados; nos pagamentos, só as formas usadas; no ticket por porte, só os portes com pagos. Os itens de RN040 que entram nos PRs 9 a 13 (motivos, margem, avaliação, ocupação) ainda não aparecem.
+- **Ordem no cartão:** resumo, observações, as cinco seções, as sugestões, a tabela e o gráfico dos dois períodos e a nota de IA.
+- **Verificação:** `npm run check` aprovado, 848 testes em 40 arquivos. Não verificado: a tela no navegador (exige a sessão do banco local, com o `.env.local`) e a detalhada com o modelo real.
