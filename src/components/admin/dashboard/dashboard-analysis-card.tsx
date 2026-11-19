@@ -1,16 +1,33 @@
 "use client";
 
-import { LoaderCircleIcon, SparklesIcon } from "lucide-react";
+import {
+  CopyIcon,
+  LoaderCircleIcon,
+  MinusIcon,
+  PrinterIcon,
+  SparklesIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+} from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { AnalysisComparison } from "@/components/admin/dashboard/analysis-comparison";
 import type { Period } from "@/components/admin/dashboard/dashboard-period";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, toApiError } from "@/lib/api-client";
-import type { DashboardAnalysis } from "@/shared/api/dashboard";
+import type {
+  DashboardAnalysis,
+  DashboardAnalysisHighlight,
+} from "@/shared/api/dashboard";
 import { DASHBOARD_INDICATOR_LABELS } from "@/shared/constants/dashboard-indicators";
-import { formatDateTime } from "@/shared/format/date";
+import {
+  buildAnalysisText,
+  describeAnalyzedPeriods,
+  describeComparedValue,
+  describeGeneration,
+  isComparedIndicator,
+} from "@/shared/format/analysis-text";
 
 const ANALYSIS_PATH = "/api/admin/dashboard/analysis";
 // Places held for the text while the analysis is made, as three lines.
@@ -29,7 +46,8 @@ type DashboardAnalysisCardProps = {
   hasAppointments: boolean;
 };
 
-// UC27, RF089, RF090: the analysis of the period written by an AI service
+// UC27, RF089, RF090, RF092 to RF094: the analysis of the period written by an
+// AI service, with the numbers of the system next to it, to copy and to print
 // (docs/agendamento/dashboard-do-painel.md). The screen that shows it keys it
 // by period, so another period takes it back to the start (UC27 FA02). It is
 // asked for by the click and not by an effect, because it costs a call to the
@@ -49,6 +67,20 @@ export function DashboardAnalysisCard({
 
   // Leaving the screen, or the period, cancels the call on the way.
   useEffect(() => () => controllerRef.current?.abort(), []);
+
+  // UC27 FA04, RF093: the plain text, by the clipboard of the browser, which
+  // may refuse it (an insecure page, a denied permission).
+  async function copy(analysis: DashboardAnalysis) {
+    setAnnouncement("");
+    try {
+      await navigator.clipboard.writeText(buildAnalysisText(analysis));
+      setAnnouncement("Análise copiada.");
+    } catch {
+      setAnnouncement(
+        "Não foi possível copiar. Selecione o texto e copie manualmente.",
+      );
+    }
+  }
 
   async function generate() {
     if (state.status === "loading") return;
@@ -90,22 +122,47 @@ export function DashboardAnalysisCard({
           inteligência artificial a partir dos números do sistema.
         </p>
       </div>
-      {/* The analysis is demo data until its route exists (#66). */}
-      <DemoNotice />
-      <div className="flex flex-col items-start gap-2">
-        <Button
-          ref={buttonRef}
-          type="button"
-          onClick={generate}
-          disabled={isLoading || !hasAppointments}
-          focusableWhenDisabled
-          aria-describedby={hasAppointments ? undefined : noDataId}
-        >
-          {isLoading && (
-            <LoaderCircleIcon aria-hidden className="animate-spin text-link" />
+      <div className="flex flex-col items-start gap-2 print:hidden">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            ref={buttonRef}
+            type="button"
+            onClick={generate}
+            disabled={isLoading || !hasAppointments}
+            focusableWhenDisabled
+            aria-describedby={hasAppointments ? undefined : noDataId}
+          >
+            {isLoading && (
+              <LoaderCircleIcon
+                aria-hidden
+                className="animate-spin text-link"
+              />
+            )}
+            {buttonLabel(state)}
+          </Button>
+          {state.status === "done" && (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => copy(state.analysis)}
+              >
+                <CopyIcon aria-hidden />
+                Copiar análise
+              </Button>
+              {/* UC27 FA05, RF094: the print of the browser also saves a PDF
+                  (decision 0057). */}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => window.print()}
+              >
+                <PrinterIcon aria-hidden />
+                Imprimir ou salvar em PDF
+              </Button>
+            </>
           )}
-          {buttonLabel(state)}
-        </Button>
+        </div>
         {!hasAppointments && (
           <p id={noDataId} className="text-sm text-muted-foreground">
             Não há dados suficientes no período para gerar a análise.
@@ -113,7 +170,7 @@ export function DashboardAnalysisCard({
         )}
       </div>
       <AnalysisContent state={state} onRetry={generate} />
-      <div role="status" className="sr-only">
+      <div role="status" className="text-sm text-muted-foreground print:hidden">
         {announcement}
       </div>
     </section>
@@ -159,29 +216,65 @@ function AnalysisContent({
   // RS020: the text of the service is shown as text, never as HTML.
   return (
     <div className="flex flex-col gap-4">
-      <p>{analysis.summary}</p>
-      <ul className="flex flex-col gap-2">
-        {analysis.highlights.map(({ indicator, comment }, index) => (
-          <li key={`${indicator}-${index}`}>
-            <span className="font-semibold">
-              {DASHBOARD_INDICATOR_LABELS[indicator]}:
-            </span>{" "}
-            {comment}
-          </li>
-        ))}
-      </ul>
-      {/* UC27 FA03 */}
-      {!analysis.hasComparison && (
-        <p className="text-sm text-muted-foreground">
-          O período anterior não tem agendamentos: a análise não compara os
-          períodos.
-        </p>
-      )}
       <p className="text-sm text-muted-foreground">
-        Gerado por inteligência artificial em{" "}
-        {formatDateTime(analysis.generatedAt)}. Pode conter imprecisões: os
-        números oficiais são os dos indicadores.
+        {describeAnalyzedPeriods(analysis)}
+      </p>
+      <p>{analysis.summary}</p>
+      {analysis.highlights.length > 0 && (
+        <ul className="flex flex-col gap-3">
+          {analysis.highlights.map((highlight, index) => (
+            <HighlightItem
+              key={`${highlight.indicator}-${index}`}
+              highlight={highlight}
+              analysis={analysis}
+            />
+          ))}
+        </ul>
+      )}
+      <AnalysisComparison analysis={analysis} />
+      <p className="text-sm text-muted-foreground">
+        {describeGeneration(analysis.generatedAt)}
       </p>
     </div>
+  );
+}
+
+// RF092: an observation with the value of the system and its variation; the
+// icon only repeats what is written.
+function HighlightItem({
+  highlight: { indicator, comment },
+  analysis,
+}: {
+  highlight: DashboardAnalysisHighlight;
+  analysis: DashboardAnalysis;
+}) {
+  const label = DASHBOARD_INDICATOR_LABELS[indicator];
+  if (!isComparedIndicator(indicator)) {
+    return (
+      <li>
+        <span className="font-semibold">{label}:</span> {comment}
+      </li>
+    );
+  }
+  const value = analysis.comparison[indicator];
+  const Icon =
+    value.variation === null
+      ? null
+      : value.variation > 0
+        ? TrendingUpIcon
+        : value.variation < 0
+          ? TrendingDownIcon
+          : MinusIcon;
+  return (
+    <li className="flex flex-col gap-1">
+      <span className="flex items-center gap-2 text-sm">
+        {Icon && <Icon aria-hidden className="size-4 shrink-0 text-link" />}
+        <span>
+          <span className="font-semibold">{label}:</span>{" "}
+          {describeComparedValue(indicator, value)}
+        </span>
+      </span>
+      <span>{comment}</span>
+    </li>
   );
 }

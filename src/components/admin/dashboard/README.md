@@ -1,6 +1,6 @@
 # `src/components/admin/dashboard/` – Painel: dashboard
 
-Indicadores, gráfico de receita por dia (Recharts, carregado sob demanda), agendamentos por status e agenda do dia, com seleção de período.
+Indicadores, a análise do período por IA (`dashboard-analysis-card.tsx`, com os valores do sistema, a comparação com o período anterior em `analysis-comparison.tsx`, copiar e imprimir), gráfico de receita por dia (Recharts, só em `dashboard-charts.tsx`, carregado sob demanda), agendamentos por status e agenda do dia, com seleção de período. Na impressão, saem a navegação, os controles e a agenda do dia (RF094).
 
 ## Vai aqui
 

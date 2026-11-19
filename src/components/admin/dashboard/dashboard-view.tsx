@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { withQuery } from "@/lib/api-client";
 import type { Dashboard } from "@/shared/api/dashboard";
+import { formatDate } from "@/shared/format/date";
 import { cn } from "@/lib/utils";
 
 const DASHBOARD_PATH = "/api/admin/dashboard";
@@ -53,11 +54,14 @@ export function DashboardView() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PeriodSelector
-        period={answeredPeriod}
-        errors={periodErrors}
-        onApply={applyPeriod}
-      />
+      {/* RF094: the print keeps only the line of the period shown. */}
+      <div className="print:hidden">
+        <PeriodSelector
+          period={answeredPeriod}
+          errors={periodErrors}
+          onApply={applyPeriod}
+        />
+      </div>
       <DashboardContent
         dashboard={data}
         failure={periodErrors ? null : error}
@@ -114,6 +118,9 @@ function DashboardContent({
         isLoading && "pointer-events-none opacity-70",
       )}
     >
+      <p className="hidden font-semibold print:block">
+        {`Período exibido: ${formatDate(dashboard.from)} a ${formatDate(dashboard.to)}.`}
+      </p>
       {/* UC09 FE01: the indicators are zero, and the screen says there is
           nothing to show. */}
       {dashboard.appointmentCount === 0 && (
@@ -134,7 +141,10 @@ function DashboardContent({
         </div>
         <StatusChartCard statuses={dashboard.appointmentsByStatus} />
       </div>
-      <TodaySchedule agenda={dashboard.agenda} />
+      {/* RF094: the agenda has names and plates and is not of the period. */}
+      <div className="print:hidden">
+        <TodaySchedule agenda={dashboard.agenda} />
+      </div>
     </div>
   );
 }
