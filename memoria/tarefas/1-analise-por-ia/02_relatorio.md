@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12) e 2 (#13), incorporados, e 3, de 13, com `Refs #1`. Os PRs 4 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13) e 3a (#14), incorporados, e 3b, com `Refs #1`. Os PRs 4 a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -31,10 +31,15 @@ Relatório parcial: PRs 1 (#12) e 2 (#13), incorporados, e 3, de 13, com `Refs #
 - RS021 (o custo é dado interno) e o código 409 `REVIEW_NOT_ALLOWED`.
 - `dados.md`, `rotas.md` e as telas dos três assuntos; `calculos.md` (o custo do item e os itens novos da seção 7); `infraestrutura.md` (o que o `seed-demo.sql` preenche); `visao-geral.md` (o custo dentro do escopo); as mensagens de validação e os casos de teste.
 
-### PR 3 (rota da análise resumida)
+### PR 3a (#14, regras da análise resumida)
 
-- `POST /api/admin/dashboard/analysis`, com `requirePermission("dashboard")`: valida o período e o tipo (`dashboardAnalysisSchema`), compara pelo calendário até o dia corrente (L18), calcula os indicadores dos dois períodos, chama o serviço de IA e confere a resposta (RN039); 409 `INSUFFICIENT_DATA` sem chamar a IA e 503 `AI_UNAVAILABLE` nas falhas.
-- `src/server/rules/dashboard-analysis.ts`: períodos comparados, variação, comparação, série da receita, entrada do modelo (só agregados, RN038), instruções da resumida (`resumida-1`) e conferência da resposta.
+- `src/server/rules/dashboard-analysis.ts`: os períodos comparados pelo calendário e até o dia corrente (L18), a variação, a comparação dos quatro indicadores, a série da receita por dia ou por blocos de sete dias, a entrada do modelo só com agregados (RN038), as instruções da resumida (`resumida-1`) e a conferência da resposta (RN039).
+- `dashboardAnalysisSchema`, com a resumida como padrão, e os tipos `DashboardAnalysis`, `DashboardComparison` e `DashboardRevenueSeries`.
+- Testes: 29 das regras e 5 do esquema, escritos antes do código.
+
+### PR 3b (rota da análise resumida)
+
+- `POST /api/admin/dashboard/analysis`, com `requirePermission("dashboard")`: valida o período e o tipo, compara pelo calendário até o dia corrente (L18), calcula os indicadores dos dois períodos, chama o serviço de IA e confere a resposta (RN039); 409 `INSUFFICIENT_DATA` sem chamar a IA e 503 `AI_UNAVAILABLE` nas falhas.
 - `src/server/ai/chat-completion.ts`: Chat Completions com `fetch`, esquema JSON estrito, corte em 15 s, sem nova tentativa, com `AI_BASE_URL`, `AI_MODEL` e `AI_API_KEY` lidas a cada chamada.
 - Registro: `dashboard_analysis_failed` com o motivo e `dashboard_analysis_generated` com o modelo, a versão das instruções, os tokens e a duração; nunca a chave, as mensagens nem a resposta.
 - OpenAPI da rota; `servico-de-ia.md` com os campos do pedido ao Groq.

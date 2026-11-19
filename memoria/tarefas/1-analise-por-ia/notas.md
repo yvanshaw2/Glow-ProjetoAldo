@@ -97,23 +97,32 @@ Ramificação `docs/1-business-data`, de `origin/main` (ebf1009, com o PR #12 in
 - Textos de tela propostos: "Motivo: <motivo>" e "Motivo: Não informado"; "Sua avaliação: <nota> de 5", "Como foi o atendimento?", "Enviar avaliação", "Avaliação enviada."; no painel, "Avaliação do cliente: <nota> de 5" ou "ainda não avaliado"; "Custo dos insumos (opcional)" e "Atendimentos simultâneos", com as ajudas da L12 e da L15.
 - L16 (decisão 0058) fica para o PR 5, junto da remoção; L17 não tem texto de `docs/`.
 
-## 2026-11-18 – decisão: PR 3, rota da análise resumida
+## 2026-11-18 – decisão: PR 3 dividido em 3a e 3b
 
-Ramificação `feat/1-ai-analysis`, de `origin/main` (ebf1009). Testes em vermelho num commit próprio; um commit só de refatoração (a conferência do tamanho do período passou a uma função, usada pelos dois esquemas); depois regras, esquema, tipos, catálogo, adaptador, serviço, rota, OpenAPI e documentação.
+O PR 3 (rota da análise resumida) passou de 1.000 linhas fora os testes; o Yvan escolheu dividi-lo em dois:
+
+- **3a, regras** (`feat/1-analysis-rules`, de `origin/main` com o #13): os testes em vermelho, a refatoração da conferência do período, `src/server/rules/dashboard-analysis.ts`, `dashboardAnalysisSchema`, os tipos de `DashboardAnalysis` e os campos novos na resposta de demonstração. Cerca de 510 linhas fora os testes: as regras (391) são um arquivo só.
+- **3b, rota** (`feat/1-ai-analysis`): o catálogo de erros, o adaptador de `src/server/ai/`, o serviço, a rota, a OpenAPI e `servico-de-ia.md`. Abre depois da incorporação do 3a, atualizada com a `main`.
+
+Escolhas do 3a que o plano não fixava:
+
+- **Nome da função:** o plano citava `findPreviousPeriod`; com a L18 ela devolve o período analisado e o anterior, e virou `findComparisonPeriods`.
+- **Período futuro:** um período que começa depois do dia corrente não tem nada a analisar (`null`); o serviço do 3b responde 409 `INSUFFICIENT_DATA`, sem chamar a IA.
+- **Série com o anterior mais longo** (fevereiro diante de janeiro): os pontos seguem as posições do período analisado, e os dias a mais do anterior ficam fora do gráfico; os totais da comparação os incluem. `calculos.md` só fala do anterior mais curto.
+- **Arquivo fora da lista do plano:** `src/lib/demo/dashboard.ts`, com os campos novos de `DashboardAnalysis` na resposta de demonstração (`analyzedTo`, `detail`, `promptVersion`, `comparison` sem valores, `revenueSeries` vazia e os nulos da detalhada), para o tipo compilar enquanto o cartão usa a demonstração (até o PR 4).
+
+Verificação do 3a: `npm run check` aprovado, 822 testes em 38 arquivos; 29 testes novos das regras e 5 do esquema.
+
+## 2026-11-19 – decisão: PR 3b, rota da análise resumida
+
+Ramificação `feat/1-ai-analysis`, atualizada com a `main` depois do #14. Leva o catálogo de erros (`INSUFFICIENT_DATA` e `AI_UNAVAILABLE`), o adaptador de `src/server/ai/`, `generateDashboardAnalysis`, a rota, a OpenAPI, `servico-de-ia.md` e os README.
 
 - **Campos do Groq (risco 3 do plano):** conferidos na documentação em 18/11/2026: `response_format` com `json_schema` estrito (`name`, `strict: true`, `schema`; todo campo obrigatório e `additionalProperties: false`), `max_completion_tokens` (o `max_tokens` está obsoleto), `reasoning_effort: "low"`, o raciocínio do `gpt-oss` em `message.reasoning`, o texto em `choices[0].message.content`, os tokens em `usage.prompt_tokens` e `usage.completion_tokens`, e 429 no limite. A documentação não diz se o raciocínio conta em `max_completion_tokens`; o limite da resumida ficou em 2.048. Registrado em `servico-de-ia.md`.
-- **Nome da função:** o plano citava `findPreviousPeriod`; com a L18 ela devolve o período analisado e o anterior, e virou `findComparisonPeriods`.
-- **Período futuro:** um período que começa depois do dia corrente não tem nada a analisar e responde 409 `INSUFFICIENT_DATA`, sem chamar a IA.
-- **Série com o anterior mais longo** (fevereiro diante de janeiro): os pontos seguem as posições do período analisado, e os dias a mais do anterior ficam fora do gráfico; os totais da comparação os incluem. `calculos.md` só fala do anterior mais curto.
+- **Arquivo fora da lista do plano:** `tests/rules/README.md`, com `dashboard-analysis.test.ts` na lista da pasta.
 
-## 2026-11-18 – desvio a confirmar antes do PR 3: arquivos fora da lista do plano
+## 2026-11-19 – descoberta: verificação do PR 3b
 
-- `src/lib/demo/dashboard.ts`: os campos novos de `DashboardAnalysis` (`analyzedTo`, `detail`, `promptVersion`, `comparison` sem valores, `revenueSeries` vazia e os nulos da detalhada) na resposta de demonstração, para o tipo compilar enquanto o cartão usa a demonstração (até o PR 4).
-- `tests/rules/README.md`: `dashboard-analysis.test.ts` na lista da pasta.
-
-## 2026-11-18 – descoberta: verificação do PR 3
-
-- `npm run check`: aprovado, 822 testes em 38 arquivos.
+- `npm run check`: aprovado.
 - Provedor simulado, conferido à mão (decisão 0052) por um teste do Vitest fora do repositório, com o repositório do dashboard simulado: o pedido no formato Chat Completions, com os campos acima e o `Bearer`; `not_configured` sem chamar nada; 429, 500, resposta sem conteúdo e falha de rede; o corte em 15 s, numa chamada só; outubro comparado com setembro; 409 `INSUFFICIENT_DATA` sem chamada, no período sem agendamentos e no futuro; 503 `AI_UNAVAILABLE` com só o motivo no registro, sem a chave, o texto da resposta, as instruções nem o raciocínio; sem comparação quando o anterior não tem agendamentos. 8 de 8.
 - `next build`: compilou, conferiu os tipos e gerou as páginas, com a rota nova; parou no fim com a mensagem "SecurityFatalError" do Next.js 16.4.1, que recomenda atualizar e pede para repetir o comando. É saída da ferramenta: não foi seguida, e a atualização do Next.js fica para o Yvan decidir.
 - Não verificado: a rota com o banco local e as contas de teste (exige o `.env.local`, que o agente não lê) e a chamada real ao Groq (só na pré-visualização, pelo Yvan, com as variáveis `AI_*` na Vercel e no `.env.example`).
