@@ -2,22 +2,34 @@ import "server-only";
 import { requestChatCompletion } from "@/server/ai/chat-completion";
 import { logger } from "@/server/http/logger";
 import { listAppointmentsBetween } from "@/server/repositories/appointments";
-import { findDashboardFigures } from "@/server/repositories/dashboard";
+import {
+  findDashboardDetails,
+  findDashboardFigures,
+} from "@/server/repositories/dashboard";
 import {
   ANALYSIS_PROMPT_VERSIONS,
   ANALYSIS_RESPONSE_SCHEMA,
   buildAnalysisInput,
   buildAnalysisMessages,
   buildComparison,
+  buildDetailedAnalysisInput,
+  buildDetailedAnalysisMessages,
   buildRevenueSeries,
+  DETAILED_ANALYSIS_RESPONSE_SCHEMA,
   findComparisonPeriods,
   parseAnalysis,
+  parseDetailedAnalysis,
 } from "@/server/rules/dashboard-analysis";
+import { buildDetails } from "@/server/rules/dashboard-details";
 import {
   buildIndicators,
   type DashboardIndicators,
 } from "@/server/rules/dashboard-indicators";
-import type { Dashboard, DashboardAnalysis } from "@/shared/api/dashboard";
+import type {
+  Dashboard,
+  DashboardAnalysis,
+  DashboardDetails,
+} from "@/shared/api/dashboard";
 import { COMPANY_TIME_ZONE } from "@/shared/constants/time-zone";
 import {
   companyDayRange,
@@ -34,9 +46,9 @@ import type {
 // Module dashboard (docs/agendamento/): the indicators and the agenda of the
 // day (UC09) and the analysis of the period (UC27).
 
-// The output limit of the summary. With the gpt-oss models it also holds the
-// reasoning, kept low; the text itself is far shorter (RN039).
-const SUMMARY_MAX_TOKENS = 2_048;
+// The output limit of each analysis type. With the gpt-oss models it also
+// holds the reasoning, kept low; the text itself is far shorter (RN039).
+const MAX_TOKENS = { summary: 2_048, detailed: 4_096 } as const;
 
 // RN021: the indicators of a period of calendar days in the company's time
 // zone. The analysis (UC27) also asks for them, for the period and the
@@ -72,6 +84,19 @@ export async function getDashboard(
 // shown (RN039). Nothing is saved. A failure of the service is logged with
 // its reason, never with the key, the messages or the answer (RS018), and
 // answers AI_UNAVAILABLE; the dashboard goes on (RNF017).
+// RN040: the indicators of the detailed analysis of a period, with the open
+// appointments up to `openTo`, the last day of the period shown.
+async function calculateDetails(
+  period: CalendarPeriod,
+  openTo: string,
+): Promise<DashboardDetails> {
+  const { from, to } = companyDayRange(period);
+  const open = companyDayRange({ from: period.from, to: openTo });
+  return buildDetails(
+    await findDashboardDetails(from, to, open.to, COMPANY_TIME_ZONE),
+  );
+}
+
 export async function generateDashboardAnalysis(
   input: DashboardAnalysisInput,
   now: Date,
@@ -82,9 +107,12 @@ export async function generateDashboardAnalysis(
   );
   // UC27 FE01: nothing done to analyze, and the AI service is not called.
   if (!periods) throw new AppError("INSUFFICIENT_DATA");
-  const [current, previous] = await Promise.all([
+  const isDetailed = input.detail === "detailed";
+  const [current, previous, details, previousDetails] = await Promise.all([
     calculateIndicators(periods.analyzed),
     calculateIndicators(periods.previous),
+    isDetailed ? calculateDetails(periods.analyzed, input.to) : null,
+    isDetailed ? calculateDetails(periods.previous, periods.previous.to) : null,
   ]);
   if (current.appointmentCount === 0) throw new AppError("INSUFFICIENT_DATA");
 
@@ -95,23 +123,39 @@ export async function generateDashboardAnalysis(
     current.revenueByDay,
     hasComparison ? previous.revenueByDay : null,
   );
-  const promptVersion = ANALYSIS_PROMPT_VERSIONS.summary;
+  const base = buildAnalysisInput({
+    periods,
+    current,
+    comparison,
+    series: revenueSeries,
+    hasComparison,
+  });
+  const promptVersion = ANALYSIS_PROMPT_VERSIONS[input.detail];
   const logFields = { detail: input.detail, promptVersion };
 
-  const result = await requestChatCompletion({
-    messages: buildAnalysisMessages(
-      buildAnalysisInput({
-        periods,
-        current,
-        comparison,
-        series: revenueSeries,
-        hasComparison,
-      }),
-    ),
-    schemaName: "dashboard_analysis",
-    schema: ANALYSIS_RESPONSE_SCHEMA,
-    maxTokens: SUMMARY_MAX_TOKENS,
-  });
+  // RF091: the detailed analysis adds the indicators of RN040 and asks for
+  // the sections and the recommendations.
+  const result = await requestChatCompletion(
+    details
+      ? {
+          messages: buildDetailedAnalysisMessages(
+            buildDetailedAnalysisInput({
+              base,
+              details,
+              previousDetails: hasComparison ? previousDetails : null,
+            }),
+          ),
+          schemaName: "dashboard_detailed_analysis",
+          schema: DETAILED_ANALYSIS_RESPONSE_SCHEMA,
+          maxTokens: MAX_TOKENS.detailed,
+        }
+      : {
+          messages: buildAnalysisMessages(base),
+          schemaName: "dashboard_analysis",
+          schema: ANALYSIS_RESPONSE_SCHEMA,
+          maxTokens: MAX_TOKENS.summary,
+        },
+  );
   if (!result.ok) {
     logger.warn("dashboard_analysis_failed", {
       ...logFields,
@@ -121,7 +165,8 @@ export async function generateDashboardAnalysis(
     });
     throw new AppError("AI_UNAVAILABLE");
   }
-  const parsed = parseAnalysis(result.text);
+  const detailed = details ? parseDetailedAnalysis(result.text) : null;
+  const parsed = detailed ?? parseAnalysis(result.text);
   if (!parsed.ok) {
     logger.warn("dashboard_analysis_failed", {
       ...logFields,
@@ -139,6 +184,7 @@ export async function generateDashboardAnalysis(
     durationMs: result.durationMs,
   });
 
+  const { analysis } = parsed;
   return {
     from: input.from,
     to: input.to,
@@ -148,13 +194,13 @@ export async function generateDashboardAnalysis(
     hasComparison,
     detail: input.detail,
     promptVersion,
-    summary: parsed.analysis.summary,
-    highlights: parsed.analysis.highlights,
+    summary: analysis.summary,
+    highlights: analysis.highlights,
     comparison,
     revenueSeries,
-    details: null,
-    sections: null,
-    recommendations: null,
+    details,
+    sections: detailed?.ok ? detailed.analysis.sections : null,
+    recommendations: detailed?.ok ? detailed.analysis.recommendations : null,
     generatedAt: now.toISOString(),
   };
 }
