@@ -7,7 +7,7 @@ relacionados: [UC13, UC14, UC15, RF057, RF058, RF059, RF060, RF061, RF062, RF063
 
 # Conteúdo da página de serviços e categorias do painel
 
-Abas, listagens, cartões, janelas, confirmações e estados de `/admin/services`, do [UC13](UC13-cadastrar-servico.md), do [UC14](UC14-manter-servicos.md) e do [UC15](UC15-manter-categorias.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, formulário em etapas, campo monetário e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
+Abas, listagens, cartões, janelas, confirmações e estados de `/admin/services`, do [UC13](UC13-cadastrar-servico.md), do [UC14](UC14-manter-servicos.md) e do [UC15](UC15-manter-categorias.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, formulário em etapas e campo monetário: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
 As rotas `/api/admin/services` são reais, inclusive o envio da imagem.
 

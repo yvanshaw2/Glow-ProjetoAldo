@@ -7,7 +7,7 @@ relacionados: [UC05, UC06, UC25, UC26, RF019, RF020, RF021, RF022, RF023, RF024,
 
 # Conteúdo do assistente de agendamento
 
-Etapas, campos e textos de `/booking`, do [UC06](UC06-agendar-servico.md), e do assistente de edição e reagendamento em `/appointments` (UC26, UC25). Cabeçalho: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); formulário em etapas, listagem e aviso de demonstração: [../padroes/componentes.md](../padroes/componentes.md).
+Etapas, campos e textos de `/booking`, do [UC06](UC06-agendar-servico.md), e do assistente de edição e reagendamento em `/appointments` (UC26, UC25). Cabeçalho: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); formulário em etapas e listagem: [../padroes/componentes.md](../padroes/componentes.md).
 
 As rotas do assistente são reais. Os valores, a duração e a previsão vêm sempre da prévia (`POST /api/me/appointments/preview`, [rotas.md](rotas.md)); a tela não soma nem calcula.
 

@@ -1,7 +1,7 @@
 ---
 id: 0055
 titulo: Telas construídas antes das rotas, com dados de demonstração respondidos pelo cliente da API
-status: aceita
+status: substituída por 0058
 data: 2026-10-21
 origem: issue #56, plano memoria/tarefas/56-base-da-demonstracao/01_plano.md (Decisões técnicas); proposta memoria/tarefas/66-analise-por-ia/proposta-das-issues.md (LT1 a LT4)
 relacionados: [RNF004, RNF008, 0035, 0052]

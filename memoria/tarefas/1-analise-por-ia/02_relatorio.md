@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14) e 3b (#15), incorporados, e 4, com `Refs #1`. Os PRs 5 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15) e 4 (#16), incorporados, e 5, com `Refs #1`. Os PRs 6 a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -44,12 +44,17 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14) e 3b (#15), incorporados, e 4
 - Registro: `dashboard_analysis_failed` com o motivo e `dashboard_analysis_generated` com o modelo, a versão das instruções, os tokens e a duração; nunca a chave, as mensagens nem a resposta.
 - OpenAPI da rota; `servico-de-ia.md` com os campos do pedido ao Groq.
 
-### PR 4 (cartão ligado à rota)
+### PR 4 (#16, cartão ligado à rota)
 
 - O cartão "Análise do período" chama a rota real e não mostra mais o aviso de demonstração; a lista de `src/lib/demo/routes.ts` ficou vazia.
 - Cada observação de um indicador traz o valor e a variação do sistema ("Receita: R$ 12.500,00, alta de 25,0% em relação ao período anterior"), com os ícones de alta, queda ou estabilidade; a tabela "Este período × período anterior" e o gráfico da receita dos dois períodos (RF092).
 - "Copiar análise" (texto simples, RF093) e "Imprimir ou salvar em PDF" (impressão do navegador, sem navegação, controles nem agenda do dia, no tema claro, RF094, decisão 0057).
 - Testes: 10 do texto copiado e dos valores, escritos antes do código.
+
+### PR 5 (fim da demonstração)
+
+- Saíram `src/lib/demo/`, o `DemoNotice` e o código `NOT_IMPLEMENTED`; o cliente da API fala só com a rede, e o teste dele perdeu a simulação da lista de demonstração.
+- Decisão 0058 (L16), que substitui a 0055; os textos de demonstração saíram dos padrões, do procedimento e do modelo de PR e das páginas de tela.
 
 ## Arquivos alterados
 
@@ -68,14 +73,15 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14) e 3b (#15), incorporados, e 4
 
 - Módulos: os de "Arquivos alterados".
 - Lacunas resolvidas: L2 → RF091, RN039, UC27; L3, L4 e L5 → RN040 e `calculos.md`, seção 7; L6 → RN038 e `calculos.md`, seção 6; L7 → RF092 e `dashboard-do-painel.md`; L8 → RF093, RF094, UC27 FA04 e FA05, decisão 0057; L9 → `servico-de-ia.md` e `workflows/procedimentos/testes.md`; L18 → RN038, `calculos.md`, seção 6, `rotas.md` e `dashboard-do-painel.md`. L1 e L16 entram no PR 5; L10 a L15, no PR 2.
-- Decisões: 0057 criada.
+- Decisões: 0057 criada; 0058 criada, que substitui a 0055.
 - Documentos formais a atualizar (issue #2):
   - Análise do Sistema: quadro do dashboard (RF091 a RF094); quadro de regras (RN040; RN038 e RN039 com os textos novos); quadro do UC27 (passos 1, 2 e 5, FA04 e FA05).
   - Arquitetura de Software: árvore de `src/server/` (`rules/dashboard-details.ts`), funções puras (seção 7 de `calculos.md`), funções do banco (`dashboard_details`), quadro de decisões (0057), apêndice das rotas (entrada e resposta da análise).
   - Desenvolvimento com IA: a avaliação da análise por IA na seção de testes.
+  - Do PR 5: na Arquitetura, o quadro de decisões com a 0058 e a 0055 substituída, o quadro de erros sem o `NOT_IMPLEMENTED` e a árvore de `src/lib/` sem `demo/`; onde os documentos citarem as telas de demonstração, o texto da 0058.
 
 ## Pendências
 
-- PRs 2 a 13 da issue #1 (ordem em `01_plano.md`).
+- PRs 6 a 13 da issue #1 (ordem em `01_plano.md`).
 - O corpo da issue #1 não recebeu a segunda ampliação (caixa do ponto 6 vazia), e o exemplo do critério de aceitação de lá difere da L18.
 - Sugestão fora do plano: dividir `calculos.md`, `dashboard-do-painel.md` e `rotas.md`, acima do limite de tamanho de `docs/CONTEXT.md`.

@@ -62,6 +62,7 @@ Escolhas técnicas e de processo do projeto, uma por arquivo, numeradas e nunca 
 | [0052](0052-testes-da-formatacao-e-da-protecao-das-paginas.md) | Testes automatizados das regras, dos esquemas, do tratamento único, do cliente da API, da formatação e da proteção das páginas |
 | [0053](0053-fuso-da-empresa-como-constante.md) | Fuso da empresa como constante compartilhada, sem variável de ambiente |
 | [0054](0054-analise-por-ia-no-groq.md) | Análise do dashboard por um modelo de linguagem do Groq em plano gratuito, chamado pelo servidor no formato Chat Completions |
-| [0055](0055-telas-de-demonstracao.md) | Telas construídas antes das rotas, com dados de demonstração respondidos pelo cliente da API |
+| [0055](0055-telas-de-demonstracao.md) | Telas construídas antes das rotas, com dados de demonstração respondidos pelo cliente da API (substituída por 0058) |
 | [0056](0056-recharts-nos-graficos-do-dashboard.md) | Gráficos do dashboard com o Recharts, carregado sob demanda |
 | [0057](0057-exportacao-pela-impressao-do-navegador.md) | Análise do dashboard exportada pela impressão do navegador e copiada como texto simples, sem biblioteca de PDF |
+| [0058](0058-fim-das-telas-de-demonstracao.md) | Telas só com as rotas reais, sem o mecanismo de demonstração |

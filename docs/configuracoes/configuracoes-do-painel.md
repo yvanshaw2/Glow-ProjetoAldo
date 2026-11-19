@@ -7,7 +7,7 @@ relacionados: [UC23, UC24, RF085, RF087, RF088, RN012, RN013, RN035, RNF004, RF0
 
 # Conteúdo das abas Disponibilidade e Formas de pagamento do painel
 
-Textos, controles e estados das abas "Disponibilidade" ([UC23](UC23-configurar-disponibilidade.md)) e "Formas de pagamento" ([UC24](UC24-configurar-formas-de-pagamento.md)) de `/admin/settings`. Estilo: [../padroes/design.md](../padroes/design.md); formulários e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md). Onde o wireframe `staffPages/adminPainelConfs/` diverge deste texto (sem a pausa, horários de fechamento diferentes, regras de sinal por forma de pagamento e botão de gravar por forma), vale este texto.
+Textos, controles e estados das abas "Disponibilidade" ([UC23](UC23-configurar-disponibilidade.md)) e "Formas de pagamento" ([UC24](UC24-configurar-formas-de-pagamento.md)) de `/admin/settings`. Estilo: [../padroes/design.md](../padroes/design.md); formulários: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md). Onde o wireframe `staffPages/adminPainelConfs/` diverge deste texto (sem a pausa, horários de fechamento diferentes, regras de sinal por forma de pagamento e botão de gravar por forma), vale este texto.
 
 ## Abas
 

@@ -7,9 +7,9 @@ relacionados: [UC16, UC17, UC18, RF016, RF069, RF070, RF071, RF072, RF073, RF074
 
 # Conteúdo da página de clientes do painel
 
-Lista, detalhes, janelas, confirmações e estados de `/admin/clients`, do [UC16](UC16-cadastrar-cliente.md), do [UC17](UC17-manter-cliente.md) e do [UC18](UC18-manter-veiculos-do-cliente.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, campo de senha e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md); cadastro e edição de veículo do cliente: [area-do-cliente.md](area-do-cliente.md).
+Lista, detalhes, janelas, confirmações e estados de `/admin/clients`, do [UC16](UC16-cadastrar-cliente.md), do [UC17](UC17-manter-cliente.md) e do [UC18](UC18-manter-veiculos-do-cliente.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos e campo de senha: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md); cadastro e edição de veículo do cliente: [area-do-cliente.md](area-do-cliente.md).
 
-Os clientes e os veículos vêm das rotas `/api/admin/clients` e `/api/admin/vehicles`, e a página não tem aviso de demonstração. Os dados de demonstração vêm do banco (`supabase/seed-demo.sql`); um cliente cadastrado pelo painel mostra "Nenhum veículo cadastrado".
+Os clientes e os veículos vêm das rotas `/api/admin/clients` e `/api/admin/vehicles`. Os dados de demonstração vêm do banco (`supabase/seed-demo.sql`); um cliente cadastrado pelo painel mostra "Nenhum veículo cadastrado".
 
 ## Página
 
