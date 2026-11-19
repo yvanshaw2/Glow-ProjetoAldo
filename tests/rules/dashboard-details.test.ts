@@ -26,6 +26,7 @@ const EMPTY: DashboardDetailsFigures = {
   revenueByWeekday: [],
   hours: [],
   cancelledServices: [],
+  cancellationReasons: [],
   open: { count: 0, total: 0 },
   leadTime: {
     count: 0,
@@ -225,5 +226,24 @@ describe("buildDetails", () => {
     expect(details.channel).toEqual({ client: 7, panel: 13 });
     expect(details.returns).toBe(2);
     expect(details.open).toEqual({ count: 6, total: 870 });
+  });
+});
+
+describe("buildDetails, cancellation reasons (RN041)", () => {
+  it("counts the cancelled by reason, the ones with none as not informed", () => {
+    const details = buildDetails({
+      ...EMPTY,
+      cancellationReasons: [
+        { reason: "no_show", count: 3 },
+        { reason: null, count: 2 },
+        { reason: "weather", count: 3 },
+      ],
+    });
+    // By count and, in a tie, in the order of RN041.
+    expect(details.cancellationReasons).toEqual([
+      { reason: "weather", count: 3 },
+      { reason: "no_show", count: 3 },
+      { reason: "not_informed", count: 2 },
+    ]);
   });
 });

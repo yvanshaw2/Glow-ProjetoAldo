@@ -213,6 +213,10 @@ const DETAILS: DashboardDetails = {
       hour === 9 ? 4 : hour === 14 ? 4 : hour === 10 ? 3 : hour === 8 ? 1 : 0,
   })),
   cancelledServices: [{ name: "Lavagem simples", count: 2 }],
+  cancellationReasons: [
+    { reason: "client_gave_up", count: 2 },
+    { reason: "not_informed", count: 1 },
+  ],
   open: { count: 3, total: 420 },
   leadTime: {
     averageDays: 2.5,
@@ -259,6 +263,7 @@ describe("describeSectionNumbers", () => {
       "Horários mais procurados: 9h (4) · 14h (4) · 10h (3)",
       "Canal: 4 pelo portal e 16 pelo painel",
       "Antecedência média: 2,5 dias (no mesmo dia: 4 · de 1 a 3 dias: 8 · de 4 a 7 dias: 6 · mais de 7 dias: 2)",
+      "Motivos de cancelamento: Desistência do cliente 2 · Não informado 1",
     ]);
   });
 
