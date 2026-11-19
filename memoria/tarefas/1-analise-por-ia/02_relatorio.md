@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18) e 7 (#19), incorporados, e 8, com `Refs #1`. Os PRs 9 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19) e 8 (#20), incorporados, e 9, com `Refs #1`. Os PRs 10 a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -69,11 +69,18 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 - OpenAPI com `DashboardDetails` e a resposta da detalhada.
 - Testes: 9 das regras e 1 do esquema, escritos antes do código.
 
-### PR 8 (análise detalhada na tela)
+### PR 8 (#20, análise detalhada na tela)
 
 - A escolha "Resumida" ou "Detalhada" antes de gerar (RF091); na detalhada, as cinco seções com as observações da IA e os "Números da seção" do sistema, e as sugestões com o aviso "Sugestões geradas por IA: avalie antes de colocar em prática.".
 - O texto copiado e a impressão levam as seções e as sugestões.
 - Testes: 8 dos números das seções e do texto copiado, escritos antes do código.
+
+### PR 9 (motivo do cancelamento)
+
+- Migration com o tipo `cancellation_reason`, a coluna `appointments.cancellation_reason` e a `dashboard_details` com os motivos.
+- O motivo é obrigatório nos dois cancelamentos (RF095, RN041): o funcionário escolhe entre todos, e o cliente, entre os dele; aparece no detalhe do cancelado, no painel e no portal, como "Não informado" nos anteriores à regra.
+- Os motivos entram na análise detalhada, na seção Operação (instruções `detalhada-2`), e no `seed-demo.sql`.
+- Testes: 7, escritos antes do código.
 
 ## Arquivos alterados
 
@@ -101,7 +108,8 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 
 ## Pendências
 
-- PRs 9 a 13 da issue #1 (ordem em `01_plano.md`).
+- PRs 10 a 13 da issue #1 (ordem em `01_plano.md`).
+- A migration do PR 9 é aplicada pelo Yvan antes da incorporação.
 - A migration do PR 6 é aplicada pelo Yvan (`npx supabase db push`) antes da incorporação.
 - O corpo da issue #1 não recebeu a segunda ampliação (caixa do ponto 6 vazia), e o exemplo do critério de aceitação de lá difere da L18.
 - Sugestão fora do plano: dividir `calculos.md`, `dashboard-do-painel.md` e `rotas.md`, acima do limite de tamanho de `docs/CONTEXT.md`.
