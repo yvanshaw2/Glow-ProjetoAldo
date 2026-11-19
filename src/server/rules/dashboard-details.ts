@@ -4,6 +4,10 @@ import type {
   DashboardNamedValue,
 } from "@/shared/api/dashboard";
 import {
+  CANCELLATION_REASONS,
+  type CancellationReason,
+} from "@/shared/constants/cancellation-reasons";
+import {
   PAYMENT_METHODS,
   type PaymentMethod,
 } from "@/shared/constants/payment-methods";
@@ -45,6 +49,8 @@ export type DashboardDetailsFigures = {
   revenueByWeekday: { weekday: number; revenue: number }[];
   hours: { hour: number; count: number }[];
   cancelledServices: DashboardNamedCount[];
+  // RN041: null for a cancellation from before the rule.
+  cancellationReasons: { reason: CancellationReason | null; count: number }[];
   open: { count: number; total: number };
   leadTime: {
     count: number;
@@ -86,6 +92,13 @@ function byCountThenName(
   second: DashboardNamedCount,
 ): number {
   return second.count - first.count || first.name.localeCompare(second.name);
+}
+
+// The order of RN041, with the cancellations with no reason at the end.
+function reasonOrder(reason: CancellationReason | "not_informed"): number {
+  return reason === "not_informed"
+    ? CANCELLATION_REASONS.length
+    : CANCELLATION_REASONS.indexOf(reason);
 }
 
 export function buildDetails(
@@ -178,6 +191,16 @@ export function buildDetails(
     cancelledServices: [...figures.cancelledServices]
       .sort(byCountThenName)
       .slice(0, TOP_SIZE),
+    cancellationReasons: figures.cancellationReasons
+      .map(({ reason, count }) => ({
+        reason: reason ?? ("not_informed" as const),
+        count,
+      }))
+      .sort(
+        (first, second) =>
+          second.count - first.count ||
+          reasonOrder(first.reason) - reasonOrder(second.reason),
+      ),
     open: figures.open,
     leadTime: {
       // Days with one place: tenths rounded half up.

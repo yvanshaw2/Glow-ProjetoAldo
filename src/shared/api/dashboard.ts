@@ -3,6 +3,7 @@ import type {
   AppointmentVehicle,
 } from "@/shared/api/appointments";
 import type { AppointmentStatus } from "@/shared/constants/appointment-statuses";
+import type { CancellationReason } from "@/shared/constants/cancellation-reasons";
 import type { DashboardIndicator } from "@/shared/constants/dashboard-indicators";
 import type { DashboardSection } from "@/shared/constants/dashboard-sections";
 import type { PaymentMethod } from "@/shared/constants/payment-methods";
@@ -140,6 +141,11 @@ export type DashboardDetails = {
   }[];
   hours: { hour: number; count: number }[];
   cancelledServices: DashboardNamedCount[];
+  // RN041: the cancelled by reason; "not_informed" for the ones with none.
+  cancellationReasons: {
+    reason: CancellationReason | "not_informed";
+    count: number;
+  }[];
   // Of the whole period shown, which may go beyond the days analyzed.
   open: { count: number; total: number };
   leadTime: {

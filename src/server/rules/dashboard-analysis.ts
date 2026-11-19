@@ -11,6 +11,10 @@ import type {
   DashboardRevenueSeries,
 } from "@/shared/api/dashboard";
 import { APPOINTMENT_STATUS_LABELS } from "@/shared/constants/appointment-statuses";
+import {
+  CANCELLATION_REASON_LABELS,
+  NOT_INFORMED_REASON_LABEL,
+} from "@/shared/constants/cancellation-reasons";
 import { DASHBOARD_INDICATORS } from "@/shared/constants/dashboard-indicators";
 import { DASHBOARD_SECTIONS } from "@/shared/constants/dashboard-sections";
 import { PAYMENT_METHOD_LABELS } from "@/shared/constants/payment-methods";
@@ -36,7 +40,7 @@ import { normalizeText } from "@/shared/validation/formats";
 // and the evaluation of workflows/procedimentos/testes.md.
 export const ANALYSIS_PROMPT_VERSIONS = {
   summary: "resumida-1",
-  detailed: "detalhada-1",
+  detailed: "detalhada-2",
 } as const;
 
 // RN038: up to this many days the revenue goes by day; above, by blocks.
@@ -458,6 +462,7 @@ export type DetailedAnalysisInput = AnalysisInput & {
     }[];
     hours: { hour: number; count: number }[];
     cancelledServices: DashboardDetails["cancelledServices"];
+    cancellationReasons: { reason: string; count: number }[];
     open: DashboardDetails["open"];
     leadTimeDays: ComparedCount;
     leadTimeBands: {
@@ -527,6 +532,15 @@ export function buildDetailedAnalysisInput({
       })),
       hours: details.hours.filter(({ count }) => count > 0),
       cancelledServices: details.cancelledServices,
+      cancellationReasons: details.cancellationReasons.map(
+        ({ reason, count }) => ({
+          reason:
+            reason === "not_informed"
+              ? NOT_INFORMED_REASON_LABEL
+              : CANCELLATION_REASON_LABELS[reason],
+          count,
+        }),
+      ),
       open: details.open,
       leadTimeDays: compareCount(
         details.leadTime.averageDays,
@@ -548,7 +562,7 @@ export function buildDetailedAnalysisInput({
 const DETAILED_INSTRUCTIONS = [
   SUMMARY_INSTRUCTIONS,
   "Este é o relatório detalhado: além do resumo e das observações, analise cada área do negócio com os dados de details.",
-  `Responda também sections, as cinco seções, uma vez cada, com uma a ${MAX_OBSERVATIONS} observações de até ${COMMENT_MAX_LENGTH} caracteres: revenue (receita: os indicadores, a receita ao longo do período e os agendamentos em aberto), services (serviços: os que mais faturam, as categorias, a venda de complementos e os serviços mais cancelados), clients (clientes e veículos: novos e recorrentes, retornos, tipos e portes), operation (operação: dias da semana, horários, canal de agendamento e antecedência) e payments (pagamentos: formas de pagamento, acréscimos e descontos).`,
+  `Responda também sections, as cinco seções, uma vez cada, com uma a ${MAX_OBSERVATIONS} observações de até ${COMMENT_MAX_LENGTH} caracteres: revenue (receita: os indicadores, a receita ao longo do período e os agendamentos em aberto), services (serviços: os que mais faturam, as categorias, a venda de complementos e os serviços mais cancelados), clients (clientes e veículos: novos e recorrentes, retornos, tipos e portes), operation (operação: dias da semana, horários, canal de agendamento, antecedência e motivos de cancelamento) e payments (pagamentos: formas de pagamento, acréscimos e descontos).`,
   `Responda também recommendations, de nenhuma a ${MAX_RECOMMENDATIONS} sugestões práticas de até ${COMMENT_MAX_LENGTH} caracteres para o dono avaliar, apoiadas nos dados e escritas como sugestões, nunca como ordens.`,
 ].join("\n");
 
