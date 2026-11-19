@@ -7,9 +7,9 @@ relacionados: [UC10, UC11, UC12, UC25, UC26, RF044, RF045, RF046, RF047, RF048, 
 
 # Conteúdo da página de agendamentos do painel
 
-Visões, filtros, cartão, detalhe, ações de status e estados de `/admin/appointments`, do [UC10](UC10-consultar-agendamentos.md), do [UC12](UC12-atualizar-status-do-agendamento.md) e do [UC25](UC25-reagendar-servico-concluido.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, etiqueta de status e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato da rota: [rotas.md](rotas.md).
+Visões, filtros, cartão, detalhe, ações de status e estados de `/admin/appointments`, do [UC10](UC10-consultar-agendamentos.md), do [UC12](UC12-atualizar-status-do-agendamento.md) e do [UC25](UC25-reagendar-servico-concluido.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem e etiqueta de status: [../padroes/componentes.md](../padroes/componentes.md); contrato da rota: [rotas.md](rotas.md).
 
-A listagem, o detalhe, o "Novo agendamento" (as buscas, a prévia de valores e o registro) são reais. O avanço, a conclusão, o cancelamento, a edição e o reagendamento também são reais: a página não mostra aviso de demonstração.
+A listagem, o detalhe, o "Novo agendamento" (as buscas, a prévia de valores e o registro) são reais. O avanço, a conclusão, o cancelamento, a edição e o reagendamento também são reais.
 
 ## Página
 

@@ -7,9 +7,9 @@ relacionados: [UC19, UC20, UC21, RF077, RF078, RF079, RF080, RF081, RF082, RF083
 
 # Conteúdo da página de funcionários e cargos do painel
 
-Abas, listas, cartões, janelas, confirmações e estados de `/admin/staff`, do [UC19](UC19-cadastrar-funcionario.md), do [UC20](UC20-manter-funcionarios.md) e do [UC21](UC21-gerenciar-cargos-e-permissoes.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, formulário em etapas, campo de senha e telas de demonstração: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
+Abas, listas, cartões, janelas, confirmações e estados de `/admin/staff`, do [UC19](UC19-cadastrar-funcionario.md), do [UC20](UC20-manter-funcionarios.md) e do [UC21](UC21-gerenciar-cargos-e-permissoes.md). Cabeçalho e navegação: [../padroes/layouts.md](../padroes/layouts.md); estilo: [../padroes/design.md](../padroes/design.md); listagem, diálogos, formulário em etapas e campo de senha: [../padroes/componentes.md](../padroes/componentes.md); contrato das rotas: [rotas.md](rotas.md).
 
-As rotas `/api/admin/staff` e `/api/admin/roles` são reais, e a página não tem aviso de demonstração.
+As rotas `/api/admin/staff` e `/api/admin/roles` são reais.
 
 ## Página
 
