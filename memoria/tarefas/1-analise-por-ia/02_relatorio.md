@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12, documentação da análise, incorporado) e 2 (documentação dos dados novos), de 13, com `Refs #1`. Os PRs 3 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12) e 2 (#13), incorporados, e 3a, com `Refs #1`. O PR 3 foi dividido em 3a (regras) e 3b (rota); os PRs 3b a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -24,12 +24,18 @@ Relatório parcial: PRs 1 (#12, documentação da análise, incorporado) e 2 (do
 - **Decisão 0057** (exportação pela impressão do navegador, sem biblioteca de PDF), gravada.
 - **Issue #1:** corpo atualizado com a seção "Ampliação aprovada em 18/11/2026" (ponto 6 do plano).
 
-### PR 2 (documentação dos dados novos)
+### PR 2 (#13, documentação dos dados novos)
 
 - RF095 (motivo do cancelamento), RF096 (custo dos insumos), RF097 (avaliação do atendimento) e RF098 (atendimentos simultâneos).
 - RN041 (motivo do cancelamento), RN042 (custo dos insumos e margem), RN043 (avaliação), RN044 (ocupação da agenda) e UC28 (avaliar atendimento), novos; RN019, RN037 (cópia do custo e da categoria) e RN040 (itens 13 a 17 e a categoria copiada), alterados; UC07, UC12, UC13, UC14 e UC23 com a captura dos dados novos.
 - RS021 (o custo é dado interno) e o código 409 `REVIEW_NOT_ALLOWED`.
 - `dados.md`, `rotas.md` e as telas dos três assuntos; `calculos.md` (o custo do item e os itens novos da seção 7); `infraestrutura.md` (o que o `seed-demo.sql` preenche); `visao-geral.md` (o custo dentro do escopo); as mensagens de validação e os casos de teste.
+
+### PR 3a (regras da análise resumida)
+
+- `src/server/rules/dashboard-analysis.ts`: os períodos comparados pelo calendário e até o dia corrente (L18), a variação, a comparação dos quatro indicadores, a série da receita por dia ou por blocos de sete dias, a entrada do modelo só com agregados (RN038), as instruções da resumida (`resumida-1`) e a conferência da resposta (RN039).
+- `dashboardAnalysisSchema`, com a resumida como padrão, e os tipos `DashboardAnalysis`, `DashboardComparison` e `DashboardRevenueSeries`.
+- Testes: 29 das regras e 5 do esquema, escritos antes do código.
 
 ## Arquivos alterados
 
