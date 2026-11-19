@@ -2853,6 +2853,52 @@ paths:
           $ref: "#/components/responses/PanelForbidden"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/admin/dashboard/analysis:
+    post:
+      tags:
+        - dashboard
+      operationId: generateDashboardAnalysis
+      summary: Análise do período por inteligência artificial
+      description: >-
+        Gera a análise do período por um serviço de inteligência artificial
+        (UC27), que recebe só valores agregados (RN038) e cuja resposta é
+        conferida antes de voltar (RN039); nada é gravado. O período anterior é
+        o dos mesmos meses imediatamente anteriores, num período de meses
+        inteiros, ou o da mesma quantidade de dias terminado na véspera; o
+        período que termina depois do dia corrente é analisado até ele. Todo
+        número da resposta é calculado pelo sistema. É POST porque é uma ação
+        com custo, nunca repetida.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DashboardAnalysisInput"
+      responses:
+        "200":
+          description: Análise do período.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardAnalysis"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/PanelForbidden"
+        "409":
+          $ref: "#/components/responses/InsufficientData"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/AiUnavailable"
 components:
   securitySchemes:
     sessionCookie:
@@ -4441,6 +4487,186 @@ components:
           description: Agendamentos do dia corrente, por horário, com os dados copiados (RN037).
           items:
             $ref: "#/components/schemas/AdminAppointmentSummary"
+    DashboardAnalysisInput:
+      type: object
+      required:
+        - from
+        - to
+      properties:
+        from:
+          type: string
+          format: date
+          description: Primeiro dia do período exibido.
+        to:
+          type: string
+          format: date
+          description: Último dia do período exibido; até 366 dias contando as duas datas (RN035).
+        detail:
+          type: string
+          enum:
+            - summary
+          default: summary
+          description: Tipo da análise (RF091); a detalhada entra com a sua rota.
+    DashboardComparisonValue:
+      type: object
+      required:
+        - current
+        - previous
+        - variation
+      properties:
+        current:
+          type: number
+        previous:
+          type:
+            - number
+            - "null"
+          description: Nulo sem agendamentos no período anterior.
+        variation:
+          type:
+            - number
+            - "null"
+          description: >-
+            Percentual sobre o valor anterior, com uma casa; na taxa de
+            cancelamento, pontos percentuais. Nulo sem valor anterior.
+    DashboardAnalysis:
+      type: object
+      required:
+        - from
+        - to
+        - analyzedTo
+        - previousFrom
+        - previousTo
+        - hasComparison
+        - detail
+        - promptVersion
+        - summary
+        - highlights
+        - comparison
+        - revenueSeries
+        - details
+        - sections
+        - recommendations
+        - generatedAt
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        analyzedTo:
+          type: string
+          format: date
+          description: Último dia analisado, `to` ou o dia corrente, o que vier antes (RN038).
+        previousFrom:
+          type: string
+          format: date
+        previousTo:
+          type: string
+          format: date
+        hasComparison:
+          type: boolean
+          description: Falso quando o período anterior não tem agendamentos (UC27 FA03).
+        detail:
+          type: string
+          enum:
+            - summary
+            - detailed
+        promptVersion:
+          type: string
+          description: Versão das instruções que gerou o texto.
+        summary:
+          type: string
+          maxLength: 600
+          description: Resumo em português, sem algarismos (RN039).
+        highlights:
+          type: array
+          maxItems: 4
+          items:
+            type: object
+            required:
+              - indicator
+              - comment
+            properties:
+              indicator:
+                type: string
+                enum:
+                  - revenue
+                  - appointmentCount
+                  - averageTicket
+                  - cancellationRate
+                  - revenueByDay
+                  - appointmentsByStatus
+              comment:
+                type: string
+                maxLength: 240
+        comparison:
+          type: object
+          description: Os quatro indicadores e o período anterior, calculados pelo sistema (RF092).
+          required:
+            - revenue
+            - appointmentCount
+            - averageTicket
+            - cancellationRate
+          properties:
+            revenue:
+              $ref: "#/components/schemas/DashboardComparisonValue"
+            appointmentCount:
+              $ref: "#/components/schemas/DashboardComparisonValue"
+            averageTicket:
+              $ref: "#/components/schemas/DashboardComparisonValue"
+            cancellationRate:
+              $ref: "#/components/schemas/DashboardComparisonValue"
+        revenueSeries:
+          type: object
+          description: >-
+            A receita dos dois períodos por posição: por dia até 62 dias; acima,
+            por blocos de sete dias contados a partir do primeiro (RN038).
+          required:
+            - unit
+            - points
+          properties:
+            unit:
+              type: string
+              enum:
+                - day
+                - week
+            points:
+              type: array
+              items:
+                type: object
+                required:
+                  - currentStart
+                  - currentRevenue
+                  - previousStart
+                  - previousRevenue
+                properties:
+                  currentStart:
+                    type: string
+                    format: date
+                  currentRevenue:
+                    type: number
+                  previousStart:
+                    type:
+                      - string
+                      - "null"
+                    format: date
+                  previousRevenue:
+                    type:
+                      - number
+                      - "null"
+        details:
+          type: "null"
+          description: Indicadores de RN040, só na análise detalhada, que entra com a sua rota; nulo na resumida.
+        sections:
+          type: "null"
+          description: Seções da análise detalhada; nulo na resumida.
+        recommendations:
+          type: "null"
+          description: Sugestões da análise detalhada; nulo na resumida.
+        generatedAt:
+          type: string
+          format: date-time
     AdminAppointmentPage:
       type: object
       required:
@@ -5100,6 +5326,23 @@ components:
       description: >-
         INTERNAL_ERROR: falha inesperada; o detalhe fica só no registro, pelo
         requestId (RS017).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    InsufficientData:
+      description: >-
+        INSUFFICIENT_DATA: o período analisado não tem agendamentos, e o serviço
+        de IA não foi chamado (UC27 FE01).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    AiUnavailable:
+      description: >-
+        AI_UNAVAILABLE: o serviço de IA não está configurado, não respondeu em
+        15 segundos, recusou pelo limite de uso ou devolveu resposta fora de
+        RN039; o motivo vai só ao registro (UC27 FE02).
       content:
         application/problem+json:
           schema:

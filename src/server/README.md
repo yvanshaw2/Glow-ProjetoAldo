@@ -4,7 +4,7 @@ Sessão, tratamento de requisições, regras, serviços, repositórios e cliente
 
 ## Vai aqui
 
-- `auth/`, `http/`, `rules/`, `services/`, `repositories/` e `supabase/`
+- `auth/`, `http/`, `rules/`, `services/`, `repositories/`, `supabase/` e `ai/` (o adaptador do serviço de inteligência artificial, decisão 0054)
 
 ## Não vai aqui
 

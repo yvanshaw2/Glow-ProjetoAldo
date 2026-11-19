@@ -65,6 +65,12 @@ export const ERROR_CATALOG = {
     message:
       "Este veículo também está vinculado a outra conta. Para alterar os dados, procure a empresa.",
   },
+  // UC27 FE01: a period with no appointments is not analyzed, and the AI
+  // service is not called.
+  INSUFFICIENT_DATA: {
+    status: 409,
+    message: "Não há dados suficientes no período para gerar a análise.",
+  },
   PAYLOAD_TOO_LARGE: {
     status: 413,
     message: "O conteúdo enviado é maior que o permitido.",
@@ -93,6 +99,14 @@ export const ERROR_CATALOG = {
     status: 503,
     message:
       "O serviço está temporariamente indisponível. Tente novamente em instantes.",
+  },
+  // UC27 FE02: the AI service is not configured, does not answer in time,
+  // refuses by its limit or gives an answer out of RN039; the reason goes only
+  // to the log (docs/plataforma/servico-de-ia.md).
+  AI_UNAVAILABLE: {
+    status: 503,
+    message:
+      "Não foi possível gerar a análise agora. Tente novamente em instantes.",
   },
 } as const satisfies Record<string, { status: number; message: string }>;
 

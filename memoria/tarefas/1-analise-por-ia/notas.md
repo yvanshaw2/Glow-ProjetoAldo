@@ -112,3 +112,17 @@ Escolhas do 3a que o plano não fixava:
 - **Arquivo fora da lista do plano:** `src/lib/demo/dashboard.ts`, com os campos novos de `DashboardAnalysis` na resposta de demonstração (`analyzedTo`, `detail`, `promptVersion`, `comparison` sem valores, `revenueSeries` vazia e os nulos da detalhada), para o tipo compilar enquanto o cartão usa a demonstração (até o PR 4).
 
 Verificação do 3a: `npm run check` aprovado, 822 testes em 38 arquivos; 29 testes novos das regras e 5 do esquema.
+
+## 2026-11-19 – decisão: PR 3b, rota da análise resumida
+
+Ramificação `feat/1-ai-analysis`, atualizada com a `main` depois do #14. Leva o catálogo de erros (`INSUFFICIENT_DATA` e `AI_UNAVAILABLE`), o adaptador de `src/server/ai/`, `generateDashboardAnalysis`, a rota, a OpenAPI, `servico-de-ia.md` e os README.
+
+- **Campos do Groq (risco 3 do plano):** conferidos na documentação em 18/11/2026: `response_format` com `json_schema` estrito (`name`, `strict: true`, `schema`; todo campo obrigatório e `additionalProperties: false`), `max_completion_tokens` (o `max_tokens` está obsoleto), `reasoning_effort: "low"`, o raciocínio do `gpt-oss` em `message.reasoning`, o texto em `choices[0].message.content`, os tokens em `usage.prompt_tokens` e `usage.completion_tokens`, e 429 no limite. A documentação não diz se o raciocínio conta em `max_completion_tokens`; o limite da resumida ficou em 2.048. Registrado em `servico-de-ia.md`.
+- **Fora da lista do plano:** a linha de `tests/rules/README.md` foi desfeita antes do PR, e o arquivo ficou como na `main`; nenhum arquivo fora do plano no 3b.
+
+## 2026-11-19 – descoberta: verificação do PR 3b
+
+- `npm run check`: aprovado.
+- Provedor simulado, conferido à mão (decisão 0052) por um teste do Vitest fora do repositório, com o repositório do dashboard simulado: o pedido no formato Chat Completions, com os campos acima e o `Bearer`; `not_configured` sem chamar nada; 429, 500, resposta sem conteúdo e falha de rede; o corte em 15 s, numa chamada só; outubro comparado com setembro; 409 `INSUFFICIENT_DATA` sem chamada, no período sem agendamentos e no futuro; 503 `AI_UNAVAILABLE` com só o motivo no registro, sem a chave, o texto da resposta, as instruções nem o raciocínio; sem comparação quando o anterior não tem agendamentos. 8 de 8.
+- `next build`: compilou, conferiu os tipos e gerou as páginas, com a rota nova; parou no fim com a mensagem "SecurityFatalError" do Next.js 16.4.1, que recomenda atualizar e pede para repetir o comando. É saída da ferramenta: não foi seguida, e a atualização do Next.js fica para o Yvan decidir.
+- Não verificado: a rota com o banco local e as contas de teste (exige o `.env.local`, que o agente não lê) e a chamada real ao Groq (só na pré-visualização, pelo Yvan, com as variáveis `AI_*` na Vercel e no `.env.example`).
