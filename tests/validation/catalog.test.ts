@@ -664,3 +664,67 @@ describe("publicServiceQuerySchema", () => {
     ).toEqual({ page: 1, pageSize: 12 });
   });
 });
+
+// RN042: the cost of the supplies, optional, in the form of the price, from
+// R$ 0,00 to R$ 99.999,99.
+describe("the cost of the supplies of a service", () => {
+  const COST = "Informe um custo de R$ 0,00 a R$ 99.999,99.";
+  const COSTS = { small: 12.5, medium: 15, large: 0, extra_large: null };
+
+  function costMessages(body: Record<string, unknown>) {
+    const result = serviceInputSchema.safeParse(body);
+    if (result.success) return {};
+    return Object.fromEntries(
+      result.error.issues.map((issue) => [issue.path.join("."), issue.message]),
+    );
+  }
+
+  it("accepts the costs by size, each optional, zero included", () => {
+    expect(
+      serviceInputSchema.parse({ ...MAIN_BY_SIZE, costs: COSTS }),
+    ).toMatchObject({ costs: COSTS });
+  });
+
+  it("accepts a fixed cost, also on an additional, and no cost at all", () => {
+    expect(
+      serviceInputSchema.parse({
+        ...MAIN_BY_SIZE,
+        pricingMode: "fixed",
+        fixedPrice: 120,
+        fixedCost: 30.25,
+      }),
+    ).toMatchObject({ fixedCost: 30.25 });
+    expect(
+      serviceInputSchema.parse({ ...ADDITIONAL, fixedCost: 0 }),
+    ).toMatchObject({ fixedCost: 0 });
+    expect(serviceInputSchema.parse(MAIN_BY_SIZE)).not.toHaveProperty(
+      "costs.small",
+    );
+  });
+
+  it("rejects a negative cost, one over the limit or with three places", () => {
+    expect(
+      costMessages({ ...MAIN_BY_SIZE, costs: { ...COSTS, small: -1 } }),
+    ).toEqual({ "costs.small": COST });
+    expect(
+      costMessages({
+        ...MAIN_BY_SIZE,
+        pricingMode: "fixed",
+        fixedPrice: 120,
+        fixedCost: 100_000,
+      }),
+    ).toEqual({ fixedCost: COST });
+    expect(costMessages({ ...ADDITIONAL, fixedCost: 1.005 })).toEqual({
+      fixedCost: COST,
+    });
+  });
+
+  it("lets an edit remove the cost with null", () => {
+    expect(
+      serviceUpdateSchema.parse({ fixedCost: null, updatedAt: UPDATED_AT }),
+    ).toMatchObject({ fixedCost: null });
+    expect(
+      serviceUpdateSchema.parse({ costs: COSTS, updatedAt: UPDATED_AT }),
+    ).toMatchObject({ costs: COSTS });
+  });
+});
