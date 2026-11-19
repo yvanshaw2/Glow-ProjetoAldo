@@ -4,7 +4,7 @@ Guard: `requireClient` (o id do cliente vem sempre da sessão). Serviço: `src/s
 
 | Método | Finalidade |
 |---|---|
-| `POST` | Cancela um agendamento. |
+| `POST` | Cancela um agendamento, com um dos motivos do cliente (RN041). |
 
 Entrada, resposta e erros de cada método: `docs/agendamento/rotas.md`.
 

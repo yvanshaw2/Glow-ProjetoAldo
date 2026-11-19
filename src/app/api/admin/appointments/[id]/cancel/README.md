@@ -4,7 +4,7 @@ Guard: `requirePermission('appointments')`. Serviço: `src/server/services/appoi
 
 | Método | Finalidade |
 |---|---|
-| `POST` | Cancela um agendamento agendado ou em espera. |
+| `POST` | Cancela um agendamento agendado ou em espera, com o motivo (RN041). |
 
 Entrada, resposta e erros de cada método: `docs/agendamento/rotas.md`.
 

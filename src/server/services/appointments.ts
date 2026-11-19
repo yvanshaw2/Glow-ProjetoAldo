@@ -65,6 +65,7 @@ import { AppError } from "@/shared/errors/app-error";
 import { startOfNextCompanyDay } from "@/shared/format/date";
 import type {
   AdminAppointmentListQuery,
+  AppointmentCancelInput,
   AppointmentEditInput,
   AppointmentInput,
   AppointmentPreviewInput,
@@ -389,6 +390,7 @@ function toClientAppointment(created: AdminAppointment): ClientAppointment {
     total: created.total,
     vehicle: created.vehicle,
     services: created.services,
+    cancellationReason: created.cancellationReason,
     updatedAt: created.updatedAt,
   };
 }
@@ -493,21 +495,25 @@ export function advanceAppointment(id: string): Promise<AdminAppointment> {
   return changeStatus(id, "advance", STAFF, (_, status) => ({ status }));
 }
 
-// UC12 FA02, RN019.
+// UC12 FA02, RN019, RN041: the reason is any of the list.
 export function cancelAppointment(
   id: string,
+  { reason }: AppointmentCancelInput,
   now: Date,
 ): Promise<AdminAppointment> {
   return changeStatus(id, "cancel", STAFF, (_, status) => ({
     status,
     cancelledAt: now.toISOString(),
+    cancellationReason: reason,
   }));
 }
 
-// UC07 FA01, RN019: the client cancels only a scheduled appointment of theirs.
+// UC07 FA01, RN019, RN041: the client cancels only a scheduled appointment of
+// theirs, with one of the reasons of the client (the route checks it).
 export async function cancelMyAppointment(
   clientId: string,
   id: string,
+  { reason }: AppointmentCancelInput,
   now: Date,
 ): Promise<ClientAppointment> {
   return toClientAppointment(
@@ -515,7 +521,11 @@ export async function cancelMyAppointment(
       id,
       "cancel",
       { actor: "client", clientId },
-      (_, status) => ({ status, cancelledAt: now.toISOString() }),
+      (_, status) => ({
+        status,
+        cancelledAt: now.toISOString(),
+        cancellationReason: reason,
+      }),
     ),
   );
 }
