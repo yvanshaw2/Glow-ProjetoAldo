@@ -118,7 +118,7 @@ Verificação do 3a: `npm run check` aprovado, 822 testes em 38 arquivos; 29 tes
 Ramificação `feat/1-ai-analysis`, atualizada com a `main` depois do #14. Leva o catálogo de erros (`INSUFFICIENT_DATA` e `AI_UNAVAILABLE`), o adaptador de `src/server/ai/`, `generateDashboardAnalysis`, a rota, a OpenAPI, `servico-de-ia.md` e os README.
 
 - **Campos do Groq (risco 3 do plano):** conferidos na documentação em 18/11/2026: `response_format` com `json_schema` estrito (`name`, `strict: true`, `schema`; todo campo obrigatório e `additionalProperties: false`), `max_completion_tokens` (o `max_tokens` está obsoleto), `reasoning_effort: "low"`, o raciocínio do `gpt-oss` em `message.reasoning`, o texto em `choices[0].message.content`, os tokens em `usage.prompt_tokens` e `usage.completion_tokens`, e 429 no limite. A documentação não diz se o raciocínio conta em `max_completion_tokens`; o limite da resumida ficou em 2.048. Registrado em `servico-de-ia.md`.
-- **Arquivo fora da lista do plano:** `tests/rules/README.md`, com `dashboard-analysis.test.ts` na lista da pasta.
+- **Fora da lista do plano:** a linha de `tests/rules/README.md` foi desfeita antes do PR, e o arquivo ficou como na `main`; nenhum arquivo fora do plano no 3b.
 
 ## 2026-11-19 – descoberta: verificação do PR 3b
 
