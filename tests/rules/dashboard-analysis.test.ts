@@ -558,6 +558,10 @@ const DETAIL_FIGURES: DashboardDetailsFigures = {
   hours: [{ hour: 9, count: 4 }],
   cancelledServices: [{ name: "Lavagem simples", count: 2 }],
   cancellationReasons: [],
+  reviews: [
+    { rating: 5, count: 3 },
+    { rating: 3, count: 1 },
+  ],
   margin: { revenue: 1000, cost: 300, withCostCount: 10, withoutCostCount: 2 },
   open: { count: 3, total: 420 },
   leadTime: {
@@ -844,6 +848,41 @@ describe("buildDetailedAnalysisInput, margin", () => {
       percent: { current: 70, previous: 65, variationPoints: 5 },
       withoutCostCount: 2,
     });
-    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-3");
+  });
+});
+
+describe("buildDetailedAnalysisInput, reviews", () => {
+  it("sends the average with the previous one and the count of each rating", () => {
+    const periods = {
+      analyzed: { from: "2026-10-01", to: "2026-10-31" },
+      previous: { from: "2026-09-01", to: "2026-09-30" },
+      isPartial: false,
+    };
+    const current = indicators(periods.analyzed, { appointmentCount: 5 });
+    const input = buildDetailedAnalysisInput({
+      base: buildAnalysisInput({
+        periods,
+        current,
+        comparison: buildComparison(current, null),
+        series: buildRevenueSeries(current.revenueByDay, null),
+        hasComparison: true,
+      }),
+      details: buildDetails(DETAIL_FIGURES),
+      previousDetails: buildDetails({
+        ...DETAIL_FIGURES,
+        reviews: [{ rating: 4, count: 2 }],
+      }),
+    });
+    expect(input.details.reviews).toEqual({
+      average: { current: 4.5, previous: 4, variationPercent: 12.5 },
+      ratings: [
+        { rating: 5, count: 3 },
+        { rating: 4, count: 0 },
+        { rating: 3, count: 1 },
+        { rating: 2, count: 0 },
+        { rating: 1, count: 0 },
+      ],
+    });
+    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-4");
   });
 });

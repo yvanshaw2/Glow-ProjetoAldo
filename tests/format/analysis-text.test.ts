@@ -217,6 +217,17 @@ const DETAILS: DashboardDetails = {
     { reason: "client_gave_up", count: 2 },
     { reason: "not_informed", count: 1 },
   ],
+  reviews: {
+    average: 4.5,
+    count: 4,
+    ratings: [
+      { rating: 5, count: 3 },
+      { rating: 4, count: 0 },
+      { rating: 3, count: 1 },
+      { rating: 2, count: 0 },
+      { rating: 1, count: 0 },
+    ],
+  },
   margin: {
     revenue: 1000,
     cost: 300,
@@ -261,6 +272,7 @@ describe("describeSectionNumbers", () => {
       "Tipos: Hatch 2 · Sedan 0 · SUV 6 · Picape 1",
       "Portes: P 2 · M 0 · G 6 · GG 1",
       `Ticket médio por porte: P R$${NBSP}80,00 · G R$${NBSP}300,00`,
+      "Avaliação média: 4,50 de 5, em 4 notas (5: 3 · 4: 0 · 3: 1 · 2: 0 · 1: 0)",
     ]);
   });
 

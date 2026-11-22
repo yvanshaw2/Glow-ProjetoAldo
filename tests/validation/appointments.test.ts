@@ -13,6 +13,7 @@ import {
   myAppointmentCancelSchema,
   myAppointmentInputSchema,
   myAppointmentListQuerySchema,
+  myAppointmentReviewSchema,
   portalBookingFormSchema,
   serviceLookupQuerySchema,
   vehicleLookupQuerySchema,
@@ -670,5 +671,31 @@ describe("appointmentCancelSchema and myAppointmentCancelSchema", () => {
     expect(
       appointmentCancelSchema.parse({ reason: "other", status: "cancelled" }),
     ).toEqual({ reason: "other" });
+  });
+});
+
+// The body of the review (RN043).
+describe("myAppointmentReviewSchema", () => {
+  const RATING = "Escolha uma nota de 1 a 5.";
+
+  it("accepts a whole rating from 1 to 5", () => {
+    for (const rating of [1, 2, 3, 4, 5]) {
+      expect(myAppointmentReviewSchema.parse({ rating })).toEqual({ rating });
+    }
+  });
+
+  it("rejects no rating, 0, 6, a fraction and a text", () => {
+    for (const body of [
+      {},
+      { rating: 0 },
+      { rating: 6 },
+      { rating: 4.5 },
+      { rating: "5" },
+      null,
+    ]) {
+      const result = myAppointmentReviewSchema.safeParse(body);
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.error.issues[0]?.message).toBe(RATING);
+    }
   });
 });
