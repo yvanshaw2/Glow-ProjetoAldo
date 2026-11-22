@@ -217,6 +217,13 @@ const DETAILS: DashboardDetails = {
     { reason: "client_gave_up", count: 2 },
     { reason: "not_informed", count: 1 },
   ],
+  margin: {
+    revenue: 1000,
+    cost: 300,
+    gross: 700,
+    percent: 70,
+    withoutCostCount: 2,
+  },
   open: { count: 3, total: 420 },
   leadTime: {
     averageDays: 2.5,
@@ -231,6 +238,8 @@ describe("describeSectionNumbers", () => {
   it("writes the open appointments in the revenue", () => {
     expect(describeSectionNumbers("revenue", DETAILS)).toEqual([
       `Agendamentos em aberto no período: 3 (R$${NBSP}420,00)`,
+      `Margem bruta: R$${NBSP}700,00 (70,00% da receita com custo informado)`,
+      "Pagos sem custo informado: 2",
     ]);
   });
 

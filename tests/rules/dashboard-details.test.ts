@@ -27,6 +27,7 @@ const EMPTY: DashboardDetailsFigures = {
   hours: [],
   cancelledServices: [],
   cancellationReasons: [],
+  margin: { revenue: 0, cost: 0, withCostCount: 0, withoutCostCount: 0 },
   open: { count: 0, total: 0 },
   leadTime: {
     count: 0,
@@ -245,5 +246,53 @@ describe("buildDetails, cancellation reasons (RN041)", () => {
       { reason: "no_show", count: 3 },
       { reason: "not_informed", count: 2 },
     ]);
+  });
+});
+
+describe("buildDetails, margin (RN042)", () => {
+  it("works out the gross margin over the paid with cost, half up", () => {
+    expect(
+      buildDetails({
+        ...EMPTY,
+        margin: {
+          revenue: 200,
+          cost: 60,
+          withCostCount: 2,
+          withoutCostCount: 3,
+        },
+      }).margin,
+    ).toEqual({
+      revenue: 200,
+      cost: 60,
+      gross: 140,
+      percent: 70,
+      withoutCostCount: 3,
+    });
+    expect(
+      buildDetails({
+        ...EMPTY,
+        margin: {
+          revenue: 300,
+          cost: 100.01,
+          withCostCount: 1,
+          withoutCostCount: 0,
+        },
+      }).margin?.percent,
+    ).toBe(66.66);
+  });
+
+  it("has no margin without paid appointments with cost", () => {
+    expect(
+      buildDetails({
+        ...EMPTY,
+        margin: { revenue: 0, cost: 0, withCostCount: 0, withoutCostCount: 4 },
+      }).margin,
+    ).toEqual({
+      revenue: 0,
+      cost: 0,
+      gross: 0,
+      percent: null,
+      withoutCostCount: 4,
+    });
   });
 });
