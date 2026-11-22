@@ -198,3 +198,12 @@ Ramificação `feat/1-service-cost`, de `origin/main` com o #21. Testes em verme
 - **Arquivo fora da lista do plano:** `src/shared/validation/formats.ts`, com o `costSchema` e a mensagem "Informe um custo de R$ 0,00 a R$ 99.999,99.", junto das outras mensagens de formato (`mensagens-de-validacao.md`).
 - **Seed:** custo de 25% a 35% do preço em cada serviço de demonstração, fixo pelo nome; os serviços dos agendamentos de demonstração já gravados recebem o custo e a categoria de hoje.
 - **Verificação:** `npm run check` aprovado, 861 testes em 40 arquivos. `npx supabase db reset` aplicou a migration nova sem erro. Não verificado: o `seed-demo.sql` carregado e uma gravação de agendamento no banco local (o `docker exec ... psql` segue recusado; a rota exige a sessão com o `.env.local`).
+
+## 2026-11-22 – decisão: PR 11, custo na tela e margem
+
+Ramificação `feat/1-service-cost-screen`, de `origin/main` com o #22. Testes em vermelho num commit próprio (3 novos e 1 ajustado: a margem em `buildDetails`, na entrada da detalhada e nos números da Receita); depois a migration `20261122211142_dashboard_details_cost.sql` (a margem e as categorias pelo nome copiado, com a categoria atual nos agendamentos anteriores à cópia), as regras, as instruções `detalhada-3` e os campos de custo no formulário do serviço.
+
+- **Formulário:** "Custo dos insumos (opcional)" ao lado do valor fixo, de cada valor por porte e do valor do adicional, com a ajuda da L12; vazio é sem custo. O campo monetário não aceita digitar zero (apaga até ficar vazio), então o custo zero só entra pela API.
+- **Margem:** só os pagos com o custo de todos os serviços; o percentual sobre a receita deles, com duas casas; nulo sem eles. Os pagos sem custo vão à parte.
+- **Pendente:** a migration que remove a `save_service` antiga (sem os custos) depois que este PR estiver publicado (`migration.md`).
+- **Verificação:** `npm run check` aprovado, 864 testes em 40 arquivos; `npx supabase db reset` aplicou a migration nova sem erro. Não verificado: o formulário no navegador (exige a sessão com o `.env.local`) e a função com dados (`docker exec` recusado).
