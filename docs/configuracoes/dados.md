@@ -62,6 +62,11 @@ Ajuste por forma de pagamento.
 ## Regras garantidas pelo banco
 
 - em `business_hours`, a abertura e o encerramento são preenchidos se e somente se o dia estiver aberto, o encerramento é posterior à abertura, a pausa tem início e fim juntos e fica dentro do expediente, e todos os horários terminam em 00 ou 30 minutos;
+- em `business_settings`, `simultaneous_slots` vai de 1 a 20 (`ck_business_settings_simultaneous_slots`).
+
+## Gravações em várias tabelas
+
+- `save_business_hours(p_days, p_simultaneous_slots)` grava os sete dias de `business_hours` e os atendimentos simultâneos de `business_settings` numa só transação (UC23, RNF010), com os valores já conferidos pelo servidor; os atendimentos só são gravados quando mudam, para não alterar o `updated_at` dos dados da empresa sem necessidade.
 
 ## Observações
 

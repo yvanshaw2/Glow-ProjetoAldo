@@ -476,10 +476,11 @@ paths:
       operationId: updateBusinessHours
       summary: Grava a disponibilidade da empresa
       description: >-
-        Substitui os sete dias numa só instrução (UC23, RN013), com os horários
-        em hora cheia ou meia hora (RN035). Não tem updatedAt: a última
-        gravação prevalece. O campo com problema vai em fields com o índice do
-        item (1.closesAt); a lista sem os sete dias, uma só vez cada, é erro do
+        Substitui os sete dias e os atendimentos simultâneos numa só transação
+        (UC23, RN013, RN044), com os horários em hora cheia ou meia hora
+        (RN035). Não tem updatedAt: a última gravação prevalece. O campo com
+        problema vai em fields com o índice do item (days.1.closesAt) ou como
+        simultaneousSlots; a lista sem os sete dias, uma só vez cada, é erro do
         corpo.
       security:
         - sessionCookie: []
@@ -3489,12 +3490,25 @@ components:
         Campos não previstos são descartados (RS013). O opcional ausente, null
         ou vazio apaga o valor gravado.
     BusinessHours:
-      type: array
-      minItems: 7
-      maxItems: 7
-      description: Os sete dias, de domingo (0) a sábado (6), cada um uma só vez.
-      items:
-        $ref: "#/components/schemas/BusinessDay"
+      type: object
+      required:
+        - days
+        - simultaneousSlots
+      properties:
+        days:
+          type: array
+          minItems: 7
+          maxItems: 7
+          description: Os sete dias, de domingo (0) a sábado (6), cada um uma só vez.
+          items:
+            $ref: "#/components/schemas/BusinessDay"
+        simultaneousSlots:
+          type: integer
+          minimum: 1
+          maximum: 20
+          description: >-
+            Atendimentos simultâneos, usados só para medir a ocupação da agenda;
+            não limitam os agendamentos (RN044, RN016).
     PaymentFee:
       type: object
       required:
@@ -4727,6 +4741,7 @@ components:
         - cancelledServices
         - cancellationReasons
         - reviews
+        - occupancy
         - margin
         - open
         - leadTime
@@ -4940,6 +4955,23 @@ components:
                     type: integer
                   count:
                     type: integer
+        occupancy:
+          type: object
+          description: >-
+            A ocupação da agenda (RN044): os minutos estimados dos agendamentos
+            não cancelados sobre os minutos disponíveis vezes os atendimentos
+            simultâneos, com duas casas; nula sem minutos disponíveis.
+          required:
+            - bookedMinutes
+            - capacityMinutes
+            - percent
+          properties:
+            bookedMinutes:
+              type: integer
+            capacityMinutes:
+              type: integer
+            percent:
+              type: [number, "null"]
         margin:
           type: object
           description: >-
