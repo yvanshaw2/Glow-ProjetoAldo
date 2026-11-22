@@ -23,6 +23,9 @@ export type ServiceFormValues = {
   image: ServiceImageValue | null;
   fixedPrice: number | null;
   prices: Record<VehicleSize, number | null>;
+  // RN042: the cost of the supplies, optional, in the form of the price.
+  fixedCost: number | null;
+  costs: Record<VehicleSize, number | null>;
   // The additionals of a main service, or the main services of an additional.
   linkedIds: string[];
 };
@@ -36,6 +39,8 @@ const EMPTY_VALUES: ServiceFormValues = {
   image: null,
   fixedPrice: null,
   prices: { small: null, medium: null, large: null, extra_large: null },
+  fixedCost: null,
+  costs: { small: null, medium: null, large: null, extra_large: null },
   linkedIds: [],
 };
 
@@ -59,6 +64,8 @@ export function getInitialValues(
     image: service.imageUrl ? { kind: "saved", url: service.imageUrl } : null,
     fixedPrice: service.fixedPrice,
     prices: service.prices ?? EMPTY_VALUES.prices,
+    fixedCost: service.fixedCost,
+    costs: service.costs ?? EMPTY_VALUES.costs,
     linkedIds:
       service.type === "additional"
         ? service.mainServiceIds
@@ -75,7 +82,13 @@ export function getServiceSteps(
     return [
       {
         title: "Dados do serviço",
-        fields: ["name", "durationMinutes", "fixedPrice", "linkedIds"],
+        fields: [
+          "name",
+          "durationMinutes",
+          "fixedPrice",
+          "fixedCost",
+          "linkedIds",
+        ],
       },
     ];
   }
@@ -99,6 +112,11 @@ export function getServiceSteps(
         "prices.medium",
         "prices.large",
         "prices.extra_large",
+        "fixedCost",
+        "costs.small",
+        "costs.medium",
+        "costs.large",
+        "costs.extra_large",
       ],
     },
   ];
@@ -121,6 +139,7 @@ export function toRequestBody(type: ServiceType, values: ServiceFormValues) {
       type,
       ...common,
       fixedPrice: values.fixedPrice,
+      fixedCost: values.fixedCost,
       mainServiceIds: values.linkedIds,
     };
   }
@@ -131,8 +150,8 @@ export function toRequestBody(type: ServiceType, values: ServiceFormValues) {
     description: values.description.trim(),
     pricingMode: values.pricingMode,
     ...(values.pricingMode === "fixed"
-      ? { fixedPrice: values.fixedPrice }
-      : { prices: values.prices }),
+      ? { fixedPrice: values.fixedPrice, fixedCost: values.fixedCost }
+      : { prices: values.prices, costs: values.costs }),
     ...(type === "main" && { additionalIds: values.linkedIds }),
   };
 }

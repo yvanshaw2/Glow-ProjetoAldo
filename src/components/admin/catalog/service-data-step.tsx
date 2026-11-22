@@ -1,5 +1,6 @@
 "use client";
 
+import { COST_DESCRIPTION } from "@/components/admin/catalog/service-prices-step";
 import { useController, useFormContext } from "react-hook-form";
 import { ChoiceGroup, type Choice } from "@/components/shared/choice-group";
 import { ServiceImageField } from "@/components/admin/catalog/service-image-field";
@@ -139,6 +140,13 @@ export function AdditionalServiceStep() {
         control={control}
         name="fixedPrice"
         label="Valor fixo"
+        renderInput={(field) => <MoneyInput {...field} />}
+      />
+      <FormField
+        control={control}
+        name="fixedCost"
+        label="Custo dos insumos (opcional)"
+        description={COST_DESCRIPTION}
         renderInput={(field) => <MoneyInput {...field} />}
       />
       <ServiceLinksField
