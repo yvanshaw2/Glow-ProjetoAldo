@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20) e 9 (#21), incorporados, e 10, com `Refs #1`. Os PRs 11 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20) 9 (#21) e 10 (#22), incorporados, e 11, com `Refs #1`. Os PRs 12 e 13 completam este relatório.
 
 ## O que foi feito
 
@@ -82,12 +82,18 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 - Os motivos entram na análise detalhada, na seção Operação (instruções `detalhada-2`), e no `seed-demo.sql`.
 - Testes: 7, escritos antes do código.
 
-### PR 10 (custo e categoria no servidor)
+### PR 10 (#22, custo e categoria no servidor)
 
 - Migration com o custo dos insumos no serviço (`fixed_cost`) e no porte (`service_prices.cost`), a cópia do custo e do nome da categoria em `appointment_services` e uma `save_service` com os custos.
 - O cadastro e a edição do serviço aceitam o custo, opcional, na forma do preço (RF096, RN042); o detalhe do painel o devolve, e as rotas públicas e do cliente não o leem (RS021).
 - O registro e a edição do agendamento copiam o custo do porte e a categoria (RN037), também no `seed-demo.sql`.
 - Testes: 7, escritos antes do código.
+
+### PR 11 (custo na tela e margem)
+
+- O formulário do serviço tem o custo dos insumos, opcional, ao lado de cada valor (RF096).
+- A análise detalhada traz a margem bruta dos pagos com custo e as categorias pelo nome copiado (RN040, itens 2 e 15; instruções `detalhada-3`).
+- Testes: 3 novos, escritos antes do código.
 
 ## Arquivos alterados
 
@@ -115,7 +121,8 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 
 ## Pendências
 
-- PRs 11 a 13 da issue #1 (ordem em `01_plano.md`).
+- PRs 12 e 13 da issue #1 (ordem em `01_plano.md`).
+- A migration do PR 11 é aplicada pelo Yvan antes da incorporação.
 - A migration do PR 10 é aplicada pelo Yvan antes da incorporação; a remoção da `save_service` antiga vem depois do PR 11 publicado.
 - A migration do PR 9 é aplicada pelo Yvan antes da incorporação.
 - A migration do PR 6 é aplicada pelo Yvan (`npx supabase db push`) antes da incorporação.

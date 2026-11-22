@@ -558,6 +558,7 @@ const DETAIL_FIGURES: DashboardDetailsFigures = {
   hours: [{ hour: 9, count: 4 }],
   cancelledServices: [{ name: "Lavagem simples", count: 2 }],
   cancellationReasons: [],
+  margin: { revenue: 1000, cost: 300, withCostCount: 10, withoutCostCount: 2 },
   open: { count: 3, total: 420 },
   leadTime: {
     count: 20,
@@ -806,6 +807,43 @@ describe("buildDetailedAnalysisInput, cancellation reasons", () => {
       { reason: "Não comparecimento", count: 2 },
       { reason: "Não informado", count: 1 },
     ]);
-    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-2");
+  });
+});
+
+describe("buildDetailedAnalysisInput, margin", () => {
+  it("sends the margin with the previous one in points", () => {
+    const periods = {
+      analyzed: { from: "2026-10-01", to: "2026-10-31" },
+      previous: { from: "2026-09-01", to: "2026-09-30" },
+      isPartial: false,
+    };
+    const current = indicators(periods.analyzed, { appointmentCount: 5 });
+    const input = buildDetailedAnalysisInput({
+      base: buildAnalysisInput({
+        periods,
+        current,
+        comparison: buildComparison(current, null),
+        series: buildRevenueSeries(current.revenueByDay, null),
+        hasComparison: true,
+      }),
+      details: buildDetails(DETAIL_FIGURES),
+      previousDetails: buildDetails({
+        ...DETAIL_FIGURES,
+        margin: {
+          revenue: 1000,
+          cost: 350,
+          withCostCount: 9,
+          withoutCostCount: 0,
+        },
+      }),
+    });
+    expect(input.details.margin).toEqual({
+      revenue: 1000,
+      cost: 300,
+      gross: 700,
+      percent: { current: 70, previous: 65, variationPoints: 5 },
+      withoutCostCount: 2,
+    });
+    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-3");
   });
 });

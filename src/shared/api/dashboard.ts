@@ -146,6 +146,15 @@ export type DashboardDetails = {
     reason: CancellationReason | "not_informed";
     count: number;
   }[];
+  // RN042: the gross margin of the paid with the cost of every service; the
+  // percent over their revenue, null without them.
+  margin: {
+    revenue: number;
+    cost: number;
+    gross: number;
+    percent: number | null;
+    withoutCostCount: number;
+  };
   // Of the whole period shown, which may go beyond the days analyzed.
   open: { count: number; total: number };
   leadTime: {
