@@ -228,6 +228,7 @@ const DETAILS: DashboardDetails = {
       { rating: 1, count: 0 },
     ],
   },
+  occupancy: { bookedMinutes: 810, capacityMinutes: 1620, percent: 50 },
   margin: {
     revenue: 1000,
     cost: 300,
@@ -285,6 +286,7 @@ describe("describeSectionNumbers", () => {
       "Canal: 4 pelo portal e 16 pelo painel",
       "Antecedência média: 2,5 dias (no mesmo dia: 4 · de 1 a 3 dias: 8 · de 4 a 7 dias: 6 · mais de 7 dias: 2)",
       "Motivos de cancelamento: Desistência do cliente 2 · Não informado 1",
+      "Ocupação da agenda: 50,00% (810 de 1.620 minutos disponíveis)",
     ]);
   });
 

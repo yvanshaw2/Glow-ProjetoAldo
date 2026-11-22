@@ -219,8 +219,13 @@ function pathMessages(result: {
   );
 }
 
+// UC23: the body is the seven days and the simultaneous slots (RN044).
+function hours(days: unknown, simultaneousSlots: unknown = 3) {
+  return { days, simultaneousSlots };
+}
+
 function hoursMessages(value: unknown): Record<string, string> {
-  return pathMessages(businessHoursSchema.safeParse(value));
+  return pathMessages(businessHoursSchema.safeParse(hours(value)));
 }
 
 function bodyMessages(
@@ -237,7 +242,7 @@ function bodyMessages(
 
 describe("businessHoursSchema", () => {
   it("accepts the seven days of the seed", () => {
-    expect(businessHoursSchema.parse(seededWeek)).toEqual([
+    expect(businessHoursSchema.parse(hours(seededWeek)).days).toEqual([
       {
         weekday: 0,
         isOpen: false,
@@ -270,7 +275,7 @@ describe("businessHoursSchema", () => {
       isOpen: false,
       updatedAt: "2026-10-20T13:45:12.345678+00:00",
     });
-    expect(businessHoursSchema.parse(week)[2]).toEqual({
+    expect(businessHoursSchema.parse(hours(week)).days[2]).toEqual({
       weekday: 2,
       isOpen: false,
       opensAt: null,
@@ -284,21 +289,21 @@ describe("businessHoursSchema", () => {
     for (const missing of [null, undefined]) {
       expect(
         hoursMessages(withDay(1, { opensAt: missing, closesAt: missing })),
-      ).toEqual({ "1.opensAt": REQUIRED, "1.closesAt": REQUIRED });
+      ).toEqual({ "days.1.opensAt": REQUIRED, "days.1.closesAt": REQUIRED });
     }
   });
 
   it("requires isOpen", () => {
     expect(hoursMessages(withDay(1, { isOpen: undefined }))).toEqual({
-      "1.isOpen": REQUIRED,
+      "days.1.isOpen": REQUIRED,
     });
   });
 
   it("rejects a time that is not a whole or half hour", () => {
     for (const opensAt of ["08:15", "8:00", "24:00"]) {
       expect(hoursMessages(withDay(0, { isOpen: true, opensAt }))).toEqual({
-        "0.opensAt": HALF_HOUR,
-        "0.closesAt": REQUIRED,
+        "days.0.opensAt": HALF_HOUR,
+        "days.0.closesAt": REQUIRED,
       });
     }
   });
@@ -310,36 +315,38 @@ describe("businessHoursSchema", () => {
         breakStartsAt: null,
         breakEndsAt: null,
       });
-      expect(hoursMessages(week)).toEqual({ "2.closesAt": CLOSING });
+      expect(hoursMessages(week)).toEqual({ "days.2.closesAt": CLOSING });
     }
   });
 
   it("rejects a break outside the working hours or inverted (UC23 FE02)", () => {
     expect(hoursMessages(withDay(2, { breakStartsAt: "07:30" }))).toEqual({
-      "2.breakStartsAt": BREAK_START,
+      "days.2.breakStartsAt": BREAK_START,
     });
     expect(hoursMessages(withDay(2, { breakEndsAt: "18:30" }))).toEqual({
-      "2.breakEndsAt": BREAK_END,
+      "days.2.breakEndsAt": BREAK_END,
     });
     for (const breakEndsAt of ["12:00", "11:30"]) {
       expect(hoursMessages(withDay(2, { breakEndsAt }))).toEqual({
-        "2.breakEndsAt": BREAK_ORDER,
+        "days.2.breakEndsAt": BREAK_ORDER,
       });
     }
   });
 
   it("rejects a break with only one time", () => {
     expect(hoursMessages(withDay(2, { breakEndsAt: null }))).toEqual({
-      "2.breakEndsAt": REQUIRED,
+      "days.2.breakEndsAt": REQUIRED,
     });
     expect(hoursMessages(withDay(2, { breakStartsAt: undefined }))).toEqual({
-      "2.breakStartsAt": REQUIRED,
+      "days.2.breakStartsAt": REQUIRED,
     });
   });
 
   it("accepts a break that touches the opening or the closing", () => {
     const week = withDay(2, { breakStartsAt: "08:00", breakEndsAt: "18:00" });
-    expect(businessHoursSchema.parse(week)[2].breakEndsAt).toBe("18:00");
+    expect(businessHoursSchema.parse(hours(week)).days[2].breakEndsAt).toBe(
+      "18:00",
+    );
   });
 
   it("requires the seven days once each", () => {
@@ -352,7 +359,7 @@ describe("businessHoursSchema", () => {
       {},
     ];
     for (const body of bodies) {
-      expect(bodyMessages(businessHoursSchema, body)).toEqual({
+      expect(bodyMessages(businessHoursSchema, hours(body))).toEqual({
         success: false,
         messages: [SEVEN_DAYS],
         paths: [[]],
@@ -362,10 +369,10 @@ describe("businessHoursSchema", () => {
 
   it("reports the first message of a field first", () => {
     const issues = businessHoursSchema.safeParse(
-      withDay(2, { opensAt: "08:15", closesAt: "07:00" }),
+      hours(withDay(2, { opensAt: "08:15", closesAt: "07:00" })),
     ).error?.issues;
     expect(issues?.[0]).toMatchObject({
-      path: [2, "opensAt"],
+      path: ["days", 2, "opensAt"],
       message: HALF_HOUR,
     });
   });
@@ -429,5 +436,34 @@ describe("paymentFeesSchema", () => {
   it("discards the unknown fields", () => {
     const fees = noAdjustment.map((fee) => ({ ...fee, updatedAt: "x" }));
     expect(paymentFeesSchema.parse(fees)).toEqual(noAdjustment);
+  });
+});
+
+describe("businessHoursSchema, simultaneous slots (RN044)", () => {
+  const SLOTS = "Informe de 1 a 20 atendimentos simultâneos.";
+
+  it("accepts a whole number from 1 to 20", () => {
+    for (const slots of [1, 3, 20]) {
+      expect(
+        businessHoursSchema.parse(hours(seededWeek, slots)).simultaneousSlots,
+      ).toBe(slots);
+    }
+  });
+
+  it("rejects no number, 0, 21, a fraction and a text in its field", () => {
+    for (const slots of [undefined, null, 0, 21, 2.5, "3"]) {
+      expect(
+        pathMessages(businessHoursSchema.safeParse(hours(seededWeek, slots))),
+      ).toEqual({ simultaneousSlots: SLOTS });
+    }
+  });
+
+  it("rejects the list of days alone, as before", () => {
+    const result = businessHoursSchema.safeParse(seededWeek);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({
+      path: [],
+      message: SEVEN_DAYS,
+    });
   });
 });
