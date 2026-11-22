@@ -204,6 +204,7 @@ function AppointmentContent({
     total,
     paymentOptions,
     cancellationReason,
+    rating,
   } = appointment;
   const actions: readonly AppointmentAction[] = STATUS_ACTIONS[status];
   const nextStatus = NEXT_STATUS[status];
@@ -292,6 +293,12 @@ function AppointmentContent({
           {status === "cancelled" && (
             <DetailItem term="Motivo" className="sm:col-span-2">
               {describeReason(cancellationReason)}
+            </DetailItem>
+          )}
+          {/* RN043: the rating of the client, in the completed ones. */}
+          {(status === "completed" || status === "rescheduled") && (
+            <DetailItem term="Avaliação do cliente" className="sm:col-span-2">
+              {rating === null ? "ainda não avaliado" : `${rating} de 5`}
             </DetailItem>
           )}
           {/* RF053: only the Finalizado, as the route worked each one out. */}
