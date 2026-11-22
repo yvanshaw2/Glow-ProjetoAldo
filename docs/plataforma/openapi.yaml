@@ -1820,6 +1820,58 @@ paths:
           $ref: "#/components/responses/InvalidStatus"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/me/appointments/{id}/review:
+    post:
+      tags:
+        - client-area
+      operationId: reviewMyAppointment
+      summary: Avalia um atendimento concluído do cliente
+      description: >-
+        Uma única vez, com uma nota inteira de 1 a 5 e sem comentário, no
+        Concluído ou no Reagendado, até 30 dias depois da conclusão, contados
+        pelas datas de calendário no fuso da empresa (UC28, RN043). O de outro
+        cliente responde 404 (RS009).
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        "201":
+          description: Nota gravada; o agendamento com a nota.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAppointment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/ClientForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ReviewNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/me/appointments/{id}/reschedule:
     post:
       tags:
@@ -4674,6 +4726,8 @@ components:
         - hours
         - cancelledServices
         - cancellationReasons
+        - reviews
+        - margin
         - open
         - leadTime
       properties:
@@ -4859,6 +4913,55 @@ components:
                       - not_informed
               count:
                 type: integer
+        reviews:
+          type: object
+          description: >-
+            As notas dos pagos do período, pela data de conclusão (RN043): a
+            média com duas casas, nula sem notas, e a quantidade de cada nota,
+            de 5 a 1.
+          required:
+            - average
+            - count
+            - ratings
+          properties:
+            average:
+              type: [number, "null"]
+            count:
+              type: integer
+            ratings:
+              type: array
+              items:
+                type: object
+                required:
+                  - rating
+                  - count
+                properties:
+                  rating:
+                    type: integer
+                  count:
+                    type: integer
+        margin:
+          type: object
+          description: >-
+            A margem bruta dos pagos com o custo de todos os serviços (RN042);
+            o percentual sobre a receita deles, nulo sem eles.
+          required:
+            - revenue
+            - cost
+            - gross
+            - percent
+            - withoutCostCount
+          properties:
+            revenue:
+              type: number
+            cost:
+              type: number
+            gross:
+              type: number
+            percent:
+              type: [number, "null"]
+            withoutCostCount:
+              type: integer
         open:
           type: object
           description: Agendamentos em aberto do período exibido inteiro.
@@ -5133,6 +5236,8 @@ components:
         - vehicle
         - services
         - cancellationReason
+        - completedAt
+        - rating
         - updatedAt
         - paymentOptions
       properties:
@@ -5208,6 +5313,15 @@ components:
           oneOf:
             - $ref: "#/components/schemas/CancellationReason"
             - type: "null"
+        completedAt:
+          type: [string, "null"]
+          format: date-time
+          description: Momento da conclusão; nulo antes dela.
+        rating:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 5
+          description: Nota do cliente (RN043); nula sem avaliação.
         updatedAt:
           type: string
           format: date-time
@@ -5301,6 +5415,9 @@ components:
         - vehicle
         - services
         - cancellationReason
+        - completedAt
+        - rating
+        - canReview
         - updatedAt
       properties:
         id:
@@ -5369,6 +5486,20 @@ components:
           oneOf:
             - $ref: "#/components/schemas/CancellationReason"
             - type: "null"
+        completedAt:
+          type: [string, "null"]
+          format: date-time
+          description: Momento da conclusão; nulo antes dela.
+        rating:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 5
+          description: Nota do cliente (RN043); nula sem avaliação.
+        canReview:
+          type: boolean
+          description: >-
+            Se o cliente pode avaliar hoje: Concluído ou Reagendado, sem nota e
+            até 30 dias depois da conclusão (RN043).
         updatedAt:
           type: string
           format: date-time
@@ -5734,6 +5865,15 @@ components:
       description: >-
         INTERNAL_ERROR: falha inesperada; o detalhe fica só no registro, pelo
         requestId (RS017).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    ReviewNotAllowed:
+      description: >-
+        REVIEW_NOT_ALLOWED: o atendimento já foi avaliado, não está Concluído
+        nem Reagendado ou passou dos 30 dias da conclusão; nada foi gravado
+        (UC28 FE01, RN043).
       content:
         application/problem+json:
           schema:
