@@ -48,17 +48,21 @@ type AppointmentRow = {
   vehicle_color: string;
   vehicle_year: number;
   cancellation_reason: CancellationReason | null;
+  completed_at: string | null;
   updated_at: string;
   appointment_services: ServiceRow[];
+  // One to one by the primary key: an object or null.
+  appointment_reviews: { rating: number } | null;
 };
 
 const APPOINTMENT_COLUMNS = `id, status, scheduled_at, estimated_end_at,
   estimated_duration_minutes, client_id, client_name, payment_method,
   subtotal, fee_percent, total, vehicle_id, vehicle_plate, vehicle_type,
   vehicle_size, vehicle_brand, vehicle_model, vehicle_color, vehicle_year,
-  cancellation_reason, updated_at,
+  cancellation_reason, completed_at, updated_at,
   appointment_services (service_id, service_name, service_type, price,
-    duration_minutes)`;
+    duration_minutes),
+  appointment_reviews (rating)`;
 
 // numeric(10,2) may come as text; the API gives a number.
 function toNumber(value: number | string): number {
@@ -145,6 +149,8 @@ function toAdminAppointment(row: AppointmentRow): AdminAppointment {
       durationMinutes: service.duration_minutes,
     })),
     cancellationReason: row.cancellation_reason,
+    completedAt: row.completed_at,
+    rating: row.appointment_reviews?.rating ?? null,
     updatedAt: row.updated_at,
     paymentOptions: null,
   };

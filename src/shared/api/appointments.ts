@@ -64,6 +64,13 @@ export type ClientAppointment = Omit<
   // RN041: the reason of a cancelled one; null in any other status and in a
   // cancellation from before the rule.
   cancellationReason: CancellationReason | null;
+  // The instant of the conclusion; null before it.
+  completedAt: string | null;
+  // RN043: the rating of the client, from 1 to 5; null with none.
+  rating: number | null;
+  // RN043: Concluído or Reagendado, with no rating and up to 30 days after
+  // the conclusion.
+  canReview: boolean;
   // RNF011: treated as text.
   updatedAt: string;
 };
@@ -96,7 +103,7 @@ export type PaymentOption = {
 // panel (UC12, UC25): the appointment of the client, with the client (the
 // edition lists the vehicles of the `clientId`, RN003) and, only when it is
 // Finalizado, the total of each payment method for the conclusion (RF053).
-export type AdminAppointment = ClientAppointment & {
+export type AdminAppointment = Omit<ClientAppointment, "canReview"> & {
   clientId: string;
   clientName: string;
   // In the order of RN011; null in any other status.

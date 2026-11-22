@@ -146,6 +146,13 @@ export type DashboardDetails = {
     reason: CancellationReason | "not_informed";
     count: number;
   }[];
+  // RN043: the ratings of the paid, by the date of completion: the average
+  // with two places, null without ratings, and every rating from 5 to 1.
+  reviews: {
+    average: number | null;
+    count: number;
+    ratings: { rating: number; count: number }[];
+  };
   // RN042: the gross margin of the paid with the cost of every service; the
   // percent over their revenue, null without them.
   margin: {

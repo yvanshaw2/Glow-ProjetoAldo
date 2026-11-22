@@ -36,6 +36,8 @@ import {
   calculateEstimatedDuration,
   calculateEstimatedEnd,
 } from "@/server/rules/scheduling";
+import { insertReview } from "@/server/repositories/appointment-reviews";
+import { findReviewRefusal } from "@/server/rules/appointment-review";
 import { canEditAppointment } from "@/server/rules/editing";
 import {
   findNextStatus,
@@ -62,7 +64,10 @@ import type { PaymentMethod } from "@/shared/constants/payment-methods";
 import { COMPANY_TIME_ZONE } from "@/shared/constants/time-zone";
 import type { VehicleSize } from "@/shared/constants/vehicle-sizes";
 import { AppError } from "@/shared/errors/app-error";
-import { startOfNextCompanyDay } from "@/shared/format/date";
+import {
+  formatCalendarDate,
+  startOfNextCompanyDay,
+} from "@/shared/format/date";
 import type {
   AdminAppointmentListQuery,
   AppointmentCancelInput,
@@ -70,6 +75,7 @@ import type {
   AppointmentInput,
   AppointmentPreviewInput,
   AppointmentRescheduleInput,
+  AppointmentReviewInput,
   MyAppointmentInput,
   MyAppointmentListQuery,
 } from "@/shared/validation/appointments";
@@ -376,8 +382,11 @@ export async function createMyAppointment(
 }
 
 // The detail of the client: the one of the panel without the client and the
-// payment options.
-function toClientAppointment(created: AdminAppointment): ClientAppointment {
+// payment options, and whether it can be rated today (RN043).
+function toClientAppointment(
+  created: AdminAppointment,
+  now: Date = new Date(),
+): ClientAppointment {
   return {
     id: created.id,
     status: created.status,
@@ -391,6 +400,11 @@ function toClientAppointment(created: AdminAppointment): ClientAppointment {
     vehicle: created.vehicle,
     services: created.services,
     cancellationReason: created.cancellationReason,
+    completedAt: created.completedAt,
+    rating: created.rating,
+    canReview:
+      findReviewRefusal(created, formatCalendarDate(now.toISOString())) ===
+      null,
     updatedAt: created.updatedAt,
   };
 }
@@ -793,4 +807,24 @@ async function applyReschedule(
     throw new AppError("NOT_FOUND");
   }
   return getAppointment(newId);
+}
+
+// UC28, RN043: the client rates, once, an appointment of theirs Concluído or
+// Reagendado, up to 30 days after the conclusion. The one of another client
+// is answered as one that does not exist (RS009).
+export async function reviewMyAppointment(
+  clientId: string,
+  id: string,
+  { rating }: AppointmentReviewInput,
+  now: Date,
+): Promise<ClientAppointment> {
+  const appointment = await getAppointmentOf(id, { actor: "client", clientId });
+  if (
+    findReviewRefusal(appointment, formatCalendarDate(now.toISOString())) !==
+    null
+  ) {
+    throw new AppError("REVIEW_NOT_ALLOWED");
+  }
+  await insertReview(id, rating);
+  return toClientAppointment(await getAppointment(id), now);
 }

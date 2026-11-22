@@ -234,3 +234,20 @@ export type AppointmentEditInput = z.output<typeof appointmentEditSchema>;
 export type AppointmentRescheduleInput = z.output<
   typeof appointmentRescheduleSchema
 >;
+
+const RATING_MESSAGE = "Escolha uma nota de 1 a 5.";
+
+// POST /api/me/appointments/:id/review (UC28, RN043): a whole rating from 1
+// to 5, with no comment.
+export const myAppointmentReviewSchema = z.object(
+  {
+    rating: z
+      .number({ error: RATING_MESSAGE })
+      .int({ error: RATING_MESSAGE })
+      .min(1, { error: RATING_MESSAGE })
+      .max(5, { error: RATING_MESSAGE }),
+  },
+  { error: RATING_MESSAGE },
+);
+
+export type AppointmentReviewInput = z.output<typeof myAppointmentReviewSchema>;
