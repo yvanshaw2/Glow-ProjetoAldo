@@ -192,12 +192,15 @@ begin
   end if;
 
   insert into public.appointment_services (
-    appointment_id, service_id, service_name, service_type, price, duration_minutes, created_at
+    appointment_id, service_id, service_name, service_type, price, duration_minutes, cost,
+    category_name, created_at
   )
-  select appointment_id, s.id, s.name, s.type, coalesce(s.fixed_price, p.price), s.avg_duration_minutes, created
+  select appointment_id, s.id, s.name, s.type, coalesce(s.fixed_price, p.price), s.avg_duration_minutes,
+    case when s.pricing_mode = 'by_size' then p.cost else s.fixed_cost end, c.name, created
   from unnest(service_names) as n(name)
   join public.services s on s.id = pg_temp.glow_demo_id('service:' || n.name)
   left join public.service_prices p on p.service_id = s.id and p.size = vehicle.size
+  left join public.categories c on c.id = s.category_id
   on conflict do nothing;
 
   return status;
@@ -365,6 +368,21 @@ cross join lateral (values
 ) as p(size, price)
 where d.fixed is null
 on conflict do nothing;
+
+-- RN042: the cost of the supplies of the demo services, from 25% to 35% of the price, fixed by the
+-- service, only where it is still empty.
+update public.services s
+set fixed_cost = round(s.fixed_price * (25 + pg_temp.glow_demo_number('cost:' || d.name) % 11) / 100.0, 2)
+from glow_demo_services d
+where s.id = pg_temp.glow_demo_id('service:' || d.name)
+  and s.fixed_price is not null
+  and s.fixed_cost is null;
+
+update public.service_prices p
+set cost = round(p.price * (25 + pg_temp.glow_demo_number('cost:' || d.name) % 11) / 100.0, 2)
+from glow_demo_services d
+where p.service_id = pg_temp.glow_demo_id('service:' || d.name)
+  and p.cost is null;
 
 insert into public.service_additionals (main_service_id, additional_service_id, created_at)
 select pg_temp.glow_demo_id('service:' || l.main), pg_temp.glow_demo_id('service:' || l.additional),
@@ -565,6 +583,26 @@ where c.id = a.client_id
   and c.email like '%@example.com'
   and a.status = 'cancelled'
   and a.cancellation_reason is null;
+
+-- The services of the demo appointments loaded before the copy get the cost of the size and the
+-- name of the category of today (RN037, RN042); only the ones of the demo clients.
+update public.appointment_services i
+set cost = coalesce(i.cost, x.cost),
+  category_name = coalesce(i.category_name, x.category_name)
+from (
+  select ai.appointment_id, ai.service_id,
+    case when s.pricing_mode = 'by_size' then p.cost else s.fixed_cost end as cost,
+    c.name as category_name
+  from public.appointment_services ai
+  join public.appointments a on a.id = ai.appointment_id
+  join public.clients cl on cl.id = a.client_id and cl.email like '%@example.com'
+  join public.services s on s.id = ai.service_id
+  left join public.service_prices p on p.service_id = s.id and p.size = a.vehicle_size
+  left join public.categories c on c.id = s.category_id
+  where ai.cost is null or ai.category_name is null
+) x
+where i.appointment_id = x.appointment_id
+  and i.service_id = x.service_id;
 
 -- Contact data shown in the portal footer, only where it is still empty (RN028).
 update public.business_settings
