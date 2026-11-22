@@ -1,4 +1,4 @@
-import type { BusinessDay } from "@/shared/api/settings";
+import type { BusinessDay, BusinessHours } from "@/shared/api/settings";
 import { TIME_SLOT_MINUTES } from "@/shared/constants/time-slot";
 
 // The values of the form of the availability (docs/configuracoes/
@@ -14,7 +14,11 @@ export type DayFormValues = {
   breakEndsAt: string;
 };
 
-export type AvailabilityFormValues = { days: DayFormValues[] };
+// RN044: empty is null, and the route answers with the message of the field.
+export type AvailabilityFormValues = {
+  days: DayFormValues[];
+  simultaneousSlots: number | null;
+};
 
 const DEFAULT_OPENS_AT = "08:00";
 const DEFAULT_CLOSES_AT = "18:00";
@@ -38,8 +42,12 @@ export const TIME_OPTIONS: { value: string; label: string }[] = Array.from(
 );
 
 // The seven days, in the order of the weekdays, from Sunday.
-export function toFormValues(days: BusinessDay[]): AvailabilityFormValues {
+export function toFormValues({
+  days,
+  simultaneousSlots,
+}: BusinessHours): AvailabilityFormValues {
   return {
+    simultaneousSlots,
     days: [...days]
       .sort((first, second) => first.weekday - second.weekday)
       .map((day) => ({
@@ -55,13 +63,22 @@ export function toFormValues(days: BusinessDay[]): AvailabilityFormValues {
 
 // The body of PUT /api/admin/settings/business-hours: a closed day, or a day
 // with no break, sends no times for them.
-export function toRequestBody({ days }: AvailabilityFormValues): BusinessDay[] {
-  return days.map((day, weekday) => ({
-    weekday,
-    isOpen: day.isOpen,
-    opensAt: day.isOpen ? day.opensAt : null,
-    closesAt: day.isOpen ? day.closesAt : null,
-    breakStartsAt: day.isOpen && day.hasBreak ? day.breakStartsAt : null,
-    breakEndsAt: day.isOpen && day.hasBreak ? day.breakEndsAt : null,
-  }));
+export function toRequestBody({
+  days,
+  simultaneousSlots,
+}: AvailabilityFormValues): {
+  days: BusinessDay[];
+  simultaneousSlots: number | null;
+} {
+  return {
+    simultaneousSlots,
+    days: days.map((day, weekday) => ({
+      weekday,
+      isOpen: day.isOpen,
+      opensAt: day.isOpen ? day.opensAt : null,
+      closesAt: day.isOpen ? day.closesAt : null,
+      breakStartsAt: day.isOpen && day.hasBreak ? day.breakStartsAt : null,
+      breakEndsAt: day.isOpen && day.hasBreak ? day.breakEndsAt : null,
+    })),
+  };
 }
