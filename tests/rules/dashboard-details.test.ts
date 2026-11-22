@@ -28,6 +28,7 @@ const EMPTY: DashboardDetailsFigures = {
   cancelledServices: [],
   cancellationReasons: [],
   reviews: [],
+  occupancy: { bookedMinutes: 0, capacityMinutes: 0 },
   margin: { revenue: 0, cost: 0, withCostCount: 0, withoutCostCount: 0 },
   open: { count: 0, total: 0 },
   leadTime: {
@@ -323,5 +324,34 @@ describe("buildDetails, reviews (RN043)", () => {
 
   it("has no average without ratings", () => {
     expect(buildDetails(EMPTY).reviews.average).toBeNull();
+  });
+});
+
+describe("buildDetails, occupancy (RN044)", () => {
+  it("divides the booked minutes by the capacity, with two places", () => {
+    expect(
+      buildDetails({
+        ...EMPTY,
+        occupancy: { bookedMinutes: 810, capacityMinutes: 1620 },
+      }).occupancy,
+    ).toEqual({ bookedMinutes: 810, capacityMinutes: 1620, percent: 50 });
+  });
+
+  it("goes beyond 100% when the bookings pass the capacity", () => {
+    expect(
+      buildDetails({
+        ...EMPTY,
+        occupancy: { bookedMinutes: 2000, capacityMinutes: 1620 },
+      }).occupancy.percent,
+    ).toBe(123.46);
+  });
+
+  it("is not worked out without minutes available", () => {
+    expect(
+      buildDetails({
+        ...EMPTY,
+        occupancy: { bookedMinutes: 120, capacityMinutes: 0 },
+      }).occupancy.percent,
+    ).toBeNull();
   });
 });

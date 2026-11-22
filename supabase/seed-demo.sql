@@ -631,6 +631,11 @@ where a.status in ('completed', 'rescheduled')
   and pg_temp.glow_demo_number(a.id::text || ':reviewed') % 100 < 60
 on conflict (appointment_id) do nothing;
 
+-- RN044: the demo shop serves three vehicles at the same time; only where it is still the default.
+update public.business_settings
+set simultaneous_slots = 3
+where id = 1 and simultaneous_slots = 1;
+
 -- Contact data shown in the portal footer, only where it is still empty (RN028).
 update public.business_settings
 set email = coalesce(email, 'contato@glow.example'),

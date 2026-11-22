@@ -153,6 +153,13 @@ export type DashboardDetails = {
     count: number;
     ratings: { rating: number; count: number }[];
   };
+  // RN044: the booked minutes over the minutes available times the
+  // simultaneous slots, with two places; null without minutes available.
+  occupancy: {
+    bookedMinutes: number;
+    capacityMinutes: number;
+    percent: number | null;
+  };
   // RN042: the gross margin of the paid with the cost of every service; the
   // percent over their revenue, null without them.
   margin: {

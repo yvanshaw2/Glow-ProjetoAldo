@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20) 9 (#21) e 10 (#22), incorporados, e 11, com `Refs #1`. Os PRs 12 e 13 completam este relatório.
+Relatório dos PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20), 9 (#21), 10 (#22), 11 (#23) e 12 (#24), incorporados, e 13, com `Closes #1`.
 
 ## O que foi feito
 
@@ -103,6 +103,14 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 - O `seed-demo.sql` dá notas a cerca de 60% dos atendimentos concluídos.
 - Testes: 6 novos, escritos antes do código.
 
+### PR 13 (ocupação da agenda)
+
+- Migration com `business_settings.simultaneous_slots` (de 1 a 20, padrão 1), a função `save_business_hours`, que grava os dias e os atendimentos numa só transação, e a `dashboard_details` com os minutos agendados.
+- Na aba Disponibilidade, o campo "Atendimentos simultâneos" (RF098); `GET` e `PUT /api/admin/settings/business-hours` passam a `{ days, simultaneousSlots }`.
+- A análise detalhada traz a ocupação da agenda na seção Operação, pela disponibilidade atual (RN044; RN040, item 17; instruções `detalhada-5`).
+- O `seed-demo.sql` configura 3 atendimentos simultâneos.
+- Testes: 8 novos e 10 ajustados ao corpo novo da disponibilidade, escritos antes do código.
+
 ## Arquivos alterados
 
 - `docs/agendamento/`: `RN040-indicadores-da-analise-detalhada.md` criado; `requisitos.md`, `RN038-dados-da-analise-do-dashboard.md`, `RN039-conteudo-da-analise-do-dashboard.md`, `UC27-gerar-analise-do-dashboard.md`, `calculos.md`, `rotas.md`, `dashboard-do-painel.md` e `CONTEXT.md` alterados.
@@ -129,7 +137,8 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 
 ## Pendências
 
-- PR 13 da issue #1 (ordem em `01_plano.md`).
+- A etapa 04 da issue #1, depois da incorporação do PR 13.
+- A migration do PR 13 é aplicada pelo Yvan antes da incorporação; até lá, a aba Disponibilidade e a análise detalhada falham na pré-visualização.
 - A migration do PR 12 é aplicada pelo Yvan antes da incorporação; até lá, o detalhe e as listas de agendamentos falham na pré-visualização, porque a consulta já lê `appointment_reviews`.
 - A migration do PR 11 é aplicada pelo Yvan antes da incorporação.
 - A migration do PR 10 é aplicada pelo Yvan antes da incorporação; a remoção da `save_service` antiga vem depois do PR 11 publicado.

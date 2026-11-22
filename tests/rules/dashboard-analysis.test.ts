@@ -562,6 +562,7 @@ const DETAIL_FIGURES: DashboardDetailsFigures = {
     { rating: 5, count: 3 },
     { rating: 3, count: 1 },
   ],
+  occupancy: { bookedMinutes: 810, capacityMinutes: 1620 },
   margin: { revenue: 1000, cost: 300, withCostCount: 10, withoutCostCount: 2 },
   open: { count: 3, total: 420 },
   leadTime: {
@@ -883,6 +884,36 @@ describe("buildDetailedAnalysisInput, reviews", () => {
         { rating: 1, count: 0 },
       ],
     });
-    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-4");
+  });
+});
+
+describe("buildDetailedAnalysisInput, occupancy", () => {
+  it("sends the percent with the previous one in points", () => {
+    const periods = {
+      analyzed: { from: "2026-10-01", to: "2026-10-31" },
+      previous: { from: "2026-09-01", to: "2026-09-30" },
+      isPartial: false,
+    };
+    const current = indicators(periods.analyzed, { appointmentCount: 5 });
+    const input = buildDetailedAnalysisInput({
+      base: buildAnalysisInput({
+        periods,
+        current,
+        comparison: buildComparison(current, null),
+        series: buildRevenueSeries(current.revenueByDay, null),
+        hasComparison: true,
+      }),
+      details: buildDetails(DETAIL_FIGURES),
+      previousDetails: buildDetails({
+        ...DETAIL_FIGURES,
+        occupancy: { bookedMinutes: 648, capacityMinutes: 1620 },
+      }),
+    });
+    expect(input.details.occupancy).toEqual({
+      current: 50,
+      previous: 40,
+      variationPoints: 10,
+    });
+    expect(ANALYSIS_PROMPT_VERSIONS.detailed).toBe("detalhada-5");
   });
 });

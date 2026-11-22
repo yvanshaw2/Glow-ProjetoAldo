@@ -53,6 +53,9 @@ export type DashboardDetailsFigures = {
   cancellationReasons: { reason: CancellationReason | null; count: number }[];
   // RN043: how many of each rating the paid have.
   reviews: { rating: number; count: number }[];
+  // RN044: the estimated minutes of the appointments not cancelled, and the
+  // minutes available times the simultaneous slots (rules/occupancy.ts).
+  occupancy: { bookedMinutes: number; capacityMinutes: number };
   // RN042: the revenue and the cost of the paid with the cost of every
   // service, and how many paid have a service with no cost.
   margin: {
@@ -260,6 +263,17 @@ export function buildDetails(
           reasonOrder(first.reason) - reasonOrder(second.reason),
       ),
     reviews: buildReviews(figures.reviews),
+    occupancy: {
+      ...figures.occupancy,
+      // RN044: two places; it may pass 100%.
+      percent:
+        figures.occupancy.capacityMinutes === 0
+          ? null
+          : divideHalfUp(
+              figures.occupancy.bookedMinutes * PERCENT_BASIS,
+              figures.occupancy.capacityMinutes,
+            ) / CENTS_PER_REAL,
+    },
     margin: buildMargin(figures.margin),
     open: figures.open,
     leadTime: {

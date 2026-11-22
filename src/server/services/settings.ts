@@ -1,10 +1,11 @@
 import "server-only";
 import {
   listBusinessHours,
-  replaceBusinessHours,
+  saveBusinessHours,
 } from "@/server/repositories/business-hours";
 import {
   findBusinessSettings,
+  findSimultaneousSlots,
   updateBusinessSettings,
 } from "@/server/repositories/business-settings";
 import {
@@ -12,13 +13,16 @@ import {
   replacePaymentFees,
 } from "@/server/repositories/payment-fees";
 import type {
-  BusinessDay,
+  BusinessHours,
   CompanySettings,
   PaymentFee,
   PublicCompany,
 } from "@/shared/api/settings";
 import { AppError } from "@/shared/errors/app-error";
-import type { CompanySettingsInput } from "@/shared/validation/settings";
+import type {
+  BusinessHoursInput,
+  CompanySettingsInput,
+} from "@/shared/validation/settings";
 
 // Module settings (docs/configuracoes/): company data, business hours and
 // payment fees.
@@ -63,16 +67,23 @@ export async function updateCompanySettings({
   return settings;
 }
 
-// UC23: the seven days, from Sunday. The PUT has no updatedAt: the list is
-// replaced as a whole and the last save prevails (docs/padroes/api.md).
-export function getBusinessHours(): Promise<BusinessDay[]> {
-  return listBusinessHours();
+// UC23: the seven days, from Sunday, and the simultaneous slots (RN044). The
+// PUT has no updatedAt: the whole is replaced and the last save prevails
+// (docs/padroes/api.md).
+export async function getBusinessHours(): Promise<BusinessHours> {
+  const [days, simultaneousSlots] = await Promise.all([
+    listBusinessHours(),
+    findSimultaneousSlots(),
+  ]);
+  return { days, simultaneousSlots };
 }
 
-export function updateBusinessHours(
-  days: BusinessDay[],
-): Promise<BusinessDay[]> {
-  return replaceBusinessHours(days);
+export async function updateBusinessHours({
+  days,
+  simultaneousSlots,
+}: BusinessHoursInput): Promise<BusinessHours> {
+  await saveBusinessHours(days, simultaneousSlots);
+  return getBusinessHours();
 }
 
 // UC24, RN012: credit, debit, Pix and cash, the percent signed.

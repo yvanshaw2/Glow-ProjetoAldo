@@ -118,6 +118,8 @@ const RECOMMENDATIONS_NOTE =
   "Sugestões geradas por IA: avalie antes de colocar em prática.";
 // The busiest hours shown in the operation.
 const BUSIEST_HOURS = 3;
+// RN044: the minutes with the thousands separator, as 1.620.
+const minutesFormat = new Intl.NumberFormat(LOCALE);
 // RN043: the average rating with two places, as 4,50.
 const ratingFormat = new Intl.NumberFormat(LOCALE, {
   minimumFractionDigits: 2,
@@ -257,6 +259,12 @@ export function describeSectionNumbers(
               `${reason === "not_informed" ? NOT_INFORMED_REASON_LABEL : CANCELLATION_REASON_LABELS[reason]} ${amount}`,
           )
           .join(SEPARATOR)}`,
+      );
+    }
+    const { bookedMinutes, capacityMinutes, percent } = details.occupancy;
+    if (percent !== null) {
+      lines.push(
+        `Ocupação da agenda: ${formatPercent(percent)} (${minutesFormat.format(bookedMinutes)} de ${minutesFormat.format(capacityMinutes)} minutos disponíveis)`,
       );
     }
     return lines;

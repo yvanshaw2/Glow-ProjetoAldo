@@ -13,6 +13,7 @@ import { SettingsSection } from "@/components/admin/settings/settings-section";
 import { FormField } from "@/components/shared/form-field";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -24,35 +25,39 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useFormFailure } from "@/hooks/use-form-failure";
 import { apiRequest } from "@/lib/api-client";
-import type { BusinessDay } from "@/shared/api/settings";
+import type { BusinessHours } from "@/shared/api/settings";
 import { WEEKDAY_LABELS } from "@/shared/constants/weekdays";
 
 // UC23 (docs/configuracoes/configuracoes-do-painel.md): the seven days with
-// their opening, closing and optional break, in the Disponibilidade tab.
+// their opening, closing and optional break, and the simultaneous slots
+// (RN044), in the Disponibilidade tab.
 
 const BUSINESS_HOURS_PATH = "/api/admin/settings/business-hours";
 const DAY_COUNT = WEEKDAY_LABELS.length;
 
-// The API reports an error of the list as <index>.<field>; the form keeps the
-// days under `days`, with the index equal to the weekday.
+// The API reports an error of a day as days.<index>.<field>, the names of the
+// form, whose index is the weekday.
 function toFieldName(field: string): string {
-  return `days.${field}`;
+  return field;
 }
+
+const SLOTS_DESCRIPTION =
+  "Quantos veículos a equipe atende ao mesmo tempo. Serve só para medir a ocupação da agenda; não limita os agendamentos.";
 
 export function AvailabilityForm() {
   return (
-    <SettingsSection<BusinessDay[]>
+    <SettingsSection<BusinessHours>
       path={BUSINESS_HOURS_PATH}
       skeletonCount={DAY_COUNT}
     >
-      {(days) => <AvailabilityFields days={days} />}
+      {(hours) => <AvailabilityFields hours={hours} />}
     </SettingsSection>
   );
 }
 
-function AvailabilityFields({ days }: { days: BusinessDay[] }) {
+function AvailabilityFields({ hours }: { hours: BusinessHours }) {
   const { control, handleSubmit, setError, clearErrors, reset, formState } =
-    useForm<AvailabilityFormValues>({ defaultValues: toFormValues(days) });
+    useForm<AvailabilityFormValues>({ defaultValues: toFormValues(hours) });
   const { failure, showFailure, clearFailure } = useFormFailure(
     setError,
     toFieldName,
@@ -63,7 +68,7 @@ function AvailabilityFields({ days }: { days: BusinessDay[] }) {
     clearFailure();
     setIsSaved(false);
     try {
-      const saved = await apiRequest<BusinessDay[]>(BUSINESS_HOURS_PATH, {
+      const saved = await apiRequest<BusinessHours>(BUSINESS_HOURS_PATH, {
         method: "PUT",
         body: toRequestBody(values),
       });
@@ -102,6 +107,28 @@ function AvailabilityFields({ days }: { days: BusinessDay[] }) {
             </li>
           ))}
         </ul>
+        <div className="sm:max-w-sm">
+          <FormField
+            control={control}
+            name="simultaneousSlots"
+            label="Atendimentos simultâneos"
+            description={SLOTS_DESCRIPTION}
+            renderInput={({ value, onChange, ...field }) => (
+              <Input
+                {...field}
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={2}
+                value={value ?? ""}
+                onChange={(event) => {
+                  const digits = event.target.value.replace(/\D/g, "");
+                  onChange(digits === "" ? null : Number(digits));
+                }}
+              />
+            )}
+          />
+        </div>
         <SubmitButton
           isLoading={formState.isSubmitting}
           loadingLabel="Salvando…"

@@ -16,6 +16,14 @@ export type BusinessDay = {
   breakEndsAt: string | null;
 };
 
+// GET and PUT /api/admin/settings/business-hours (UC23): the seven days, from
+// Sunday, and the simultaneous slots, from 1 to 20, used only to measure the
+// occupancy of the schedule (RN044).
+export type BusinessHours = {
+  days: BusinessDay[];
+  simultaneousSlots: number;
+};
+
 // One of the four items of GET and PUT /api/admin/settings/payment-fees
 // (UC24): the adjustment of a payment method (RN012).
 export type PaymentFee = {
