@@ -27,14 +27,15 @@ type ServiceRow = {
   avg_duration_minutes: number;
   pricing_mode: PricingMode;
   fixed_price: number | null;
+  fixed_cost: number | null;
   is_active: boolean;
   updated_at: string;
   category: { id: string; name: string; is_active: boolean } | null;
-  service_prices: { size: VehicleSize; price: number }[];
+  service_prices: { size: VehicleSize; price: number; cost: number | null }[];
 };
 
 const SERVICE_COLUMNS =
-  "id, type, name, description, image_path, avg_duration_minutes, pricing_mode, fixed_price, is_active, updated_at, category:categories(id, name, is_active), service_prices(size, price)";
+  "id, type, name, description, image_path, avg_duration_minutes, pricing_mode, fixed_price, fixed_cost, is_active, updated_at, category:categories(id, name, is_active), service_prices(size, price, cost)";
 
 // The whole service, as save_service takes it. The prices and the links that
 // do not belong to the type or to the pricing mode are not sent.
@@ -46,8 +47,10 @@ export type ServiceValues = {
   avgDurationMinutes: number;
   pricingMode: PricingMode;
   fixedPrice: number | null;
+  fixedCost: number | null;
   isActive: boolean;
   prices: Record<VehicleSize, number> | null;
+  costs: Record<VehicleSize, number | null> | null;
   linkedIds: string[];
 };
 
@@ -89,6 +92,21 @@ function toPrices(
       rows.find((row) => row.size === size)?.price,
     ]),
   ) as Record<VehicleSize, number>;
+}
+
+// RN042: the cost of each size, or none for a service with a fixed price.
+function toCosts(
+  rows: ServiceRow["service_prices"],
+): Record<VehicleSize, number | null> | null {
+  if (rows.length === 0) {
+    return null;
+  }
+  return Object.fromEntries(
+    VEHICLE_SIZES.map((size) => [
+      size,
+      rows.find((row) => row.size === size)?.cost ?? null,
+    ]),
+  ) as Record<VehicleSize, number | null>;
 }
 
 // RN035: the name is unique without regard to case among the services that
@@ -201,6 +219,8 @@ export async function findService(id: string): Promise<AdminService | null> {
     ...toSummary(data),
     imageUrl: imageUrlOf(data.image_path),
     prices: toPrices(data.service_prices),
+    fixedCost: data.fixed_cost,
+    costs: toCosts(data.service_prices),
     additionalIds: data.type === "main" ? linkedIds : [],
     mainServiceIds: data.type === "additional" ? linkedIds : [],
   };
@@ -225,8 +245,10 @@ export async function saveService(
     p_avg_duration_minutes: values.avgDurationMinutes,
     p_pricing_mode: values.pricingMode,
     p_fixed_price: values.fixedPrice,
+    p_fixed_cost: values.fixedCost,
     p_is_active: values.isActive,
     p_prices: values.prices,
+    p_costs: values.costs,
     p_linked_ids: values.linkedIds,
     p_updated_at: updatedAt,
   });

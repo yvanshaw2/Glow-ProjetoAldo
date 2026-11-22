@@ -20,6 +20,7 @@ const PLATE_MESSAGE = "Informe uma placa válida.";
 const BRAND_MODEL_MESSAGE = "Use de 1 a 40 caracteres.";
 const COLOR_MESSAGE = "Use de 3 a 30 letras.";
 const MONEY_MESSAGE = "Informe um valor maior que zero e de até R$ 99.999,99.";
+const COST_MESSAGE = "Informe um custo de R$ 0,00 a R$ 99.999,99.";
 const PERCENT_MESSAGE =
   "Informe um percentual de 0 a 100, com até duas casas decimais.";
 const DURATION_MESSAGE = "Informe a duração em minutos, de 5 a 2.400.";
@@ -341,6 +342,13 @@ export const moneySchema = numberFormat({
   message: MONEY_MESSAGE,
   isValid: (value) =>
     value > 0 && value <= MONEY_MAX && hasAtMostTwoDecimals(value),
+});
+
+// RN042: the cost of the supplies of a service, which may be zero.
+export const costSchema = numberFormat({
+  message: COST_MESSAGE,
+  isValid: (value) =>
+    value >= 0 && value <= MONEY_MAX && hasAtMostTwoDecimals(value),
 });
 
 export const percentSchema = numberFormat({

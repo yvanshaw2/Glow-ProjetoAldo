@@ -187,3 +187,14 @@ Ramificação `feat/1-cancellation-reason`, de `origin/main` com o #20. Testes e
 - **Seed:** o motivo dos cancelados de demonstração sai de um sorteio fixo pelo id (desistência 30%, imprevisto 25%, tempo 15%, não comparecimento 18% só em dia passado, indisponibilidade da empresa 6%, outro 6%); os cancelados de demonstração já gravados recebem o motivo na carga seguinte (clientes com e-mail em `example.com`).
 - **Achado para a tarefa dos dados de um ano:** os agendamentos do `seed-demo.sql` não preenchem `created_by_staff_id`, então o canal da análise sai 100% pelo portal.
 - **Verificação:** `npm run check` aprovado, 854 testes em 40 arquivos. Banco local: `npx supabase db reset` aplicou a migration nova sem erro. Não verificado: o `seed-demo.sql` carregado no banco local e as telas (o `docker exec ... psql` continua recusado pelas permissões, e as telas exigem a sessão com o `.env.local`).
+
+## 2026-11-22 – decisão: PR 10, custo e categoria no servidor
+
+Ramificação `feat/1-service-cost`, de `origin/main` com o #21. Testes em vermelho num commit próprio (7 novos: o custo no cadastro e na edição); depois a migration `20261119132910_service_cost.sql`, os esquemas, a regra da edição, o repositório e o serviço do catálogo, o `seed-demo.sql` e a OpenAPI.
+
+- **Desvio do plano, a confirmar:** o plano punha a cópia do custo na regra de preço (`pricing.ts`, com TDD). O custo e o nome da categoria passaram a ser copiados dentro de `create_appointment` e `update_appointment`, do catálogo da mesma transação, como o nome e o tipo do serviço (RN037). Assim, as rotas do cliente (o agendamento pelo portal) nunca leem o custo, como pede RS021, e `pricing.ts` não muda. As funções mantêm os argumentos; o `reschedule_appointment` usa o `create_appointment`.
+- **`save_service`:** uma versão nova, com `p_fixed_cost` e `p_costs`, ao lado da atual, sem valores padrão; a antiga sai numa migration posterior, depois do PR 11 publicado (`migration.md`).
+- **Banco:** `ck_services_fixed_cost`, `ck_services_fixed_cost_mode` (sem custo fixo num serviço por porte), `ck_service_prices_cost` e `ck_appointment_services_cost`.
+- **Arquivo fora da lista do plano:** `src/shared/validation/formats.ts`, com o `costSchema` e a mensagem "Informe um custo de R$ 0,00 a R$ 99.999,99.", junto das outras mensagens de formato (`mensagens-de-validacao.md`).
+- **Seed:** custo de 25% a 35% do preço em cada serviço de demonstração, fixo pelo nome; os serviços dos agendamentos de demonstração já gravados recebem o custo e a categoria de hoje.
+- **Verificação:** `npm run check` aprovado, 861 testes em 40 arquivos. `npx supabase db reset` aplicou a migration nova sem erro. Não verificado: o `seed-demo.sql` carregado e uma gravação de agendamento no banco local (o `docker exec ... psql` segue recusado; a rota exige a sessão com o `.env.local`).

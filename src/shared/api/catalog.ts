@@ -54,6 +54,10 @@ export type AdminServiceSummary = {
 
 // GET /api/admin/services/:id: the prices and the links of the service.
 export type AdminService = AdminServiceSummary & {
+  // RN042, RS021: the cost of the supplies, only in the panel; the fixed one,
+  // or one for each size (each may be null), as the price.
+  fixedCost: number | null;
+  costs: Record<VehicleSize, number | null> | null;
   imageUrl: string | null;
   // RN009: one price for each size of a service priced by size.
   prices: Record<VehicleSize, number> | null;

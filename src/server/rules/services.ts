@@ -14,6 +14,17 @@ export type MergedService = {
   imagePath?: string | null;
 };
 
+// RN042: the cost that came (null removes it), or the current one, unless the
+// pricing mode changed; no cost is left out of the registration.
+function keepCost<T>(
+  update: T | null | undefined,
+  current: T | null,
+  switched: boolean,
+): T | null | undefined {
+  if (update !== undefined) return update;
+  return switched ? undefined : (current ?? undefined);
+}
+
 export function mergeServiceUpdate(
   current: AdminService,
   update: ServiceUpdate,
@@ -30,6 +41,7 @@ export function mergeServiceUpdate(
       input: {
         ...common,
         fixedPrice: update.fixedPrice ?? current.fixedPrice ?? undefined,
+        fixedCost: keepCost(update.fixedCost, current.fixedCost, false),
         mainServiceIds: update.mainServiceIds ?? current.mainServiceIds,
       },
       isActive,
@@ -50,9 +62,11 @@ export function mergeServiceUpdate(
     input.fixedPrice =
       update.fixedPrice ??
       (switched ? undefined : (current.fixedPrice ?? undefined));
+    input.fixedCost = keepCost(update.fixedCost, current.fixedCost, switched);
   } else {
     input.prices =
       update.prices ?? (switched ? undefined : (current.prices ?? undefined));
+    input.costs = keepCost(update.costs, current.costs, switched);
   }
   if (current.type === "main") {
     input.additionalIds = update.additionalIds ?? current.additionalIds;

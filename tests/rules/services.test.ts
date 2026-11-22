@@ -25,6 +25,8 @@ const BASE = {
   imageUrl: null,
   additionalIds: [] as string[],
   mainServiceIds: [] as string[],
+  fixedCost: null,
+  costs: null,
 };
 
 const MAIN_BY_SIZE: AdminService = {
@@ -248,5 +250,47 @@ describe("mergeServiceUpdate and the image", () => {
         updatedAt: UPDATED_AT,
       }).imagePath,
     ).toBeUndefined();
+  });
+});
+
+// RN042: the cost of the supplies follows the price.
+describe("mergeServiceUpdate, costs", () => {
+  const COSTS = { small: 10, medium: 12, large: 15, extra_large: null };
+
+  it("keeps the current costs when they did not come", () => {
+    expect(
+      mergeServiceUpdate(
+        { ...MAIN_BY_SIZE, costs: COSTS },
+        { name: "Outra", updatedAt: UPDATED_AT },
+      ).input,
+    ).toMatchObject({ costs: COSTS });
+    expect(
+      mergeServiceUpdate(
+        { ...ADDITIONAL, fixedCost: 8 },
+        { name: "Outra", updatedAt: UPDATED_AT },
+      ).input,
+    ).toMatchObject({ fixedCost: 8 });
+  });
+
+  it("replaces the costs that came and removes them with null", () => {
+    expect(
+      mergeServiceUpdate(
+        { ...MAIN_FIXED, fixedCost: 30 },
+        { fixedCost: null, updatedAt: UPDATED_AT },
+      ).input,
+    ).toMatchObject({ fixedCost: null });
+    expect(
+      mergeServiceUpdate(MAIN_BY_SIZE, { costs: COSTS, updatedAt: UPDATED_AT })
+        .input,
+    ).toMatchObject({ costs: COSTS });
+  });
+
+  it("drops the costs of the old mode when the pricing mode changes", () => {
+    const { input } = mergeServiceUpdate(
+      { ...MAIN_BY_SIZE, costs: COSTS },
+      { pricingMode: "fixed", fixedPrice: 90, updatedAt: UPDATED_AT },
+    );
+    expect(input).not.toHaveProperty("costs");
+    expect(input.fixedCost).toBeUndefined();
   });
 });
