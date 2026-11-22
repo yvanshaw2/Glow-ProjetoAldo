@@ -15,6 +15,6 @@ export const GET = handleRoute(async () => {
 
 export const PUT = handleRoute(async ({ body }) => {
   await requirePermission("settings");
-  const days = businessHoursSchema.parse(body);
-  return respondOk(await updateBusinessHours(days));
+  const input = businessHoursSchema.parse(body);
+  return respondOk(await updateBusinessHours(input));
 });

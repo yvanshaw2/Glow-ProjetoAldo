@@ -47,29 +47,18 @@ export async function listBusinessHours(): Promise<BusinessDay[]> {
   return data.map(toBusinessDay);
 }
 
-// UC23: the seven rows are written by one statement, so a day is never saved
+// UC23, RNF010: the seven rows and the simultaneous slots (RN044) in one
+// transaction, by the function save_business_hours, so a day is never saved
 // without the others. The panel only changes the rows of the seed.
-export async function replaceBusinessHours(
+export async function saveBusinessHours(
   days: BusinessDay[],
-): Promise<BusinessDay[]> {
-  const { data, error } = await getServiceClient()
-    .from("business_hours")
-    .upsert(
-      days.map((day) => ({
-        weekday: day.weekday,
-        is_open: day.isOpen,
-        opens_at: day.opensAt,
-        closes_at: day.closesAt,
-        break_starts_at: day.breakStartsAt,
-        break_ends_at: day.breakEndsAt,
-      })),
-      { onConflict: "weekday" },
-    )
-    .select(BUSINESS_HOURS_COLUMNS)
-    .order("weekday")
-    .overrideTypes<BusinessHoursRow[], { merge: false }>();
+  simultaneousSlots: number,
+): Promise<void> {
+  const { error } = await getServiceClient().rpc("save_business_hours", {
+    p_days: days,
+    p_simultaneous_slots: simultaneousSlots,
+  });
   if (error) {
     throw error;
   }
-  return data.map(toBusinessDay);
 }

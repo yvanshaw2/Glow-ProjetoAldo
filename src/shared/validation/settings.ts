@@ -149,7 +149,7 @@ function parseItems<Item>(
 }
 
 // UC23, RN013: the seven weekdays, from Sunday (0) to Saturday (6).
-export const businessHoursSchema = z
+const businessDaysSchema = z
   .array(z.unknown(), { error: SEVEN_DAYS_MESSAGE })
   .transform((items, context) => {
     if (!hasEveryKey(items, "weekday", WEEKDAYS)) {
@@ -158,6 +158,49 @@ export const businessHoursSchema = z
     }
     return parseItems(items, businessDaySchema, context);
   });
+
+const SLOTS_MESSAGE = "Informe de 1 a 20 atendimentos simultâneos.";
+
+// RN044: only to measure the occupancy of the schedule.
+const simultaneousSlotsSchema = z
+  .number({ error: SLOTS_MESSAGE })
+  .int({ error: SLOTS_MESSAGE })
+  .min(1, { error: SLOTS_MESSAGE })
+  .max(20, { error: SLOTS_MESSAGE });
+
+// UC23: the days and the simultaneous slots. An error of a day goes to
+// days.<index>.<field>; the list without the seven days is an error of the
+// body, with no field (docs/configuracoes/rotas.md).
+export const businessHoursSchema = z
+  .object(
+    {
+      days: z.unknown().optional(),
+      simultaneousSlots: z.unknown().optional(),
+    },
+    { error: SEVEN_DAYS_MESSAGE },
+  )
+  .transform((body, context) => {
+    const days = businessDaysSchema.safeParse(body.days);
+    const slots = simultaneousSlotsSchema.safeParse(body.simultaneousSlots);
+    days.error?.issues.forEach(({ message, path }) =>
+      context.addIssue({
+        code: "custom",
+        message,
+        path: path.length === 0 ? [] : ["days", ...path],
+      }),
+    );
+    if (!slots.success) {
+      context.addIssue({
+        code: "custom",
+        message: SLOTS_MESSAGE,
+        path: ["simultaneousSlots"],
+      });
+    }
+    if (!days.success || !slots.success) return z.NEVER;
+    return { days: days.data, simultaneousSlots: slots.data };
+  });
+
+export type BusinessHoursInput = z.output<typeof businessHoursSchema>;
 
 const paymentFeeInputSchema = z.object({
   paymentMethod: z.enum(PAYMENT_METHODS),

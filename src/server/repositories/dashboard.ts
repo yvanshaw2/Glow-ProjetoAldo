@@ -25,6 +25,13 @@ export async function findDashboardFigures(
   return data as DashboardFigures;
 }
 
+// What dashboard_details gives: the figures, with the booked minutes of the
+// occupancy alone; the minutes available come from the business hours
+// (RN044).
+export type DashboardDetailsRow = Omit<DashboardDetailsFigures, "occupancy"> & {
+  bookedMinutes: number;
+};
+
 // RN040: the numbers of the detailed analysis between the two instants,
 // [from, to), with the open appointments up to `openTo`, the end of the
 // period shown.
@@ -33,7 +40,7 @@ export async function findDashboardDetails(
   to: string,
   openTo: string,
   timeZone: string,
-): Promise<DashboardDetailsFigures> {
+): Promise<DashboardDetailsRow> {
   const { data, error } = await getServiceClient().rpc("dashboard_details", {
     p_from: from,
     p_to: to,
@@ -43,5 +50,5 @@ export async function findDashboardDetails(
   if (error) {
     throw error;
   }
-  return data as DashboardDetailsFigures;
+  return data as DashboardDetailsRow;
 }

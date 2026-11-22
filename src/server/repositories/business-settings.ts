@@ -49,6 +49,19 @@ export async function findBusinessSettings(): Promise<CompanySettings | null> {
   return data === null ? null : toCompanySettings(data);
 }
 
+// RN044: the simultaneous slots of the company, from 1 to 20.
+export async function findSimultaneousSlots(): Promise<number> {
+  const { data, error } = await getServiceClient()
+    .from("business_settings")
+    .select("simultaneous_slots")
+    .eq("id", SINGLE_ROW_ID)
+    .single<{ simultaneous_slots: number }>();
+  if (error) {
+    throw error;
+  }
+  return data.simultaneous_slots;
+}
+
 // RNF011, decision 0009: the version is checked by the update itself, so a
 // change saved in between is never overwritten. Null when the row no longer
 // has that updated_at; trg_business_settings_updated_at writes the new one.

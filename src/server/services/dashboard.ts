@@ -2,6 +2,8 @@ import "server-only";
 import { requestChatCompletion } from "@/server/ai/chat-completion";
 import { logger } from "@/server/http/logger";
 import { listAppointmentsBetween } from "@/server/repositories/appointments";
+import { listBusinessHours } from "@/server/repositories/business-hours";
+import { findSimultaneousSlots } from "@/server/repositories/business-settings";
 import {
   findDashboardDetails,
   findDashboardFigures,
@@ -21,6 +23,7 @@ import {
   parseDetailedAnalysis,
 } from "@/server/rules/dashboard-analysis";
 import { buildDetails } from "@/server/rules/dashboard-details";
+import { countAvailableMinutes } from "@/server/rules/occupancy";
 import {
   buildIndicators,
   type DashboardIndicators,
@@ -92,9 +95,24 @@ async function calculateDetails(
 ): Promise<DashboardDetails> {
   const { from, to } = companyDayRange(period);
   const open = companyDayRange({ from: period.from, to: openTo });
-  return buildDetails(
-    await findDashboardDetails(from, to, open.to, COMPANY_TIME_ZONE),
-  );
+  const [{ bookedMinutes, ...figures }, businessHours, simultaneousSlots] =
+    await Promise.all([
+      findDashboardDetails(from, to, open.to, COMPANY_TIME_ZONE),
+      listBusinessHours(),
+      findSimultaneousSlots(),
+    ]);
+  // RN044: the minutes available by the current business hours.
+  return buildDetails({
+    ...figures,
+    occupancy: {
+      bookedMinutes,
+      capacityMinutes: countAvailableMinutes(
+        period,
+        businessHours,
+        simultaneousSlots,
+      ),
+    },
+  });
 }
 
 export async function generateDashboardAnalysis(

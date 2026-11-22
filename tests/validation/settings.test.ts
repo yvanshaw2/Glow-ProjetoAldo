@@ -451,10 +451,14 @@ describe("businessHoursSchema, simultaneous slots (RN044)", () => {
   });
 
   it("rejects no number, 0, 21, a fraction and a text in its field", () => {
-    for (const slots of [undefined, null, 0, 21, 2.5, "3"]) {
-      expect(
-        pathMessages(businessHoursSchema.safeParse(hours(seededWeek, slots))),
-      ).toEqual({ simultaneousSlots: SLOTS });
+    const bodies = [
+      { days: seededWeek },
+      ...[null, 0, 21, 2.5, "3"].map((slots) => hours(seededWeek, slots)),
+    ];
+    for (const body of bodies) {
+      expect(pathMessages(businessHoursSchema.safeParse(body))).toEqual({
+        simultaneousSlots: SLOTS,
+      });
     }
   });
 

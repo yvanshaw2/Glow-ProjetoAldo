@@ -40,7 +40,7 @@ import { normalizeText } from "@/shared/validation/formats";
 // and the evaluation of workflows/procedimentos/testes.md.
 export const ANALYSIS_PROMPT_VERSIONS = {
   summary: "resumida-1",
-  detailed: "detalhada-4",
+  detailed: "detalhada-5",
 } as const;
 
 // RN038: up to this many days the revenue goes by day; above, by blocks.
@@ -467,6 +467,7 @@ export type DetailedAnalysisInput = AnalysisInput & {
       average: ComparedCount;
       ratings: DashboardDetails["reviews"]["ratings"];
     };
+    occupancy: ComparedRate | null;
     margin: Omit<DashboardDetails["margin"], "percent"> & {
       percent: ComparedRate | null;
     };
@@ -555,6 +556,20 @@ export function buildDetailedAnalysisInput({
         ),
         ratings: details.reviews.ratings,
       },
+      occupancy:
+        details.occupancy.percent === null
+          ? null
+          : {
+              current: details.occupancy.percent,
+              previous: previous?.occupancy.percent ?? null,
+              variationPoints:
+                previous?.occupancy.percent != null
+                  ? pointsBetween(
+                      details.occupancy.percent,
+                      previous.occupancy.percent,
+                    )
+                  : null,
+            },
       margin: {
         ...details.margin,
         percent:
@@ -593,7 +608,7 @@ export function buildDetailedAnalysisInput({
 const DETAILED_INSTRUCTIONS = [
   SUMMARY_INSTRUCTIONS,
   "Este é o relatório detalhado: além do resumo e das observações, analise cada área do negócio com os dados de details.",
-  `Responda também sections, as cinco seções, uma vez cada, com uma a ${MAX_OBSERVATIONS} observações de até ${COMMENT_MAX_LENGTH} caracteres: revenue (receita: os indicadores, a receita ao longo do período, os agendamentos em aberto e a margem bruta sobre os insumos), services (serviços: os que mais faturam, as categorias, a venda de complementos e os serviços mais cancelados), clients (clientes e veículos: novos e recorrentes, retornos, tipos e portes e a avaliação média dos atendimentos, de um a cinco), operation (operação: dias da semana, horários, canal de agendamento, antecedência e motivos de cancelamento) e payments (pagamentos: formas de pagamento, acréscimos e descontos).`,
+  `Responda também sections, as cinco seções, uma vez cada, com uma a ${MAX_OBSERVATIONS} observações de até ${COMMENT_MAX_LENGTH} caracteres: revenue (receita: os indicadores, a receita ao longo do período, os agendamentos em aberto e a margem bruta sobre os insumos), services (serviços: os que mais faturam, as categorias, a venda de complementos e os serviços mais cancelados), clients (clientes e veículos: novos e recorrentes, retornos, tipos e portes e a avaliação média dos atendimentos, de um a cinco), operation (operação: dias da semana, horários, canal de agendamento, antecedência, motivos de cancelamento e a ocupação da agenda, que é só uma medida e pode passar de cem por cento) e payments (pagamentos: formas de pagamento, acréscimos e descontos).`,
   `Responda também recommendations, de nenhuma a ${MAX_RECOMMENDATIONS} sugestões práticas de até ${COMMENT_MAX_LENGTH} caracteres para o dono avaliar, apoiadas nos dados e escritas como sugestões, nunca como ordens.`,
 ].join("\n");
 
