@@ -3594,6 +3594,29 @@ components:
           type: number
           examples:
             - 80
+    ServiceCosts:
+      type: object
+      description: >-
+        O custo dos insumos de cada porte (RN042), de R$ 0,00 a R$ 99.999,99,
+        cada um opcional. Dado interno, nunca nas rotas públicas nem do cliente
+        (RS021).
+      properties:
+        small:
+          type:
+            - number
+            - "null"
+        medium:
+          type:
+            - number
+            - "null"
+        large:
+          type:
+            - number
+            - "null"
+        extra_large:
+          type:
+            - number
+            - "null"
     AdminServiceSummary:
       type: object
       required:
@@ -3677,6 +3700,8 @@ components:
           required:
             - imageUrl
             - prices
+            - fixedCost
+            - costs
             - additionalIds
             - mainServiceIds
           properties:
@@ -3689,6 +3714,16 @@ components:
               oneOf:
                 - type: "null"
                 - $ref: "#/components/schemas/ServicePrices"
+            fixedCost:
+              type:
+                - number
+                - "null"
+              description: Custo dos insumos do valor fixo (RN042); dado interno, só no painel (RS021).
+            costs:
+              description: Custo dos insumos de cada porte; nulo fora da precificação por porte (RN042, RS021).
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/ServiceCosts"
             additionalIds:
               type: array
               description: Os adicionais do serviço principal, sem os excluídos; vazio nos outros tipos.
@@ -3767,6 +3802,18 @@ components:
               allOf:
                 - $ref: "#/components/schemas/ServicePrices"
               description: Obrigatório com pricingMode by_size.
+            fixedCost:
+              type:
+                - number
+                - "null"
+              minimum: 0
+              maximum: 99999.99
+              description: Custo dos insumos com pricingMode fixed, opcional (RN042).
+            costs:
+              description: Custo dos insumos de cada porte com pricingMode by_size, cada um opcional (RN042).
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/ServiceCosts"
             additionalIds:
               type: array
               description: Só no principal; serviços adicionais cadastrados (RN006).
@@ -3793,6 +3840,13 @@ components:
               maximum: 2400
             fixedPrice:
               type: number
+            fixedCost:
+              type:
+                - number
+                - "null"
+              minimum: 0
+              maximum: 99999.99
+              description: Custo dos insumos, opcional (RN042).
             mainServiceIds:
               type: array
               description: Serviços principais cadastrados (RN006).
@@ -3840,6 +3894,18 @@ components:
           type: number
         prices:
           $ref: "#/components/schemas/ServicePrices"
+        fixedCost:
+          type:
+            - number
+            - "null"
+          minimum: 0
+          maximum: 99999.99
+          description: Custo dos insumos (RN042); null remove, ausente mantém.
+        costs:
+          description: Custo dos insumos de cada porte (RN042); null remove, ausente mantém.
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ServiceCosts"
         additionalIds:
           type: array
           items:

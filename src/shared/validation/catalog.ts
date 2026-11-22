@@ -7,6 +7,7 @@ import { PRICING_MODES } from "@/shared/constants/pricing-modes";
 import { SERVICE_TYPES } from "@/shared/constants/service-types";
 import { VEHICLE_SIZES } from "@/shared/constants/vehicle-sizes";
 import {
+  costSchema,
   DESCRIPTION_MAX_LENGTH,
   REQUIRED_MESSAGE,
   durationMinutesSchema,
@@ -97,6 +98,17 @@ const pricesSchema = z.object(
   { error: () => REQUIRED_MESSAGE },
 );
 
+// RN042: the cost of the supplies of each size, each one optional.
+const costsSchema = z.object(
+  Object.fromEntries(
+    VEHICLE_SIZES.map((size) => [size, costSchema.nullable().optional()]),
+  ) as Record<
+    (typeof VEHICLE_SIZES)[number],
+    z.ZodOptional<z.ZodNullable<typeof costSchema>>
+  >,
+  { error: () => REQUIRED_MESSAGE },
+);
+
 const serviceFields = {
   name: entityNameSchema,
   avgDurationMinutes: durationMinutesSchema,
@@ -123,11 +135,13 @@ function pricedService<
         ...shared,
         pricingMode: z.literal("fixed"),
         fixedPrice: moneySchema,
+        fixedCost: costSchema.nullable().optional(),
       }),
       z.object({
         ...shared,
         pricingMode: z.literal("by_size"),
         prices: pricesSchema,
+        costs: costsSchema.nullable().optional(),
       }),
     ],
     { error: () => REQUIRED_MESSAGE },
@@ -147,6 +161,7 @@ export const serviceInputSchema = z.discriminatedUnion(
       type: z.literal("additional"),
       ...serviceFields,
       fixedPrice: moneySchema,
+      fixedCost: costSchema.nullable().optional(),
       mainServiceIds: linkedIdsSchema.default([]),
     }),
   ],
@@ -165,6 +180,9 @@ export const serviceUpdateSchema = z
     pricingMode: z.enum(PRICING_MODES, { error: REQUIRED_MESSAGE }).optional(),
     fixedPrice: moneySchema.optional(),
     prices: pricesSchema.optional(),
+    // RN042: null removes the cost; absent keeps it.
+    fixedCost: costSchema.nullable().optional(),
+    costs: costsSchema.nullable().optional(),
     additionalIds: linkedIdsSchema.optional(),
     mainServiceIds: linkedIdsSchema.optional(),
     // null removes the image; absent keeps it (UC14).

@@ -35,6 +35,10 @@ import type {
   PublicService,
   ServiceImage,
 } from "@/shared/api/catalog";
+import {
+  VEHICLE_SIZES,
+  type VehicleSize,
+} from "@/shared/constants/vehicle-sizes";
 import { AppError } from "@/shared/errors/app-error";
 import { REQUIRED_MESSAGE } from "@/shared/validation/formats";
 import {
@@ -180,6 +184,16 @@ export async function deleteService(id: string): Promise<void> {
   }
 }
 
+// RN042: every size, with null where no cost came.
+function toCostValues(
+  costs: Partial<Record<VehicleSize, number | null>> | null | undefined,
+): Record<VehicleSize, number | null> | null {
+  if (!costs) return null;
+  return Object.fromEntries(
+    VEHICLE_SIZES.map((size) => [size, costs[size] ?? null]),
+  ) as Record<VehicleSize, number | null>;
+}
+
 function toValues(input: ServiceInput, isActive: boolean): ServiceValues {
   if (input.type === "additional") {
     return {
@@ -190,8 +204,10 @@ function toValues(input: ServiceInput, isActive: boolean): ServiceValues {
       avgDurationMinutes: input.avgDurationMinutes,
       pricingMode: "fixed",
       fixedPrice: input.fixedPrice,
+      fixedCost: input.fixedCost ?? null,
       isActive,
       prices: null,
+      costs: null,
       linkedIds: input.mainServiceIds,
     };
   }
@@ -203,8 +219,10 @@ function toValues(input: ServiceInput, isActive: boolean): ServiceValues {
     avgDurationMinutes: input.avgDurationMinutes,
     pricingMode: input.pricingMode,
     fixedPrice: input.pricingMode === "fixed" ? input.fixedPrice : null,
+    fixedCost: input.pricingMode === "fixed" ? (input.fixedCost ?? null) : null,
     isActive,
     prices: input.pricingMode === "by_size" ? input.prices : null,
+    costs: input.pricingMode === "by_size" ? toCostValues(input.costs) : null,
     linkedIds: input.type === "main" ? input.additionalIds : [],
   };
 }
