@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20) 9 (#21) e 10 (#22) e 11 (#23) e 12 (#24), incorporados, e 13, com `Closes #1`.
+Relatório dos PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20), 9 (#21), 10 (#22), 11 (#23) e 12 (#24), incorporados, e 13, com `Closes #1`.
 
 ## O que foi feito
 
