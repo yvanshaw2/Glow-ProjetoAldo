@@ -5,7 +5,7 @@ pull_request: 12
 
 # Relatório: Análise do período no dashboard, gerada por IA
 
-Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19) e 8 (#20), incorporados, e 9, com `Refs #1`. Os PRs 10 a 13 completam este relatório.
+Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 6 (#18), 7 (#19), 8 (#20) e 9 (#21), incorporados, e 10, com `Refs #1`. Os PRs 11 a 13 completam este relatório.
 
 ## O que foi feito
 
@@ -75,11 +75,18 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 - O texto copiado e a impressão levam as seções e as sugestões.
 - Testes: 8 dos números das seções e do texto copiado, escritos antes do código.
 
-### PR 9 (motivo do cancelamento)
+### PR 9 (#21, motivo do cancelamento)
 
 - Migration com o tipo `cancellation_reason`, a coluna `appointments.cancellation_reason` e a `dashboard_details` com os motivos.
 - O motivo é obrigatório nos dois cancelamentos (RF095, RN041): o funcionário escolhe entre todos, e o cliente, entre os dele; aparece no detalhe do cancelado, no painel e no portal, como "Não informado" nos anteriores à regra.
 - Os motivos entram na análise detalhada, na seção Operação (instruções `detalhada-2`), e no `seed-demo.sql`.
+- Testes: 7, escritos antes do código.
+
+### PR 10 (custo e categoria no servidor)
+
+- Migration com o custo dos insumos no serviço (`fixed_cost`) e no porte (`service_prices.cost`), a cópia do custo e do nome da categoria em `appointment_services` e uma `save_service` com os custos.
+- O cadastro e a edição do serviço aceitam o custo, opcional, na forma do preço (RF096, RN042); o detalhe do painel o devolve, e as rotas públicas e do cliente não o leem (RS021).
+- O registro e a edição do agendamento copiam o custo do porte e a categoria (RN037), também no `seed-demo.sql`.
 - Testes: 7, escritos antes do código.
 
 ## Arquivos alterados
@@ -108,7 +115,8 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 
 ## Pendências
 
-- PRs 10 a 13 da issue #1 (ordem em `01_plano.md`).
+- PRs 11 a 13 da issue #1 (ordem em `01_plano.md`).
+- A migration do PR 10 é aplicada pelo Yvan antes da incorporação; a remoção da `save_service` antiga vem depois do PR 11 publicado.
 - A migration do PR 9 é aplicada pelo Yvan antes da incorporação.
 - A migration do PR 6 é aplicada pelo Yvan (`npx supabase db push`) antes da incorporação.
 - O corpo da issue #1 não recebeu a segunda ampliação (caixa do ponto 6 vazia), e o exemplo do critério de aceitação de lá difere da L18.
