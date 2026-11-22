@@ -1,6 +1,6 @@
 # `/api/me/appointments/:id`
 
-Guard: `requireClient` (o id do cliente vem sempre da sessão). Serviço: `src/server/services/appointments.ts`. Subpastas: `cancel/`, `reschedule/`.
+Guard: `requireClient` (o id do cliente vem sempre da sessão). Serviço: `src/server/services/appointments.ts`. Subpastas: `cancel/`, `reschedule/`, `review/`.
 
 | Método | Finalidade |
 |---|---|

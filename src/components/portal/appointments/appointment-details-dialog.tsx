@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { AppointmentChangeDialog } from "@/components/portal/appointments/appointment-change-dialog";
+import { AppointmentReview } from "@/components/portal/appointments/appointment-review";
 import { CancellationReasonField } from "@/components/shared/cancellation-reason-field";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -250,6 +251,10 @@ function AppointmentContent({
             <span>{formatCurrency(total)}</span>
           </p>
         </div>
+        <AppointmentReview
+          appointment={currentAppointment}
+          onReviewed={setCurrentAppointment}
+        />
       </div>
       {SHOW_CHANGE_NOTICE[status] && (
         <Alert>

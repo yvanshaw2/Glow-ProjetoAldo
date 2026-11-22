@@ -51,6 +51,8 @@ export type DashboardDetailsFigures = {
   cancelledServices: DashboardNamedCount[];
   // RN041: null for a cancellation from before the rule.
   cancellationReasons: { reason: CancellationReason | null; count: number }[];
+  // RN043: how many of each rating the paid have.
+  reviews: { rating: number; count: number }[];
   // RN042: the revenue and the cost of the paid with the cost of every
   // service, and how many paid have a service with no cost.
   margin: {
@@ -74,6 +76,8 @@ const TOP_SIZE = 5;
 const CENTS_PER_REAL = 100;
 const PERCENT_BASIS = 10_000;
 const HOURS_PER_DAY = 24;
+// RN043: from the best rating to the worst.
+const RATINGS = [5, 4, 3, 2, 1];
 // RN040, item 9: from Monday to Sunday.
 const WEEK_FROM_MONDAY = [1, 2, 3, 4, 5, 6, 0];
 
@@ -128,6 +132,30 @@ function buildMargin({
         : divideHalfUp(grossCents * PERCENT_BASIS, revenueCents) /
           CENTS_PER_REAL,
     withoutCostCount,
+  };
+}
+
+// RN043: the average with two places, rounded half up.
+function buildReviews(
+  reviews: DashboardDetailsFigures["reviews"],
+): DashboardDetails["reviews"] {
+  const counts = new Map(reviews.map(({ rating, count }) => [rating, count]));
+  const ratings = RATINGS.map((rating) => ({
+    rating,
+    count: counts.get(rating) ?? 0,
+  }));
+  const total = ratings.reduce((sum, { count }) => sum + count, 0);
+  const points = ratings.reduce(
+    (sum, { rating, count }) => sum + rating * count,
+    0,
+  );
+  return {
+    average:
+      total === 0
+        ? null
+        : divideHalfUp(points * CENTS_PER_REAL, total) / CENTS_PER_REAL,
+    count: total,
+    ratings,
   };
 }
 
@@ -231,6 +259,7 @@ export function buildDetails(
           second.count - first.count ||
           reasonOrder(first.reason) - reasonOrder(second.reason),
       ),
+    reviews: buildReviews(figures.reviews),
     margin: buildMargin(figures.margin),
     open: figures.open,
     leadTime: {

@@ -95,6 +95,14 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 - A análise detalhada traz a margem bruta dos pagos com custo e as categorias pelo nome copiado (RN040, itens 2 e 15; instruções `detalhada-3`).
 - Testes: 3 novos, escritos antes do código.
 
+### PR 12 (avaliação do atendimento)
+
+- Migration com a tabela `appointment_reviews` (uma nota de 1 a 5 por atendimento) e a `dashboard_details` com as notas.
+- O cliente avalia, uma vez, um atendimento seu Concluído ou Reagendado, até 30 dias depois da conclusão, no detalhe do histórico (UC28, RF097, RN043; `POST /api/me/appointments/:id/review`); a nota aparece no detalhe do portal e do painel.
+- A análise detalhada traz a avaliação média e a quantidade de cada nota, na seção Clientes e veículos (RN040, item 16; instruções `detalhada-4`).
+- O `seed-demo.sql` dá notas a cerca de 60% dos atendimentos concluídos.
+- Testes: 6 novos, escritos antes do código.
+
 ## Arquivos alterados
 
 - `docs/agendamento/`: `RN040-indicadores-da-analise-detalhada.md` criado; `requisitos.md`, `RN038-dados-da-analise-do-dashboard.md`, `RN039-conteudo-da-analise-do-dashboard.md`, `UC27-gerar-analise-do-dashboard.md`, `calculos.md`, `rotas.md`, `dashboard-do-painel.md` e `CONTEXT.md` alterados.
@@ -121,7 +129,8 @@ Relatório parcial: PRs 1 (#12), 2 (#13), 3a (#14), 3b (#15), 4 (#16), 5 (#17), 
 
 ## Pendências
 
-- PRs 12 e 13 da issue #1 (ordem em `01_plano.md`).
+- PR 13 da issue #1 (ordem em `01_plano.md`).
+- A migration do PR 12 é aplicada pelo Yvan antes da incorporação; até lá, o detalhe e as listas de agendamentos falham na pré-visualização, porque a consulta já lê `appointment_reviews`.
 - A migration do PR 11 é aplicada pelo Yvan antes da incorporação.
 - A migration do PR 10 é aplicada pelo Yvan antes da incorporação; a remoção da `save_service` antiga vem depois do PR 11 publicado.
 - A migration do PR 9 é aplicada pelo Yvan antes da incorporação.

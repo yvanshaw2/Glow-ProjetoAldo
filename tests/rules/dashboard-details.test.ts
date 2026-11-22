@@ -27,6 +27,7 @@ const EMPTY: DashboardDetailsFigures = {
   hours: [],
   cancelledServices: [],
   cancellationReasons: [],
+  reviews: [],
   margin: { revenue: 0, cost: 0, withCostCount: 0, withoutCostCount: 0 },
   open: { count: 0, total: 0 },
   leadTime: {
@@ -294,5 +295,33 @@ describe("buildDetails, margin (RN042)", () => {
       percent: null,
       withoutCostCount: 4,
     });
+  });
+});
+
+describe("buildDetails, reviews (RN043)", () => {
+  it("works out the average with two places and fills every rating", () => {
+    expect(
+      buildDetails({
+        ...EMPTY,
+        reviews: [
+          { rating: 5, count: 2 },
+          { rating: 4, count: 1 },
+        ],
+      }).reviews,
+    ).toEqual({
+      average: 4.67,
+      count: 3,
+      ratings: [
+        { rating: 5, count: 2 },
+        { rating: 4, count: 1 },
+        { rating: 3, count: 0 },
+        { rating: 2, count: 0 },
+        { rating: 1, count: 0 },
+      ],
+    });
+  });
+
+  it("has no average without ratings", () => {
+    expect(buildDetails(EMPTY).reviews.average).toBeNull();
   });
 });

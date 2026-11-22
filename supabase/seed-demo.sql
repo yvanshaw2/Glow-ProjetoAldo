@@ -604,6 +604,33 @@ from (
 where i.appointment_id = x.appointment_id
   and i.service_id = x.service_id;
 
+-- RN043: the ratings of about 60% of the demo appointments completed, given within the 30 days of
+-- the completion and never after the load: mostly 5 and 4, some 3 and few 2 and 1. Only the ones
+-- of the demo clients; the primary key keeps a second load from adding any.
+insert into public.appointment_reviews (appointment_id, rating, created_at)
+select a.id,
+  case
+    when d.draw < 55 then 5
+    when d.draw < 85 then 4
+    when d.draw < 94 then 3
+    when d.draw < 97 then 2
+    else 1
+  end,
+  least(
+    a.completed_at + make_interval(days => d.delay % 8, hours => 1 + d.delay % 11),
+    now()
+  )
+from public.appointments a
+join public.clients c on c.id = a.client_id and c.email like '%@example.com'
+cross join lateral (
+  select pg_temp.glow_demo_number(a.id::text || ':rating') % 100 as draw,
+    pg_temp.glow_demo_number(a.id::text || ':review') as delay
+) d
+where a.status in ('completed', 'rescheduled')
+  and a.completed_at <= now()
+  and pg_temp.glow_demo_number(a.id::text || ':reviewed') % 100 < 60
+on conflict (appointment_id) do nothing;
+
 -- Contact data shown in the portal footer, only where it is still empty (RN028).
 update public.business_settings
 set email = coalesce(email, 'contato@glow.example'),

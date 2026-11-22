@@ -118,6 +118,11 @@ const RECOMMENDATIONS_NOTE =
   "Sugestões geradas por IA: avalie antes de colocar em prática.";
 // The busiest hours shown in the operation.
 const BUSIEST_HOURS = 3;
+// RN043: the average rating with two places, as 4,50.
+const ratingFormat = new Intl.NumberFormat(LOCALE, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 const SEPARATOR = " · ";
 
 // "1 vez" and "3 vezes": the word follows the number.
@@ -203,6 +208,14 @@ export function describeSectionNumbers(
               `${VEHICLE_SIZE_LABELS[size]} ${formatCurrency(averageTicket)}`,
           )
           .join(SEPARATOR)}`,
+      );
+    }
+    const { average, count: rated, ratings } = details.reviews;
+    if (average !== null) {
+      lines.push(
+        `Avaliação média: ${ratingFormat.format(average)} de 5, em ${count(rated, "nota", "notas")} (${ratings
+          .map(({ rating, count: amount }) => `${rating}: ${amount}`)
+          .join(SEPARATOR)})`,
       );
     }
     return lines;

@@ -65,6 +65,11 @@ export const ERROR_CATALOG = {
     message:
       "Este veículo também está vinculado a outra conta. Para alterar os dados, procure a empresa.",
   },
+  // UC28 FE01, RN043: rated already, out of the 30 days or not completed.
+  REVIEW_NOT_ALLOWED: {
+    status: 409,
+    message: "Este atendimento não pode mais ser avaliado.",
+  },
   // UC27 FE01: a period with no appointments is not analyzed, and the AI
   // service is not called.
   INSUFFICIENT_DATA: {
