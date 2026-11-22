@@ -316,7 +316,7 @@ describe("buildAnalysisText of the detailed analysis", () => {
     expect(lines.slice(revenue, revenue + 3)).toEqual([
       "Receita",
       "- A receita cresceu.",
-      `Números: Agendamentos em aberto no período: 3 (R$${NBSP}420,00)`,
+      `Números: Agendamentos em aberto no período: 3 (R$${NBSP}420,00); Margem bruta: R$${NBSP}700,00 (70,00% da receita com custo informado); Pagos sem custo informado: 2`,
     ]);
     const recommendations = lines.indexOf("Sugestões");
     expect(lines.slice(recommendations, recommendations + 3)).toEqual([

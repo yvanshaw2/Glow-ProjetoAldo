@@ -51,6 +51,14 @@ export type DashboardDetailsFigures = {
   cancelledServices: DashboardNamedCount[];
   // RN041: null for a cancellation from before the rule.
   cancellationReasons: { reason: CancellationReason | null; count: number }[];
+  // RN042: the revenue and the cost of the paid with the cost of every
+  // service, and how many paid have a service with no cost.
+  margin: {
+    revenue: number;
+    cost: number;
+    withCostCount: number;
+    withoutCostCount: number;
+  };
   open: { count: number; total: number };
   leadTime: {
     count: number;
@@ -99,6 +107,28 @@ function reasonOrder(reason: CancellationReason | "not_informed"): number {
   return reason === "not_informed"
     ? CANCELLATION_REASONS.length
     : CANCELLATION_REASONS.indexOf(reason);
+}
+
+// RN042: revenue minus cost, and its percent over the revenue with two places.
+function buildMargin({
+  revenue,
+  cost,
+  withCostCount,
+  withoutCostCount,
+}: DashboardDetailsFigures["margin"]): DashboardDetails["margin"] {
+  const revenueCents = toCents(revenue);
+  const grossCents = revenueCents - toCents(cost);
+  return {
+    revenue,
+    cost,
+    gross: grossCents / CENTS_PER_REAL,
+    percent:
+      withCostCount === 0 || revenueCents === 0
+        ? null
+        : divideHalfUp(grossCents * PERCENT_BASIS, revenueCents) /
+          CENTS_PER_REAL,
+    withoutCostCount,
+  };
 }
 
 export function buildDetails(
@@ -201,6 +231,7 @@ export function buildDetails(
           second.count - first.count ||
           reasonOrder(first.reason) - reasonOrder(second.reason),
       ),
+    margin: buildMargin(figures.margin),
     open: figures.open,
     leadTime: {
       // Days with one place: tenths rounded half up.

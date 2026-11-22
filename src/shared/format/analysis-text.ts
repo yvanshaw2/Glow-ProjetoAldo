@@ -132,9 +132,19 @@ export function describeSectionNumbers(
   details: DashboardDetails,
 ): string[] {
   if (section === "revenue") {
-    return [
+    const { gross, percent, withoutCostCount } = details.margin;
+    const lines = [
       `Agendamentos em aberto no período: ${details.open.count} (${formatCurrency(details.open.total)})`,
     ];
+    if (percent !== null) {
+      lines.push(
+        `Margem bruta: ${formatCurrency(gross)} (${formatPercent(percent)} da receita com custo informado)`,
+      );
+    }
+    if (withoutCostCount > 0) {
+      lines.push(`Pagos sem custo informado: ${withoutCostCount}`);
+    }
+    return lines;
   }
   if (section === "services") {
     const { top, others } = details.services;
